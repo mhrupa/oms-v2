@@ -14,7 +14,7 @@ import com.technivaaran.mapper.CategoryMasterMapper;
 import com.technivaaran.repositories.categoryMasterRepository;
 
 @Service
-public class CategoryMasterServce {
+public class CategoryMasterService {
 
 	@Autowired
 	categoryMasterRepository categoryMasterRepository;

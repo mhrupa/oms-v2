@@ -9,8 +9,8 @@ import com.technivaaran.dto.ItemMasterDto;
 import com.technivaaran.entities.CategoryMaster;
 import com.technivaaran.entities.ItemMaster;
 import com.technivaaran.entities.UnitMaster;
-import com.technivaaran.exceptions.EntityConversionExceptioon;
-import com.technivaaran.services.CategoryMasterServce;
+import com.technivaaran.exceptions.EntityConversionException;
+import com.technivaaran.services.CategoryMasterService;
 import com.technivaaran.services.UnitMasterService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,12 +23,12 @@ public class ItemMasterMapper {
 	UnitMasterService unitMasterService;
 
 	@Autowired
-	CategoryMasterServce categoryMasterServce;
+	CategoryMasterService categoryMasterService;
 
 	public ItemMaster convertToEntity(ItemMasterDto itemMasterDto) {
 		try {
 			UnitMaster unitMaster = unitMasterService.findUnitMasterById(itemMasterDto.getItemUnitId());
-			CategoryMaster categoryMaster = categoryMasterServce
+			CategoryMaster categoryMaster = categoryMasterService
 					.findCategoryMasterById(itemMasterDto.getItemCategoryId());
 
 			return ItemMaster.builder().itemUnit(unitMaster).itemName(itemMasterDto.getItemName())
@@ -38,8 +38,8 @@ public class ItemMasterMapper {
 
 					.build();
 		} catch (Exception exception) {
-			log.info("Error occured while converting to Item entity");
-			throw new EntityConversionExceptioon(exception.getMessage(), exception);
+			log.info("Error occurred while converting to Item entity");
+			throw new EntityConversionException(exception.getMessage(), exception);
 		}
 	}
 }

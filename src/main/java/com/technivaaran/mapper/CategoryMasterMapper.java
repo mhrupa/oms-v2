@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.technivaaran.dto.CategoryMasterDto;
 import com.technivaaran.entities.CategoryMaster;
-import com.technivaaran.exceptions.EntityConversionExceptioon;
+import com.technivaaran.exceptions.EntityConversionException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,8 +17,8 @@ public class CategoryMasterMapper {
 			return CategoryMaster.builder().categoryCode(categoryMasterDto.getCategoryCode())
 					.categoryName(categoryMasterDto.getCategoryName()).build();
 		} catch (Exception exception) {
-			log.info("Error occured while converting to category entity");
-			throw new EntityConversionExceptioon(exception.getMessage(), exception);
+			log.info("Error occurred while converting to category entity");
+			throw new EntityConversionException(exception.getMessage(), exception);
 		}
 	}
 }

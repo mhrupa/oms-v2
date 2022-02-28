@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.technivaaran.dto.CategoryMasterDto;
 import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.entities.CategoryMaster;
-import com.technivaaran.services.CategoryMasterServce;
+import com.technivaaran.services.CategoryMasterService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,14 +25,14 @@ import lombok.extern.slf4j.Slf4j;
 public class CategoryMasterController {
 
 	@Autowired
-	CategoryMasterServce categoryMasterService;
+	CategoryMasterService categoryMasterService;
 
 	@PostMapping(value = "/categories", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<OmsResponse> saveCategoryMaster(@RequestBody CategoryMasterDto categoryMasterDto) {
 		log.info("Category creation started.");
 		categoryMasterService.saveCategoryMaster(categoryMasterDto);
 		log.info("Category Creation completed.");
-		return new ResponseEntity<OmsResponse>(OmsResponse.builder().message("Category created successfully").build(),
+		return new ResponseEntity<>(OmsResponse.builder().message("Category created successfully").build(),
 				HttpStatus.CREATED);
 	}
 
@@ -53,7 +53,7 @@ public class CategoryMasterController {
 			@RequestBody CategoryMasterDto categoryMasterDto) {
 		log.info("Update category by Id called");
 		categoryMasterService.updateCategoryMasterById(categoryId, categoryMasterDto);
-		return new ResponseEntity<OmsResponse>(OmsResponse.builder().message("category updated successfully").build(),
+		return new ResponseEntity<>(OmsResponse.builder().message("category updated successfully").build(),
 				HttpStatus.OK);
 	}
 }

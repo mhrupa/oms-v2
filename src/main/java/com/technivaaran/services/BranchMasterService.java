@@ -22,7 +22,7 @@ public class BranchMasterService {
 	@Autowired
 	BranchMapper branchMapper;
 
-	public BranchMaster findbarnchMasterById(int branchId) {
+	public BranchMaster findBranchMasterById(int branchId) {
 		Optional<BranchMaster> branchMasterOp = branchMasterRepository.findById(branchId);
 		if (branchMasterOp.isPresent()) {
 			return branchMasterOp.get();
@@ -31,11 +31,11 @@ public class BranchMasterService {
 		}
 	}
 
-	public List<BranchMaster> findAllbarnchMasters() {
+	public List<BranchMaster> findAllBranchMasters() {
 		return branchMasterRepository.findAll();
 	}
 
-	public BranchMaster saveBranchmaster(BranchMasterDto branchMasterDto) {
+	public BranchMaster saveBranchMaster(BranchMasterDto branchMasterDto) {
 		try {
 			BranchMaster branchMaster = branchMapper.convertToEntity(branchMasterDto);
 			return branchMasterRepository.save(branchMaster);
