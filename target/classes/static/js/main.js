@@ -1,1 +1,0 @@
-var appUser=new Object();
