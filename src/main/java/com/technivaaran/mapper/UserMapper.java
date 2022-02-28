@@ -9,7 +9,7 @@ import com.technivaaran.dto.UserDto;
 import com.technivaaran.entities.BranchMaster;
 import com.technivaaran.entities.Role;
 import com.technivaaran.entities.User;
-import com.technivaaran.exceptions.EntityConversionExceptioon;
+import com.technivaaran.exceptions.EntityConversionException;
 import com.technivaaran.services.BranchMasterService;
 import com.technivaaran.services.RoleService;
 
@@ -27,15 +27,15 @@ public class UserMapper {
 
 	public User convertToEntity(UserDto userDto) {
 		try {
-			BranchMaster branchMaster = branchMasterService.findbarnchMasterById(userDto.getBranchId());
+			BranchMaster branchMaster = branchMasterService.findBranchMasterById(userDto.getBranchId());
 			Role role = roleService.findRoleById(userDto.getRoleId());
 			return User.builder().userName(userDto.getUserName()).password(userDto.getPassword())
 					.status(StringUtils.hasLength(userDto.getStatus()) ? userDto.getStatus()
 							: AppConstants.STATUS_DISABLED)
 					.email(userDto.getEmail()).userRole(role).userBranch(branchMaster).build();
 		} catch (Exception exception) {
-			log.info("Error occured while converting to User entity");
-			throw new EntityConversionExceptioon(exception.getMessage(), exception);
+			log.info("Error occurred while converting to User entity");
+			throw new EntityConversionException(exception.getMessage(), exception);
 		}
 	}
 }

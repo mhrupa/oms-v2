@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import com.technivaaran.dto.CustomerDto;
 import com.technivaaran.entities.Customer;
 import com.technivaaran.entities.User;
-import com.technivaaran.exceptions.EntityConversionExceptioon;
+import com.technivaaran.exceptions.EntityConversionException;
 import com.technivaaran.services.UserService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +27,8 @@ public class CustomerMapper {
 					.add1(customerDto.getAdd1()).add2(customerDto.getAdd2()).city(customerDto.getCity())
 					.state(customerDto.getState()).pincode(customerDto.getPincode()).user(user).build();
 		} catch (Exception exception) {
-			log.info("Error occured while converting to Customer entity");
-			throw new EntityConversionExceptioon(exception.getMessage(), exception);
+			log.info("Error occurred while converting to Customer entity");
+			throw new EntityConversionException(exception.getMessage(), exception);
 		}
 	}
 }

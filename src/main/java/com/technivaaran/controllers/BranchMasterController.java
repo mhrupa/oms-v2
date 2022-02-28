@@ -30,21 +30,21 @@ public class BranchMasterController {
 	@GetMapping("/branches")
 	public List<BranchMaster> getAllBranches() {
 		log.info("Get all branches is called.");
-		return branchMasterService.findAllbarnchMasters();
+		return branchMasterService.findAllBranchMasters();
 	}
 
 	@GetMapping("/branches/{branchId}")
-	public BranchMaster getBrancheById(@PathVariable(value = "branchId", required = true) int branchId) {
-		log.info("Get branche by id is called.");
-		return branchMasterService.findbarnchMasterById(branchId);
+	public BranchMaster getBranchById(@PathVariable(value = "branchId", required = true) int branchId) {
+		log.info("Get branch by id is called.");
+		return branchMasterService.findBranchMasterById(branchId);
 	}
 
 	@PostMapping(value = "/branches", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<OmsResponse> saveUser(@RequestBody BranchMasterDto branchMasterDto) {
 		log.info("Branch Creation started.");
-		branchMasterService.saveBranchmaster(branchMasterDto);
+		branchMasterService.saveBranchMaster(branchMasterDto);
 		log.info("Branch Creation completed.");
-		return new ResponseEntity<OmsResponse>(OmsResponse.builder().message("Branch created successfully").build(),
+		return new ResponseEntity<>(OmsResponse.builder().message("Branch created successfully").build(),
 				HttpStatus.CREATED);
 	}
 
@@ -54,7 +54,7 @@ public class BranchMasterController {
 		log.info("Update Branch by Id called");
 		branchMasterService.updateBranchMasterById(branchId, branchMasterDto);
 
-		return new ResponseEntity<OmsResponse>(OmsResponse.builder().message("Branch updated successfully").build(),
+		return new ResponseEntity<>(OmsResponse.builder().message("Branch updated successfully").build(),
 				HttpStatus.OK);
 	}
 }
