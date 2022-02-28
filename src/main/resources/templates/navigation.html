@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style type="text/css">
+.dropdown-toggle::after {
+	display: none;
+}
+
+.navbar {
+	padding-top: 0px;
+	padding-bottom: 0px;
+}
+</style>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$("#appUserDetails").html(appUser.userName);
+	});
+	function menunav(menupath) {
+		$("#omsData").load(menupath);
+	}
+</script>
+</head>
+<body>
+	<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+		<div class="container-fluid">
+			<button class="navbar-toggler" type="button"
+				data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+				aria-controls="navbarSupportedContent" aria-expanded="false"
+				aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarSupportedContent">
+				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+					<li class="nav-item"><a class="nav-link active"
+						aria-current="page" href="#">Home</a></li>
+					<li class="nav-item dropdown"><a
+						class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
+						role="button" data-bs-toggle="dropdown" aria-expanded="false">
+							Masters </a>
+						<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+							<li><a class="dropdown-item" href="#"
+								onclick='menunav("/categoryHome")'>Category</a></li>
+							<li><a class="dropdown-item" href="#"
+								onclick='menunav("/branchHome")'>Branch</a></li>
+							<li><a class="dropdown-item" href="#"
+								onclick='menunav("/unitHome")'>Unit</a></li>
+							<li><a class="dropdown-item" href="#"
+								onclick='menunav("/itemHome")'>Item</a></li>
+							<li><a class="dropdown-item" href="#"
+								onclick='menunav("/userHome")'>User</a></li>
+							<li><a class="dropdown-item" href="#"
+								onclick='menunav("/customerHome")'>Customer</a></li>
+						</ul></li>
+					<li class="nav-item dropdown"><a
+						class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
+						role="button" data-bs-toggle="dropdown" aria-expanded="false">
+							Transactions </a>
+						<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+							<li><a class="dropdown-item" href="#">Sales Order</a></li>
+						</ul></li>
+					<li class="nav-item dropdown"><a
+						class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
+						role="button" data-bs-toggle="dropdown" aria-expanded="false">
+							Reports </a>
+						<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+							<li><a class="dropdown-item" href="#">Test Report</a></li>
+						</ul></li>
+				</ul>
+				<div id="appUserDetails" style="color: white;"></div>
+			</div>
+		</div>
+	</nav>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$("#statusMsg").html("");
+		initUsers();
+		initBranches();
+		initRoles();
+		
+		$("#users").change(function(){
+			const user=JSON.parse($(this).val());
+			if(undefined!=user.id){
+				$("#username").val(user.userName);
+				$("#email").val(user.email);
+				$("#pass").val("");
+				$("#cpass").val("");
+				$("#status").val(user.status);
+				$("#branch").val(JSON.stringify(user.userBranch));
+				$("#role").val(JSON.stringify(user.userRole));
+			}else{
+				initControlls();
+			}
+		})
+		
+		$("#updateUserBtn").click(function() {
+			$("#updateUserBtn").prop("disabled", true);
+			
+			const user=JSON.parse($("#users").val());
+			const username = $("#username").val();
+			const email = $("#email").val();
+			const pass=$("#pass").val();
+			const cpass=$("#cpass").val();
+			const status=$("#status").val();
+			const branch=JSON.parse($("#branch").val());
+			const role=JSON.parse($("#role").val());
+
+			if (undefined == username || username == "") {
+				$("#statusMsg").html("Enter valid User Name");
+				$("#username").focus();
+				$("#updateUserBtn").prop("disabled", false);
+				return;
+			}
+			if (undefined == email || email == "") {
+				$("#statusMsg").html("Enter valid Email");
+				$("#email").focus();
+				$("#updateUserBtn").prop("disabled", false);
+				return;
+			}
+			if (undefined == pass || pass == "") {
+				$("#statusMsg").html("Enter valid Password");
+				$("#pass").focus();
+				$("#updateUserBtn").prop("disabled", false);
+				return;
+			}
+			if (undefined == email || pass != cpass) {
+				$("#statusMsg").html("Password and Confirm password not matching");
+				$("#cpass").focus();
+				$("#updateUserBtn").prop("disabled", false);
+				return;
+			}
+			if (undefined == status || status === "0") {
+				$("#statusMsg").html("Select valid Status");
+				$("#status").focus();
+				$("#updateUserBtn").prop("disabled", false);
+				return;
+			}
+			if(undefined==JSON.stringify(branch.id)){
+				$("#statusMsg").html("Select valid Branch");
+				$("#branch").focus();
+				$("#updateUserBtn").prop("disabled", false);
+				return;
+			}
+			if(undefined==JSON.stringify(role.id)){
+				$("#statusMsg").html("Select valid Role");
+				$("#role").focus();
+				$("#updateUserBtn").prop("disabled", false);
+				return false;
+			}
+			$("#statusMsg").html("");
+			const reqObj = {"userName" : username, "email" : email, "password" : pass,
+					"status" : status, "branchId" : branch.id, "roleId" : role.id}
+
+			$.ajax({
+			    type: 'PUT',
+			    url: "/users/"+user.id,
+			    contentType: 'application/json',
+			    data: JSON.stringify(reqObj), 
+			}).done(function(res) {
+				initUsers();
+				initControlls();
+				$("#omsToast").html(res.message);
+				$('.toast').removeClass('bg-danger').addClass('bg-success').toast('show');
+			}).fail(function(res) {
+				$("#omsToast").html(JSON.parse(res.responseText).message);
+				$('.toast').addClass('bg-danger').toast('show');
+			});
+			$("#updateUserBtn").prop("disabled", false);
+			});
+		});
+	function initBranches(){
+		$("#branch").empty();
+		$("#branch").append("<option value=0 selected>Select Branch</option>");
+		$.get("/branches",function(res){
+			res.forEach(branch =>{
+				$("#branch").append("<option value="+JSON.stringify(branch)+">"+branch.branchName+"</option>");
+			});
+			
+		})
+	}
+	function initRoles(){
+		$("#role").empty();
+		$("#role").append("<option value=0 selected>Select Role</option>");
+		$.get("/roles",function(res){
+			res.forEach(role =>{
+				$("#role").append("<option value="+JSON.stringify(role)+">"+role.roleName+"</option>");
+			});
+			
+		})
+	}
+	function initUsers(){
+		$("#users").empty();
+		$("#users").append("<option value=0 selected>Select User</option>");
+		$.get("/users",function(res){
+			res.forEach(user =>{
+				$("#users").append("<option value="+JSON.stringify(user)+">"+user.userName+"</option>");
+			});
+			
+		})
+	}
+	function initControlls(){
+		$("#username").val("");
+		$("#email").val("");
+		$("#pass").val("");
+		$("#cpass").val("");
+		$("#status").val(0);
+		$("#branch").val(0);
+		$("#role").val(0);
+	}
+
+</script>
+</head>
+<body>
+	<div class="card m-3" style="min-height: 400px;">
+		<div class="card-body">
+			<div class="mb-1">
+				<label for="users" class="mb-0">Select User</label> <select
+					id="users" class="form-select form-select-sm"
+					aria-label="Select User">
+				</select>
+			</div>
+			<div class="mb-1">
+				<label for="username" class="mb-0">Username</label> <input
+					class="form-control" id="username" placeholder="Username">
+			</div>
+			<div class="mb-1">
+				<label for="email" class="mb-0">Email</label> <input
+					class="form-control" id="email" placeholder="Email">
+			</div>
+			<div class="mb-1">
+				<label for="pass" class="mb-0">Password</label> <input type="password"
+					class="form-control" id="pass" placeholder="Password">
+			</div>
+			<div class="mb-1">
+				<label for="cpass" class="mb-0">Confirm Password</label> <input type="password"
+					class="form-control" id="cpass" placeholder="Confirm Password">
+			</div>
+			<div class="mb-1">
+				<label for="status" class="mb-0">Status</label> <select id="status"
+					class="form-select form-select-sm" aria-label="Select Status">
+					<option value="0">Select status</option>
+					<option value="Active">Active</option>
+					<option value="Disabled">Disabled</option>
+				</select>
+			</div>
+			<div class="mb-1">
+				<label for="branch" class="mb-0">Branch</label> <select
+					id="branch" class="form-select form-select-sm"
+					aria-label="Select Branch">
+				</select>
+			</div>
+			<div class="mb-1">
+				<label for="role" class="mb-0">Role</label> <select
+					id="role" class="form-select form-select-sm"
+					aria-label="Select Role">
+				</select>
+			</div>
+			<button type="button" id="updateUserBtn"
+				class="btn btn-primary mt-1">Update User</button>
+		</div>
+	</div>
+</body>
+</html>

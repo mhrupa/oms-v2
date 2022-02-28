@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$("#statusMsg").html("");
+		$("#createBranchBtn").click(function() {
+			$("#createBranchBtn").prop("disabled", true);
+			
+			const branchCodeVal = $("#branchCode").val();
+			const branchNameVal = $("#branchName").val();
+			const branchAddVal = $("#branchAdd").val();
+			
+
+			if (undefined == branchNameVal || branchNameVal == "") {
+				$("#statusMsg").html("Enter valid Branch Name");
+				$("#branchName").focus();
+				$("#createBranchBtn").prop("disabled", false);
+				return;
+			}
+			
+			if (undefined == branchCodeVal || branchCodeVal == "") {
+				$("#statusMsg").html("Enter valid Branch Code");
+				$("#branchCode").focus();
+				$("#createBranchBtn").prop("disabled", false);
+				return;
+			}
+			$("#statusMsg").html("");
+			const reqObj = {"branchName" : branchNameVal, "branchCode" : branchCodeVal,
+					"branchAdd" : branchAddVal, "homeBranch" : $("#homeBranch").prop('checked')}
+
+			$.post("/branches", JSON.stringify(reqObj), function(res) {
+					$("#omsToast").html(res.message);
+					$('.toast').removeClass('bg-danger').addClass('bg-success').toast('show');
+				}).fail(function(res) {
+					$("#omsToast").html(JSON.parse(res.responseText).message);
+					$('.toast').addClass('bg-danger').toast('show');
+				});
+			$("#createBranchBtn").prop("disabled", false);
+			});
+		});
+</script>
+</head>
+<body>
+	<div class="card m-3" style="min-height: 400px;">
+		<div class="card-body">
+			<div class="mb-1">
+				<label for="branchName" class="mb-0">Branch Name</label> <input
+					class="form-control" id="branchName" placeholder="Branch Name">
+			</div>
+			<div class="mb-1">
+				<label for="branchCode" class="form-label mb-0">Branch
+					Code</label> <input class="form-control" id="branchCode"
+					placeholder="Branch Code">
+			</div>
+			<div class="mb-1">
+				<label for="branchAdd" class="form-label mb-0">Branch
+					Address</label> <input class="form-control" id="branchAdd"
+					placeholder="Branch Address">
+			</div>
+			<div class="form-check">
+				<input class="form-check-input" type="checkbox" value=""
+					id="homeBranch"> <label class="form-check-label"
+					for="homeBranch"> Home Branch? </label>
+			</div>
+			<button type="button" id="createBranchBtn"
+				class="btn btn-primary mt-1">Create Branch</button>
+		</div>
+	</div>
+</body>
+</html>

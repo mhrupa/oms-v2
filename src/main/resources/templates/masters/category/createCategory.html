@@ -1,0 +1,58 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$("#statusMsg").html("");
+		$("#createCategoryBtn").click(function() {
+			$("#createCategoryBtn").prop("disabled", true);
+			
+			const categoryCodeVal = $("#categoryCode").val();
+			const categoryNameVal = $("#categoryName").val();
+
+			if (undefined == categoryNameVal || categoryNameVal == "") {
+				$("#statusMsg").html("Enter valid Category Name");
+				$("#categoryName").focus();
+				$("#createCategoryBtn").prop("disabled", false);
+				return;
+			}
+			
+			if (undefined == categoryCodeVal || categoryCodeVal == "") {
+				$("#statusMsg").html("Enter valid Category Code");
+				$("#categoryCode").focus();
+				$("#createCategoryBtn").prop("disabled", false);
+				return;
+			}
+			$("#statusMsg").html("");
+			const reqObj = {"categoryName" : categoryNameVal, "categoryCode" : categoryCodeVal}
+
+			$.post("/categories", JSON.stringify(reqObj), function(res) {
+					$("#omsToast").html(res.message);
+					$('.toast').removeClass('bg-danger').addClass('bg-success').toast('show');
+				}).fail(function(res) {
+					$("#omsToast").html(JSON.parse(res.responseText).message);
+					$('.toast').addClass('bg-danger').toast('show');
+				});
+			$("#createCategoryBtn").prop("disabled", false);
+			});
+		});
+</script>
+</head>
+<body>
+	<div class="card m-3" style="min-height: 400px;">
+		<div class="card-body">
+			<div class="mb-1">
+				<label for="categoryName" class="mb-0">Category Name</label> <input
+					class="form-control" id="categoryName" placeholder="Category Name">
+			</div>
+			<div class="mb-1">
+				<label for="categoryCode" class="form-label mb-0">Category
+					Code</label> <input class="form-control" id="categoryCode"
+					placeholder="Category Code">
+			</div>
+			<button type="button" id="createCategoryBtn"
+				class="btn btn-primary mt-1">Create Category</button>
+		</div>
+	</div>
+</body>
+</html>

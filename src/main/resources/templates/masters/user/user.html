@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<script type="text/javascript">
+	$(document).ready(function() {
+		submenuNav("/createUserPage");
+	});
+	function submenuNav(menupath) {
+		$("#userDiv").html("Loading...");
+		$(".nav .nav-link").on("click", function() {
+			$(".nav").find(".active").removeClass("active");
+			$(this).addClass("active");
+		});
+		$("#userDiv").load(menupath);
+	}
+</script>
+</head>
+<body>
+	<div>
+		<ul class="nav nav-tabs">
+			<li class="nav-item"><a class="nav-link active"
+				id="createUserId" aria-current="page"
+				onclick='submenuNav("/createUserPage")' href="#">Create
+					User</a></li>
+			<li class="nav-item"><a class="nav-link" id="updateUserId"
+				onclick='submenuNav("/updateUserPage")' href="#">Update
+					User</a></li>
+		</ul>
+		<div id="userDiv"></div>
+	</div>
+</body>
+</html>

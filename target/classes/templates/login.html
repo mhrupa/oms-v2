@@ -1,0 +1,75 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<script type="text/javascript">
+	$(document).ready(
+			function() {
+				$("#loginBtn").click(
+						function() {
+							$("#msg").css("visibility", "hidden");
+							$("#loginBtn").prop("disabled", true);
+							$("#msg").html("");
+							const emailValue = $("#email").val();
+							const passVal = $("#password").val();
+
+							if (undefined == emailValue || emailValue == "") {
+								$("#msg").html("Enter valid email");
+								$("#msg").css("visibility", "visible");
+								$("#email").focus();
+								$("#loginBtn").prop("disabled", false);
+								return;
+							}
+
+							if (undefined == passVal || passVal == "") {
+								$("#msg").html("Enter valid password");
+								$("#msg").css("visibility", "visible");
+								$("#password").focus();
+								$("#loginBtn").prop("disabled", false);
+								return;
+							}
+							$("#msg").css("visibility", "visible").html(
+									"Authenticating user please wait...");
+							var reqObj = {
+								"username" : $("#email").val(),
+								"password" : $("#password").val()
+							}
+							$.post("/validate", JSON.stringify(reqObj), function(res) {
+								$("#desktop").html(res);
+							}).fail(function(res) {
+								$("#msg").html(res.responseText);
+								$("#loginBtn").prop("disabled", false);
+							});
+						});
+			});
+</script>
+</head>
+<body>
+	<section class="vh-100" style="background-color: #508bfc;">
+		<div class="container py-5 h-100">
+			<div
+				class="row d-flex justify-content-center align-items-center h-100">
+				<div class="col-12 col-md-8 col-lg-6 col-xl-5">
+					<div class="card shadow-2-strong" style="border-radius: 1rem;">
+						<div class="card-body p-5 ">
+							<h3 class="mb-3">Sign in</h3>
+							<div class="form-floating mb-3">
+								<input type="email" class="form-control" id="email"
+									placeholder="name@example.com" required="required"> <label
+									for="email">Email address</label>
+							</div>
+							<div class="form-floating mb-1">
+								<input type="password" class="form-control" id="password"
+									placeholder="Password"> <label for="password">Password</label>
+							</div>
+							<div class="mainDiv" id="msg"></div>
+							<button class="btn btn-primary btn-sm btn-block" id="loginBtn"
+								type="submit">Login</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</body>
+</html>

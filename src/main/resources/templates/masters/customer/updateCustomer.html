@@ -1,0 +1,194 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$("#statusMsg").html("");
+		
+		initCustomerData();
+		
+		$("#customers").change(function(){
+			const customer=JSON.parse($(this).val());
+			if(undefined!=customer.id){
+				$("#fName").val(customer.firstName);
+				$("#lName").val(customer.lastName);
+				$("#email").val(customer.email);
+				$("#contact1").val(customer.contact);
+				$("#contact2").val(customer.contact1);
+				$("#add1").val(customer.add1);
+				$("#add2").val(customer.add2);
+				$("#city").val(customer.city);
+				$("#state").val(customer.state);
+				$("#pincode").val(customer.pincode);
+			}else{
+				initControlls();
+			}
+		});
+		
+		$("#updateCustomerBtn").click(function() {
+			$("#updateCustomerBtn").prop("disabled", true);
+			const customer=JSON.parse($("#customers").val());
+			const fName = $("#fName").val();
+			const lName = $("#lName").val();
+			const email = $("#email").val();
+			const contact1 = $("#contact1").val();
+			const contact2 = $("#contact2").val();
+			const add1 = $("#add1").val();
+			const add2 = $("#add2").val();
+			const city = $("#city").val();
+			const state = $("#state").val();
+			const pincode = $("#pincode").val();
+
+			if (undefined == fName || fName == "") {
+				$("#statusMsg").html("Enter valid First Name");
+				$("#fName").focus();
+				$("#updateCustomerBtn").prop("disabled", false);
+				return;
+			}
+			
+			if (undefined == email || email == "") {
+				$("#statusMsg").html("Enter valid Email");
+				$("#email").focus();
+				$("#updateCustomerBtn").prop("disabled", false);
+				return;
+			}
+			if (undefined == contact1 || contact1 == "") {
+				$("#statusMsg").html("Enter valid Primary Contact");
+				$("#contact1").focus();
+				$("#updateCustomerBtn").prop("disabled", false);
+				return;
+			}
+			if (undefined == add1 || add1 == "") {
+				$("#statusMsg").html("Enter valid Primary Address");
+				$("#add1").focus();
+				$("#updateCustomerBtn").prop("disabled", false);
+				return;
+			}
+			if (undefined == city || city == "") {
+				$("#statusMsg").html("Enter valid City");
+				$("#city").focus();
+				$("#updateCustomerBtn").prop("disabled", false);
+				return;
+			}
+			if (undefined == state || state == "") {
+				$("#statusMsg").html("Enter valid State");
+				$("#state").focus();
+				$("#updateCustomerBtn").prop("disabled", false);
+				return;
+			}
+			if (undefined == pincode || pincode == "") {
+				$("#statusMsg").html("Enter valid Pincode");
+				$("#pincode").focus();
+				$("#updateCustomerBtn").prop("disabled", false);
+				return;
+			}
+			$("#statusMsg").html("");
+			const reqObj = {"firstName" : fName, "lastName" : lName, "email" : email,
+				"contact" : contact1, "contact1" : contact2, "add1" : add1,
+				"add2" : add2, "city" : city, "state" : state, "pincode" : pincode,"userId":1
+			}
+
+			$.ajax({
+			    type: 'PUT',
+			    url: "/customers/"+customer.id,
+			    contentType: 'application/json',
+			    data: JSON.stringify(reqObj), 
+			}).done(function(res) {
+				initControlls();
+				initCustomerData();
+				$("#omsToast").html(res.message);
+				$('.toast').removeClass('bg-danger').addClass('bg-success').toast('show');
+			}).fail(function(res) {
+				$("#omsToast").html(JSON.parse(res.responseText).message);
+				$('.toast').addClass('bg-danger').toast('show');
+			});
+			$("#updateCustomerBtn").prop("disabled", false);
+		});
+	});
+	function initCustomerData(){
+		$("#customers").empty();
+		$("#customers").append("<option value=0 selected>Select Customers</option>");
+		$.get("/customers",function(res){
+			res.forEach(customer =>{
+				$("#customers").append("<option value="+JSON.stringify(customer)+">"
+						+customer.firstName+" "+customer.lastName+"</option>");
+			});
+			
+		})
+	}
+	function initControlls(){
+		$("#fName").val("");
+		$("#lName").val("");
+		$("#email").val("");
+		$("#contact1").val("");
+		$("#contact2").val("");
+		$("#add1").val("");
+		$("#add2").val("");
+		$("#city").val("");
+		$("#state").val("");
+		$("#pincode").val("");
+	}
+	
+</script>
+</head>
+<body>
+	<div class="card m-3" style="min-height: 400px;">
+		<div class="card-body">
+			<div class="mb-1">
+				<label for="customers" class="mb-0">Select Customer</label> <select
+					id="customers" class="form-select form-select-sm"
+					aria-label="Select Customer">
+				</select>
+			</div>
+			<div class="mb-1">
+				<label for="fName" class="mb-0">First Name</label> <input
+					class="form-control" id="fName" placeholder="First Name">
+			</div>
+			<div class="mb-1">
+				<label for="lName" class="mb-0">Last Name</label> <input
+					class="form-control" id="lName" placeholder="Last Name">
+			</div>
+			<div class="mb-1">
+				<label for="email" class="mb-0">Email</label> <input type="email"
+					class="form-control" id="email" placeholder="Email">
+			</div>
+			<div class="d-flex flex-row">
+				<div class="mb-1 pe-1">
+					<label for="contact1" class="form-label mb-0">Primary
+						Contact</label> <input class="form-control" id="contact1"
+						placeholder="Primary Contact">
+				</div>
+				<div class="mb-1">
+					<label for="contact2" class="form-label mb-0">Secondary
+						Contact</label> <input class="form-control" id="contact2"
+						placeholder="Secondary Contact">
+				</div>
+			</div>
+			<div class="d-flex flex-row">
+				<div class="mb-1 pe-1">
+					<label for="add1" class="form-label mb-0">Address1</label> <input
+						class="form-control" id="add1" placeholder="Address1">
+				</div>
+				<div class="mb-1 pe-1">
+					<label for="add2" class="form-label mb-0">Address2</label> <input
+						class="form-control" id="add2" placeholder="Address2">
+				</div>
+				<div class="mb-1 pe-1">
+					<label for="city" class="form-label mb-0">City</label> <input
+						class="form-control" id="city" placeholder="City">
+				</div>
+				<div class="mb-1 pe-1">
+					<label for="state" class="form-label mb-0">State</label> <input
+						class="form-control" id="state" placeholder="State">
+				</div>
+				<div class="mb-1">
+					<label for="pincode" class="form-label mb-0">Pincode</label> <input
+						class="form-control" id="pincode" placeholder="Pincode">
+				</div>
+			</div>
+			<button type="button" id="updateCustomerBtn"
+				class="btn btn-primary mt-1">Update Customer</button>
+		</div>
+	</div>
+</body>
+</html>

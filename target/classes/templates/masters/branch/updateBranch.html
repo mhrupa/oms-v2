@@ -1,0 +1,104 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$("#statusMsg").html("");
+		
+		initBranchData();
+		
+		$("#branchCodeSelect").change(function(){
+			const branch=JSON.parse($(this).val());
+			$("#branchName").val(branch.branchName);
+			$("#branchAdd").val(branch.branchAdd);
+			$("#homeBranch").prop("checked",branch.homeBranch);
+		})
+		
+		$("#updateBranchBtn").click(function() {
+			$("#updateBranchBtn").prop("disabled", true);
+			const branch=JSON.parse($("#branchCodeSelect").val());
+			
+			if(undefined==JSON.stringify(branch.id)){
+				$("#statusMsg").html("Select valid Branch");
+				$("#branchCodeSelect").focus();
+				$("#updateBranchBtn").prop("disabled", false);
+				return false;
+			}
+			
+			const branchNameVal = $("#branchName").val();
+			const branchAddVal = $("#branchAdd").val();
+			
+
+			if (undefined == branchNameVal || branchNameVal == "") {
+				$("#statusMsg").html("Enter valid Branch Name");
+				$("#branchName").focus();
+				$("#updateBranchBtn").prop("disabled", false);
+				return;
+			}
+			
+			$("#statusMsg").html("");
+			const reqObj = {"branchName" : branchNameVal, "branchCode" : branch.branchCode,
+					"branchAdd" : branchAddVal, "homeBranch" : $("#homeBranch").prop('checked')}
+
+			$.ajax({
+			    type: 'PUT',
+			    url: "/branches/"+branch.id,
+			    contentType: 'application/json',
+			    data: JSON.stringify(reqObj), 
+			}).done(function(res) {
+				initBranchData();
+				$("#omsToast").html(res.message);
+				$('.toast').removeClass('bg-danger').addClass('bg-success').toast('show');
+			}).fail(function(res) {
+				$("#omsToast").html(JSON.parse(res.responseText).message);
+				$('.toast').addClass('bg-danger').toast('show');
+			});
+			
+			$("#updateBranchBtn").prop("disabled", false);
+		});
+	});
+	
+	function initBranchData(){
+		$("#branchName").val("");
+		$("#branchAdd").val("");
+		$("#homeBranch").prop("checked",false);
+		$("#branchCodeSelect").empty();
+		$("#branchCodeSelect").append("<option value=0 selected>Select Branch</option>");
+		$.get("/branches",function(res){
+			res.forEach(branch =>{
+				$("#branchCodeSelect").append("<option value="+JSON.stringify(branch)+">"+branch.branchName+"</option>");
+			});
+			
+		})
+	}
+</script>
+</head>
+<body>
+	<div class="card m-3" style="min-height: 400px;">
+		<div class="card-body">
+			<div class="mb-1">
+				<label for="branchCodeSelect" class="mb-0">Branch Code</label> <select
+					id="branchCodeSelect" class="form-select form-select-sm"
+					aria-label="Select Branch">
+				</select>
+			</div>
+			<div class="mb-1">
+				<label for="branchName" class="mb-0">Branch Name</label> <input
+					class="form-control" id="branchName" placeholder="Branch Name">
+			</div>
+			<div class="mb-1">
+				<label for="branchAdd" class="form-label mb-0">Branch
+					Address</label> <input class="form-control" id="branchAdd"
+					placeholder="Branch Address">
+			</div>
+			<div class="form-check">
+				<input class="form-check-input" type="checkbox" value=""
+					id="homeBranch"> <label class="form-check-label"
+					for="homeBranch"> Home Branch? </label>
+			</div>
+			<button type="button" id="updateBranchBtn"
+				class="btn btn-primary mt-1">Update Branch</button>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,21 @@
+body {
+	font-size: 14px;
+}
+
+input {
+	font-size: 13px;
+}
+
+.form-control {
+	font-size: 13px;
+}
+
+.mainDiv {
+	height: 25px;
+	color: red;
+	font-size: 12px;
+	background-color: #fcf8e3;
+	padding: 5px;
+	margin-bottom: 5px;
+	visibility: hidden;
+}

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<script type="text/javascript">
+	$(document).ready(function() {
+		appUser.userName = "[[${user.userName}]]";
+		appUser.email = "[[${user.email}]]";
+		appUser.branch = "[[${user.userBranch.branchName}]]";
+		appUser.branchCode = "[[${user.userBranch.branchCode}]]";
+		appUser.branchId = "[[${user.userBranch.id}]]";
+		appUser.roleName = "[[${user.userRole.roleName}]]";
+		appUser.roleCode = "[[${user.userRole.roleCode}]]";
+		appUser.roleId = "[[${user.userRole.roleCode}]]";
+		$("#omsNav").load("/navigation");
+	});
+</script>
+</head>
+<body>
+	<div id="omsNav"></div>
+	<div id="omsData"></div>
+	<div class="position-absolute bottom-0 start-0 w-100"
+		style="background-color: #d3dadb">
+		<label>&nbsp;&nbsp;Status:&nbsp;</label><label id="statusMsg">Test</label>
+	</div>
+</body>
+</html>

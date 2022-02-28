@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<script type="text/javascript">
+	$(document).ready(function() {
+		submenuNav("/createBranchPage");
+	});
+	function submenuNav(menupath) {
+		$("#branchDiv").html("Loading...");
+		$(".nav .nav-link").on("click", function() {
+			$(".nav").find(".active").removeClass("active");
+			$(this).addClass("active");
+		});
+		$("#branchDiv").load(menupath);
+	}
+</script>
+</head>
+<body>
+	<div>
+		<ul class="nav nav-tabs">
+			<li class="nav-item"><a class="nav-link active"
+				id="createBranchId" aria-current="page"
+				onclick='submenuNav("/createBranchPage")' href="#">Create
+					Branch</a></li>
+			<li class="nav-item"><a class="nav-link" id="updateCategoryId"
+				onclick='submenuNav("/updateBranchPage")' href="#">Update
+					Branch</a></li>
+		</ul>
+		<div id="branchDiv"></div>
+	</div>
+</body>
+</html>

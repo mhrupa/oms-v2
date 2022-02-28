@@ -1,0 +1,85 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$("#statusMsg").html("");
+		
+		initUnitdata();
+		
+		$("#unitCodeSelect").change(function(){
+			const unit=JSON.parse($(this).val());
+			$("#unitName").val(unit.unitName);
+		})
+		
+		$("#updateUnitBtn").click(function() {
+			$("#updateUnitBtn").prop("disabled", true);
+			const unit=JSON.parse($("#unitCodeSelect").val());
+			
+			if(undefined==JSON.stringify(unit.id)){
+				$("#statusMsg").html("Select valid Unit");
+				$("#unitCodeSelect").focus();
+				$("#updateUnitBtn").prop("disabled", false);
+				return false;
+			}
+			
+			const unitNameVal = $("#unitName").val();
+
+			if (undefined == unitNameVal || unitNameVal == "") {
+				$("#statusMsg").html("Enter valid Unit Name");
+				$("#unitName").focus();
+				$("#updateunitBtn").prop("disabled", false);
+				return;
+			}
+			
+			$("#statusMsg").html("");
+			const reqObj = {"unitName" : unitNameVal, "unitCode" : unit.unitCode}
+
+			$.ajax({
+			    type: 'PUT',
+			    url: "/units/"+unit.id,
+			    contentType: 'application/json',
+			    data: JSON.stringify(reqObj), 
+			}).done(function(res) {
+				initUnitdata();
+				$("#omsToast").html(res.message);
+				$('.toast').removeClass('bg-danger').addClass('bg-success').toast('show');
+			}).fail(function(res) {
+				$("#omsToast").html(JSON.parse(res.responseText).message);
+				$('.toast').addClass('bg-danger').toast('show');
+			});
+			$("#updateUnitBtn").prop("disabled", false);
+			});
+		});
+	function initUnitdata(){
+		$("#unitName").val("");
+		$("#unitCodeSelect").empty();
+		$("#unitCodeSelect").append("<option value=0 selected>Select Unit</option>");
+		$.get("/units",function(res){
+			res.forEach(unit =>{
+				$("#unitCodeSelect").append("<option value="+JSON.stringify(unit)+">"+unit.unitName+"</option>");
+			});
+			
+		})
+	}
+</script>
+</head>
+<body>
+	<div class="card m-3" style="min-height: 400px;">
+		<div class="card-body">
+			<div class="mb-1">
+				<label for="unitCodeSelect" class="mb-0">Unit Code</label> <select
+					id="unitCodeSelect" class="form-select form-select-sm"
+					aria-label="Select Unit">
+				</select>
+			</div>
+			<div class="mb-1">
+				<label for="unitName" class="mb-0">Unit Name</label> <input
+					class="form-control" id="unitName" placeholder="Unit Name">
+			</div>
+			<button type="button" id="updateUnitBtn"
+				class="btn btn-primary mt-1">Update Unit</button>
+		</div>
+	</div>
+</body>
+</html>
