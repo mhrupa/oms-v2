@@ -1,17 +1,15 @@
 package com.technivaaran.mapper;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import com.technivaaran.AppConstants;
 import com.technivaaran.dto.ItemMasterDto;
-import com.technivaaran.entities.CategoryMaster;
 import com.technivaaran.entities.ItemMaster;
 import com.technivaaran.entities.UnitMaster;
 import com.technivaaran.exceptions.EntityConversionException;
-import com.technivaaran.services.CategoryMasterService;
 import com.technivaaran.services.UnitMasterService;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,17 +20,11 @@ public class ItemMasterMapper {
 	@Autowired
 	UnitMasterService unitMasterService;
 
-	@Autowired
-	CategoryMasterService categoryMasterService;
-
 	public ItemMaster convertToEntity(ItemMasterDto itemMasterDto) {
 		try {
 			UnitMaster unitMaster = unitMasterService.findUnitMasterById(itemMasterDto.getItemUnitId());
-			CategoryMaster categoryMaster = categoryMasterService
-					.findCategoryMasterById(itemMasterDto.getItemCategoryId());
-
 			return ItemMaster.builder().itemUnit(unitMaster).itemName(itemMasterDto.getItemName())
-					.partNo(itemMasterDto.getPartNo()).itemCategory(categoryMaster)
+					.partNo(itemMasterDto.getPartNo())
 					.status(StringUtils.hasLength(itemMasterDto.getStatus()) ? itemMasterDto.getStatus()
 							: AppConstants.STATUS_ACTIVE)
 

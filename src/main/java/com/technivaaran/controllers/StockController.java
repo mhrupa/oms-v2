@@ -14,7 +14,7 @@ public class StockController {
     @Autowired
     private StockService stockService;
 
-    @GetMapping("/")
+    @GetMapping("/getStockData")
     public void getStockData() {
         log.info("get stock data called");
 

@@ -22,22 +22,6 @@ public class NavigationController {
 		return "navigation";
 	}
 
-	// ****************Category-menu*****************//
-	@GetMapping("/categoryHome")
-	public String getCategoryPage() {
-		return "masters/category/category";
-	}
-
-	@GetMapping("/createCategoryPage")
-	public String getCreateCategoryPage() {
-		return "masters/category/createCategory";
-	}
-
-	@GetMapping("/updateCategoryPage")
-	public String getUpdateCategoryPage() {
-		return "masters/category/updateCategory";
-	}
-
 	// ****************Branch-menu*****************//
 	@GetMapping("/branchHome")
 	public String getBranchPage() {
@@ -122,5 +106,15 @@ public class NavigationController {
 	@GetMapping("/stockHome")
 	public String getStockPage() {
 		return "transactions/stock/stockHome";
+	}
+
+	@GetMapping("/createStockPage")
+	public String getCreateStockPage() {
+		return "transactions/stock/createStock";
+	}
+
+	@GetMapping("/updateStockPage")
+	public String getUpdateStockPage() {
+		return "transactions/stock/updateStock";
 	}
 }

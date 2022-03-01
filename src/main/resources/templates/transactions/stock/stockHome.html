@@ -2,8 +2,34 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
+    <title></title>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            submenuNav("/createStockPage");
+        });
+        function submenuNav(menupath) {
+            $("#stockDiv").html("Loading...");
+            $(".nav .nav-link").on("click", function () {
+                $(".nav").find(".active").removeClass("active");
+                $(this).addClass("active");
+            });
+            $("#stockDiv").load(menupath);
+        }
+    </script>
 </head>
 
-<body>Testing stock home</body>
+<body>
+    <div>
+        <ul class="nav nav-tabs">
+            <li class="nav-item"><a class="nav-link active" id="createStockId" aria-current="page"
+                    onclick='submenuNav("/createStockPage")' href="#">Create
+                    Stock</a></li>
+            <li class="nav-item"><a class="nav-link" id="updateUnitId" onclick='submenuNav("/updateStockPage")'
+                    href="#">Update
+                    Stock</a></li>
+        </ul>
+        <div id="stockDiv"></div>
+    </div>
+</body>
 
 </html>

@@ -2,6 +2,7 @@ package com.technivaaran.entities;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -19,11 +20,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StockHeader extends BaseEntity<Long> {
 
-    @Column(name = "sku_name", nullable = false)
-    private String skuName;
-
-    @Column(name = "part_no")
-    private String partNo;
+    @Column(name = "location")
+    private String location;
 
     @Column(name = "opening_qty", nullable = false)
     private float openingQty;
@@ -36,5 +34,8 @@ public class StockHeader extends BaseEntity<Long> {
 
     @Column(name = "closing_qty", nullable = false)
     private float closingQty;
+
+    @ManyToOne
+    private ItemMaster itemMaster;
 
 }

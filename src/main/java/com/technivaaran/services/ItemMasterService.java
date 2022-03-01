@@ -57,7 +57,6 @@ public class ItemMasterService {
 			ItemMaster itemMaster = itemMasterOp.get();
 			itemMaster.setPartNo(itemMasterDto.getPartNo());
 			itemMaster.setItemUnit(item.getItemUnit());
-			itemMaster.setItemCategory(item.getItemCategory());
 			itemMaster.setStatus(item.getStatus());
 
 			return itemMasterRepository.save(itemMaster);

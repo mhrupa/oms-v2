@@ -32,7 +32,7 @@ public class ItemMasterController {
 		log.info("Item creation started.");
 		itemMasterService.saveItemMaster(itemMasterDto);
 		log.info("Item Creation completed.");
-		return new ResponseEntity<OmsResponse>(OmsResponse.builder().message("Item created successfully").build(),
+		return new ResponseEntity<>(OmsResponse.builder().message("Item created successfully").build(),
 				HttpStatus.CREATED);
 	}
 
@@ -53,7 +53,7 @@ public class ItemMasterController {
 			@RequestBody ItemMasterDto itemMasterDto) {
 		log.info("Update Item by Id called");
 		itemMasterService.updateItemById(itemId, itemMasterDto);
-		return new ResponseEntity<OmsResponse>(OmsResponse.builder().message("Item updated successfully").build(),
+		return new ResponseEntity<>(OmsResponse.builder().message("Item updated successfully").build(),
 				HttpStatus.OK);
 	}
 }

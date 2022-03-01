@@ -31,7 +31,7 @@ public class UnitMasterController {
 		log.info("Unit creation started.");
 		unitMasterService.saveUnitMaster(unitMasterDto);
 		log.info("Unit Creation completed.");
-		return new ResponseEntity<OmsResponse>(OmsResponse.builder().message("Unit created successfully").build(),
+		return new ResponseEntity<>(OmsResponse.builder().message("Unit created successfully").build(),
 				HttpStatus.CREATED);
 	}
 
@@ -52,7 +52,7 @@ public class UnitMasterController {
 			@RequestBody UnitMasterDto unitMasterDto) {
 		log.info("Update unit by Id called");
 		unitMasterService.updateUnitMasterById(unitId, unitMasterDto);
-		return new ResponseEntity<OmsResponse>(OmsResponse.builder().message("Unit updated successfully").build(),
+		return new ResponseEntity<>(OmsResponse.builder().message("Unit updated successfully").build(),
 				HttpStatus.OK);
 	}
 }

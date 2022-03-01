@@ -17,29 +17,24 @@ import lombok.NoArgsConstructor;
 @Table(name = "item_master")
 @Builder
 @Data
-@EqualsAndHashCode(callSuper=true)
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ItemMaster extends BaseEntity<Long>{
+public class ItemMaster extends BaseEntity<Long> {
 
 	@Column(name = "item_name", nullable = false, unique = true)
 	@Length(max = 50)
 	private String itemName;
-	
+
 	@Column(name = "part_no")
 	@Length(max = 100)
 	private String partNo;
-	
+
 	@Column(name = "status", columnDefinition = "char(10) default 'Active'")
 	private String status;
-	
+
 	@ManyToOne
-	//@JsonIgnore
+	// @JsonIgnore
 	private UnitMaster itemUnit;
-	
-	@ManyToOne
-	//@JsonIgnore
-	private CategoryMaster itemCategory;
-	
-	
+
 }
