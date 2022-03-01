@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CategoryMasterController {
 
 	@Autowired
-	CategoryMasterService categoryMasterService;
+	private CategoryMasterService categoryMasterService;
 
 	@PostMapping(value = "/categories", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<OmsResponse> saveCategoryMaster(@RequestBody CategoryMasterDto categoryMasterDto) {

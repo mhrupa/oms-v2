@@ -17,10 +17,10 @@ import com.technivaaran.repositories.UnitMasterRepository;
 public class UnitMasterService {
 	
 	@Autowired
-	UnitMasterRepository unitMasterRepository;
+	private UnitMasterRepository unitMasterRepository;
 	
 	@Autowired
-	UnitMasterMapper unitMasterMapper;
+	private UnitMasterMapper unitMasterMapper;
 
 	public UnitMaster findUnitMasterById(int unitId) {
 		Optional<UnitMaster> unitMasterOp = unitMasterRepository.findById(unitId);
@@ -50,6 +50,7 @@ public class UnitMasterService {
 
 		if (unitMasterOp.isPresent()) {
 			UnitMaster unitMaster = unitMasterOp.get();
+			unitMaster.setUnitName(unitMasterDto.getUnitName());
 			return unitMasterRepository.save(unitMaster);
 		} else {
 			throw new OMSException("Unit not found for id : " + unitId);

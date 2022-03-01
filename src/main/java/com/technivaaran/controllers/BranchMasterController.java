@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class BranchMasterController {
 
 	@Autowired
-	BranchMasterService branchMasterService;
+	private BranchMasterService branchMasterService;
 
 	@GetMapping("/branches")
 	public List<BranchMaster> getAllBranches() {

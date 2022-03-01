@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RoleController {
 	
 	@Autowired
-	RoleService roleService;
+	private RoleService roleService;
 	
 	@GetMapping("/roles")
 	public List<Role> getAllUsers() {

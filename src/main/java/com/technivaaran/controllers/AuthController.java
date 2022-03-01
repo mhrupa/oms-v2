@@ -13,7 +13,7 @@ import com.technivaaran.services.UserService;
 public class AuthController {
 
 	@Autowired
-	UserService userService;
+	private UserService userService;
 
 	@PostMapping(value = "/validate")
 	public String validateUser(@RequestBody AppUserDto appUserDto, Model model) {

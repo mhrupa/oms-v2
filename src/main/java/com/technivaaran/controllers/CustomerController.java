@@ -25,14 +25,14 @@ import lombok.extern.slf4j.Slf4j;
 public class CustomerController {
 
 	@Autowired
-	CustomerService customerService;
+	private CustomerService customerService;
 
 	@PostMapping(value = "/customers", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<OmsResponse> saveCustomer(@RequestBody CustomerDto customerDto) {
 		log.info("Customer Creation started.");
 		customerService.saveCustomer(customerDto);
 		log.info("Customer Creation completed.");
-		return new ResponseEntity<OmsResponse>(OmsResponse.builder().message("Customer created successfully").build(),
+		return new ResponseEntity<>(OmsResponse.builder().message("Customer created successfully").build(),
 				HttpStatus.CREATED);
 	}
 
@@ -45,7 +45,7 @@ public class CustomerController {
 	@GetMapping("/customers/{customerId}")
 	public Customer getCustomerById(@PathVariable(name = "customerId") long customerId) {
 		log.info("Get Customer by Id called");
-		return customerService.findCustpmerById(customerId);
+		return customerService.findCustomerById(customerId);
 	}
 
 	@PutMapping(value = "/customers/{customerId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -54,7 +54,7 @@ public class CustomerController {
 		log.info("Update Customer by Id called");
 		customerService.updateCustomerById(customerId, customerDto);
 
-		return new ResponseEntity<OmsResponse>(OmsResponse.builder().message("Customer updated successfully").build(),
+		return new ResponseEntity<>(OmsResponse.builder().message("Customer updated successfully").build(),
 				HttpStatus.OK);
 	}
 }

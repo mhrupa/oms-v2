@@ -25,36 +25,36 @@ import lombok.extern.slf4j.Slf4j;
 public class UserController {
 
 	@Autowired
-	UserService userservice;
+	private UserService userService;
 
 	@PostMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<OmsResponse> saveUser(@RequestBody UserDto userDto) {
 		log.info("User Creation started.");
-		userservice.saveUser(userDto);
+		userService.saveUser(userDto);
 		log.info("User Creation completed.");
-		return new ResponseEntity<OmsResponse>(OmsResponse.builder().message("User created successfully").build(),
+		return new ResponseEntity<>(OmsResponse.builder().message("User created successfully").build(),
 				HttpStatus.CREATED);
 	}
 
 	@GetMapping("/users")
 	public List<User> getAllUsers() {
 		log.info("Get all users is called.");
-		return userservice.getAllUsers();
+		return userService.getAllUsers();
 	}
 
 	@GetMapping("/users/{userId}")
 	public User getUserById(@PathVariable(name = "userId") long userId) {
 		log.info("Get user by Id called");
-		return userservice.getUserById(userId);
+		return userService.getUserById(userId);
 	}
 
 	@PutMapping(value = "/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<OmsResponse> updateUserById(@PathVariable(name = "userId") long userId,
 			@RequestBody UserDto userDto) {
 		log.info("Update user by Id called");
-		userservice.updateUserById(userId, userDto);
+		userService.updateUserById(userId, userDto);
 
-		return new ResponseEntity<OmsResponse>(OmsResponse.builder().message("User updated successfully").build(),
+		return new ResponseEntity<>(OmsResponse.builder().message("User updated successfully").build(),
 				HttpStatus.OK);
 	}
 

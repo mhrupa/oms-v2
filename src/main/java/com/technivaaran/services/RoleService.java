@@ -14,7 +14,7 @@ import com.technivaaran.repositories.RoleRepository;
 public class RoleService {
 
 	@Autowired
-	RoleRepository roleRepository;
+	private RoleRepository roleRepository;
 
 	public Role findRoleById(int roleId) {
 		Optional<Role> roleOp = roleRepository.findById(roleId);

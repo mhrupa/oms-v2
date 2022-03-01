@@ -18,10 +18,10 @@ import com.technivaaran.repositories.UserRepository;
 public class UserService {
 
 	@Autowired
-	UserRepository userRepository;
+	private UserRepository userRepository;
 
 	@Autowired
-	UserMapper userMapper;
+	private UserMapper userMapper;
 
 	public User saveUser(UserDto userDto) {
 		try {

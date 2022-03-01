@@ -24,31 +24,31 @@ import lombok.NoArgsConstructor;
 @Table(name = "sales_order_header")
 @Builder
 @Data
-@EqualsAndHashCode(callSuper=true)
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class SalesOrderHeader extends BaseEntity<Long>{
+public class SalesOrderHeader extends BaseEntity<Long> {
 
 	@CreationTimestamp
 	@NonNull
 	@Column(name = "order_date")
 	private LocalDateTime orderDate;
-	
+
 	@Column(name = "po_no", nullable = false)
 	private String poNo;
-	
+
 	@Column(name = "order_amount", nullable = false)
 	private double orderAmount;
-	
+
 	@Column(name = "status", nullable = false, columnDefinition = "char(10) DEFAULT 'Active'")
 	private String status;
-	
+
 	@ManyToOne
 	private Customer customer;
-	
+
 	@OneToMany(mappedBy = "salesOrderHeader")
 	private List<SalesOrderDetails> orderDetails;
-	
+
 	@ManyToOne
 	@JsonIgnore
 	private User user;

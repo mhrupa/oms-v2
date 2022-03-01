@@ -17,10 +17,10 @@ import com.technivaaran.repositories.ItemMasterRepository;
 public class ItemMasterService {
 
 	@Autowired
-	ItemMasterRepository itemMasterRepository;
+	private ItemMasterRepository itemMasterRepository;
 
 	@Autowired
-	ItemMasterMapper itemMasterMapper;
+	private ItemMasterMapper itemMasterMapper;
 
 	public ItemMaster saveItemMaster(ItemMasterDto itemMasterDto) {
 		try {
@@ -38,23 +38,23 @@ public class ItemMasterService {
 	}
 
 	public ItemMaster getItemById(long itemMasterId) {
-		Optional<ItemMaster> ItemMasterOp = itemMasterRepository.findById(itemMasterId);
+		Optional<ItemMaster> itemMasterOp = itemMasterRepository.findById(itemMasterId);
 
-		if (ItemMasterOp.isPresent()) {
-			return ItemMasterOp.get();
+		if (itemMasterOp.isPresent()) {
+			return itemMasterOp.get();
 		} else {
 			throw new OMSException("Item not found for id : " + itemMasterId);
 		}
 	}
 
 	public ItemMaster updateItemById(long itemId, ItemMasterDto itemMasterDto) {
-		Optional<ItemMaster> ItemMasterOp = itemMasterRepository.findById(itemId);
+		Optional<ItemMaster> itemMasterOp = itemMasterRepository.findById(itemId);
 
-		if (ItemMasterOp.isPresent()) {
+		if (itemMasterOp.isPresent()) {
 			// converting DTO to entity first to avoid querying DB for Unit & category
 			ItemMaster item = itemMasterMapper.convertToEntity(itemMasterDto);
 
-			ItemMaster itemMaster = ItemMasterOp.get();
+			ItemMaster itemMaster = itemMasterOp.get();
 			itemMaster.setPartNo(itemMasterDto.getPartNo());
 			itemMaster.setItemUnit(item.getItemUnit());
 			itemMaster.setItemCategory(item.getItemCategory());

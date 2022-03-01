@@ -117,4 +117,10 @@ public class NavigationController {
 	public String getUpdateCustomerPage() {
 		return "masters/customer/updateCustomer";
 	}
+
+	// ****************Stock-menu*****************//
+	@GetMapping("/stockHome")
+	public String getStockPage() {
+		return "transactions/stock/stockHome";
+	}
 }

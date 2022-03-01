@@ -17,15 +17,15 @@ import com.technivaaran.repositories.categoryMasterRepository;
 public class CategoryMasterService {
 
 	@Autowired
-	categoryMasterRepository categoryMasterRepository;
+	private categoryMasterRepository categoryMasterRepository;
 
 	@Autowired
-	CategoryMasterMapper categoryMasterMapper;
+	private CategoryMasterMapper categoryMasterMapper;
 
 	public CategoryMaster findCategoryMasterById(int categoryId) {
-		Optional<CategoryMaster> categorymasterOp = categoryMasterRepository.findById(categoryId);
-		if (categorymasterOp.isPresent()) {
-			return categorymasterOp.get();
+		Optional<CategoryMaster> categoryMasterOp = categoryMasterRepository.findById(categoryId);
+		if (categoryMasterOp.isPresent()) {
+			return categoryMasterOp.get();
 		} else {
 			throw new OMSException("Category not found for id : " + categoryId);
 		}
@@ -46,10 +46,10 @@ public class CategoryMasterService {
 	}
 
 	public CategoryMaster updateCategoryMasterById(int categoryId, CategoryMasterDto categoryMasterDto) {
-		Optional<CategoryMaster> categorymasterOp = categoryMasterRepository.findById(categoryId);
+		Optional<CategoryMaster> categoryMasterOp = categoryMasterRepository.findById(categoryId);
 
-		if (categorymasterOp.isPresent()) {
-			CategoryMaster categoryMaster = categorymasterOp.get();
+		if (categoryMasterOp.isPresent()) {
+			CategoryMaster categoryMaster = categoryMasterOp.get();
 			categoryMaster.setCategoryName(categoryMasterDto.getCategoryName());
 			return categoryMasterRepository.save(categoryMaster);
 		} else {

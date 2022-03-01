@@ -17,12 +17,12 @@ import com.technivaaran.repositories.CustomerRepository;
 public class CustomerService {
 	
 	@Autowired
-	CustomerRepository customerRepository;
+	private CustomerRepository customerRepository;
 	
 	@Autowired
-	CustomerMapper customerMapper;
+	private CustomerMapper customerMapper;
 
-	public Customer findCustpmerById(long customerId) {
+	public Customer findCustomerById(long customerId) {
 		Optional<Customer> customerOp = customerRepository.findById(customerId);
 		if (customerOp.isPresent()) {
 			return customerOp.get();

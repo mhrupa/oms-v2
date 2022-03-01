@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ItemMasterController {
 
 	@Autowired
-	ItemMasterService itemMasterService;
+	private ItemMasterService itemMasterService;
 
 	@PostMapping(value = "/items", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<OmsResponse> saveItemMaster(@RequestBody ItemMasterDto itemMasterDto) {

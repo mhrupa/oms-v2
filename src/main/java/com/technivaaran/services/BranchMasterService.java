@@ -17,10 +17,10 @@ import com.technivaaran.repositories.BranchMasterRepository;
 public class BranchMasterService {
 
 	@Autowired
-	BranchMasterRepository branchMasterRepository;
+	private BranchMasterRepository branchMasterRepository;
 
 	@Autowired
-	BranchMapper branchMapper;
+	private BranchMapper branchMapper;
 
 	public BranchMaster findBranchMasterById(int branchId) {
 		Optional<BranchMaster> branchMasterOp = branchMasterRepository.findById(branchId);
