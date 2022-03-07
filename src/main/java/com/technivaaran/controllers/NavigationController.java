@@ -105,7 +105,8 @@ public class NavigationController {
 	// ****************Stock-menu*****************//
 	@GetMapping("/stockHome")
 	public String getStockPage() {
-		return "transactions/stock/stockHome";
+		//return "transactions/stock/stockHome";
+		return "transactions/stock/createStock";
 	}
 
 	@GetMapping("/createStockPage")

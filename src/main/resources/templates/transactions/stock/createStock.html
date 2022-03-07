@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
     <meta charset='utf-8'>
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
@@ -11,27 +10,47 @@
             float: left;
             /* padding-bottom: 5px; */
         }
-        
+
         .dataTables_length {
             display: none;
             cursor: pointer;
         }
     </style>
+    <script src="/js/stock.js"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
+            initData();
             $("#boxNo").focus();
             var table = $('#dataTable').DataTable({
                 // paging: false,
                 // scrollY: 420,
                 // info: false
             });
+
             $("#addStockBtn").click(() => {
-                alert();
+                ($("#boxNo").val());
+                if ($("#boxNo").val() == "") {
+                    $("#boxNo").focus();
+                    return false;
+                }
+
+                if ($("#model").val() == "") {
+                    $("#model").focus();
+                    return false;
+                }
+
+                if ($("#partNo").val() == "") {
+                    $("#partNo").focus();
+                    return false;
+                }
+
+
+
             })
             $("#clearFieldsBtn").click(() => {
                 initFields();
             })
-            $('#dataTable tbody').css("cursor", "pointer").on('click', 'tr', function() {
+            $('#dataTable tbody').css("cursor", "pointer").on('click', 'tr', function () {
                 var data = table.row(this).data();
                 $("#boxNo").val(data[0]);
                 $("#model").val(data[1]);
@@ -48,45 +67,53 @@
         function disableClearFieldButton() {
             $("#clearFieldsBtn").attr("disabled", "disabled")
         }
-
-        function initFields() {
-            $("#boxNo").val("");
-            $("#model").val("");
-            $("#partNo").val("");
-            $("#qty").val("");
-            disableClearFieldButton();
-        }
     </script>
 
 </head>
 
 <body style="overflow: hidden;">
     <div class="row" style="width: 100%;">
-        <div class="col-2 pt-2">
+        <div class="col-3 pt-2">
             <div class="mb-3 ps-2">
                 <label for="boxNo">Box No</label>
-                <input type="text" class="form-control" aria-label="boxNo" id="boxNo">
+                <input class="form-control" list="boxNoOptions" id="boxNo" placeholder="Select Box No">
+                <datalist id="boxNoOptions">
+                    <option value='L1'>
+                    <option value='B1'>
+                    <option value='B2'>
+                </datalist>
             </div>
             <div class="mb-3 ps-2">
                 <label for="model">Motherboard Model</label>
-                <input type="text" class="form-control" aria-label="model" id="model">
+                <input class="form-control" list="modelOptions" id="model" placeholder="Select model">
+                <datalist id="modelOptions">
+                    <option value="Model1">
+                    <option value="Model2">
+                    <option value="Model2">
+                </datalist>
             </div>
             <div class="mb-3 ps-2">
                 <label for="partNo">Part No</label>
-                <input type="text" class="form-control" aria-label="partNo" id="partNo">
+                <input class="form-control" list="partNoOptions" id="partNo" placeholder="Select Part No">
+                <datalist id="partNoOptions">
+                    <option value="Part no 1">
+                    <option value="Part no 2">
+                    <option value="Part no 3">
+                </datalist>
             </div>
             <div class="mb-3 ps-2">
-                <label for="qty">Qty</label>
+                <label for="qty">Quantity</label>
                 <input type="text" class="form-control" aria-label="qty" id="qty">
             </div>
             <div class="ps-2">
                 <button type="button" style="width: 100%;" id="addStockBtn" class="btn btn-primary">Add</button>
             </div>
             <div class="ps-2 pt-2">
-                <button type="button" style="width: 100%;" disabled id="clearFieldsBtn" class="btn btn-secondary">Clear</button>
+                <button type="button" style="width: 100%;" disabled id="clearFieldsBtn"
+                    class="btn btn-secondary">Clear</button>
             </div>
         </div>
-        <div class="col mt-2">
+        <div class="col mt-4">
             <table id="dataTable" style="width: 100%;" class="display">
                 <caption></caption>
                 <thead>

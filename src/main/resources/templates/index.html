@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <title>OMS</title>
@@ -16,7 +16,7 @@
         $.ajaxSetup({
             contentType: "application/json; charset=utf-8"
         });
-        $(document).ready(function() {
+        $(document).ready(function () {
             $("#desktop").load("/login");
         });
     </script>
@@ -24,7 +24,8 @@
 
 <body>
     <div id="desktop">Loading...</div>
-    <div class="toast position-absolute top-0 end-0 m-1 text-light align-items-center bg-success" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast position-absolute top-0 end-0 m-1 text-light align-items-center bg-success" role="alert"
+        aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
             <div id="omsToast" class="toast-body"></div>
             <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
