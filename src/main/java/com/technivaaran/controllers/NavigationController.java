@@ -1,9 +1,13 @@
 package com.technivaaran.controllers;
 
+import com.technivaaran.AppUrlConstants;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
+@RequestMapping(AppUrlConstants.BASE_URL)
 public class NavigationController {
 
 	@GetMapping(value = "/")
@@ -14,7 +18,6 @@ public class NavigationController {
 	@GetMapping(value = "/login")
 	public String getLoginPage() {
 		return "login";
-//		return "desktop";
 	}
 
 	@GetMapping(value = "/navigation")
@@ -105,7 +108,6 @@ public class NavigationController {
 	// ****************Stock-menu*****************//
 	@GetMapping("/stockHome")
 	public String getStockPage() {
-		//return "transactions/stock/stockHome";
 		return "transactions/stock/createStock";
 	}
 

@@ -34,7 +34,7 @@ public class BaseEntity<T> {
 	@Column(name = "updated_at")
 	@UpdateTimestamp
 	@JsonIgnore
-	private LocalDateTime updatetdAt;
+	private LocalDateTime updatedAt;
 
 	@Version
 	@JsonIgnore

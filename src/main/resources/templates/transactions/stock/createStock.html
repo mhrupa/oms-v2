@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset='utf-8'>
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
@@ -16,66 +17,36 @@
             cursor: pointer;
         }
     </style>
-    <script src="/js/stock.js"></script>
     <script>
         $(document).ready(function () {
-            initData();
-            $("#boxNo").focus();
-            var table = $('#dataTable').DataTable({
-                // paging: false,
-                // scrollY: 420,
-                // info: false
-            });
-
-            $("#addStockBtn").click(() => {
-                ($("#boxNo").val());
-                if ($("#boxNo").val() == "") {
-                    $("#boxNo").focus();
-                    return false;
-                }
-
-                if ($("#model").val() == "") {
-                    $("#model").focus();
-                    return false;
-                }
-
-                if ($("#partNo").val() == "") {
-                    $("#partNo").focus();
-                    return false;
-                }
-
-
-
-            })
-            $("#clearFieldsBtn").click(() => {
-                initFields();
-            })
-            $('#dataTable tbody').css("cursor", "pointer").on('click', 'tr', function () {
-                var data = table.row(this).data();
-                $("#boxNo").val(data[0]);
-                $("#model").val(data[1]);
-                $("#partNo").val(data[2]);
-                $("#qty").val(data[3]);
-                enableClearFieldButton();
-            });
+            initPage();
         });
 
-        function enableClearFieldButton() {
-            $("#clearFieldsBtn").removeAttr("disabled")
-        }
+        const savaData = () => {
+            var requestData = {
+                "boxNo": $("#boxNo").val(),
+                "partNo": $("#partNo").val(),
+                "model": $("#model").val(),
+                "qty": $("#qty").val()
+            };
 
-        function disableClearFieldButton() {
-            $("#clearFieldsBtn").attr("disabled", "disabled")
+            $.post("/stock", JSON.stringify(requestData), function (res) {
+                $("#omsToast").html(res.message);
+                $('.toast').removeClass('bg-danger').addClass('bg-success').toast('show');
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $('.toast').addClass('bg-danger').toast('show');
+            });
+
         }
     </script>
-
 </head>
 
 <body style="overflow: hidden;">
     <div class="row" style="width: 100%;">
         <div class="col-3 pt-2">
-            <div class="mb-3 ps-2">
-                <label for="boxNo">Box No</label>
+            <div class="mb-1 ps-2">
+                <label for="boxNo" class="p-1 pb-0">Box No</label>
                 <input class="form-control" list="boxNoOptions" id="boxNo" placeholder="Select Box No">
                 <datalist id="boxNoOptions">
                     <option value='L1'>
@@ -83,8 +54,8 @@
                     <option value='B2'>
                 </datalist>
             </div>
-            <div class="mb-3 ps-2">
-                <label for="model">Motherboard Model</label>
+            <div class="mb-1 ps-2">
+                <label for="model" class="p-1 pb-0">Motherboard Model</label>
                 <input class="form-control" list="modelOptions" id="model" placeholder="Select model">
                 <datalist id="modelOptions">
                     <option value="Model1">
@@ -92,8 +63,8 @@
                     <option value="Model2">
                 </datalist>
             </div>
-            <div class="mb-3 ps-2">
-                <label for="partNo">Part No</label>
+            <div class="mb-1 ps-2">
+                <label for="partNo" class="p-1 pb-0">Part No</label>
                 <input class="form-control" list="partNoOptions" id="partNo" placeholder="Select Part No">
                 <datalist id="partNoOptions">
                     <option value="Part no 1">
@@ -102,7 +73,7 @@
                 </datalist>
             </div>
             <div class="mb-3 ps-2">
-                <label for="qty">Quantity</label>
+                <label for="qty" class="p-1 pb-0">Quantity</label>
                 <input type="text" class="form-control" aria-label="qty" id="qty">
             </div>
             <div class="ps-2">

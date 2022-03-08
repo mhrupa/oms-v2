@@ -11,10 +11,14 @@
     <script src="webjars/jquery/3.6.0/jquery.min.js"></script>
     <script src="/js/main.js"></script>
     <script src="/js/datatables.min.js"></script>
+    <script src="/js/stock.js"></script>
 
     <script type="text/javascript">
         $.ajaxSetup({
-            contentType: "application/json; charset=utf-8"
+            contentType: "application/json; charset=utf-8",
+            beforeSend: function (xhr, settings) {
+                settings.url = "/api" + settings.url;
+            }
         });
         $(document).ready(function () {
             $("#desktop").load("/login");

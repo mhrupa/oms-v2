@@ -64,4 +64,8 @@ public class ItemMasterService {
 			throw new OMSException("Item not found for id : " + itemId);
 		}
 	}
+
+	public List<ItemMaster> findByItemName(String itemName) {
+		return itemMasterRepository.findByItemName(itemName);
+	}
 }
