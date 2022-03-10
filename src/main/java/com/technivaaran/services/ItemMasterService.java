@@ -3,15 +3,16 @@ package com.technivaaran.services;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.stereotype.Service;
-
 import com.technivaaran.dto.ItemMasterDto;
 import com.technivaaran.entities.ItemMaster;
 import com.technivaaran.exceptions.OMSException;
 import com.technivaaran.mapper.ItemMasterMapper;
 import com.technivaaran.repositories.ItemMasterRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 @Service
 public class ItemMasterService {
@@ -24,9 +25,19 @@ public class ItemMasterService {
 
 	public ItemMaster saveItemMaster(ItemMasterDto itemMasterDto) {
 		try {
-			ItemMaster itemMaster = itemMasterMapper.convertToEntity(itemMasterDto);
-			return itemMasterRepository.save(itemMaster);
-
+			ItemMaster itemMaster;
+			if (ObjectUtils.isEmpty(itemMasterDto.getItemName().isEmpty())) {
+				itemMaster = itemMasterMapper.convertToEntity(itemMasterDto);
+				return itemMasterRepository.save(itemMaster);
+			} else {
+				Optional<ItemMaster> itemMasterOp = itemMasterRepository.findByItemName(itemMasterDto.getItemName());
+				if (itemMasterOp.isPresent()) {
+					itemMaster = itemMasterOp.get();
+					return itemMasterRepository.save(itemMaster);
+				} else {
+					throw new OMSException("Item does not exists with Item name: " + itemMasterDto.getItemName());		
+				}
+			}
 		} catch (DataIntegrityViolationException integrityViolationException) {
 			throw new OMSException("Item already exists with Item name: " + itemMasterDto.getItemName());
 		}
@@ -51,12 +62,10 @@ public class ItemMasterService {
 		Optional<ItemMaster> itemMasterOp = itemMasterRepository.findById(itemId);
 
 		if (itemMasterOp.isPresent()) {
-			// converting DTO to entity first to avoid querying DB for Unit & category
 			ItemMaster item = itemMasterMapper.convertToEntity(itemMasterDto);
 
 			ItemMaster itemMaster = itemMasterOp.get();
 			itemMaster.setPartNo(itemMasterDto.getPartNo());
-			itemMaster.setItemUnit(item.getItemUnit());
 			itemMaster.setStatus(item.getStatus());
 
 			return itemMasterRepository.save(itemMaster);
@@ -65,7 +74,7 @@ public class ItemMasterService {
 		}
 	}
 
-	public List<ItemMaster> findByItemName(String itemName) {
+	public Optional<ItemMaster> findByItemName(String itemName) {
 		return itemMasterRepository.findByItemName(itemName);
 	}
 }

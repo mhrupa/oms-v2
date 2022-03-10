@@ -19,25 +19,159 @@
     </style>
     <script>
         $(document).ready(function () {
-            initPage();
+            //initPage();
+            initLocationData();
+            initModelData();
+            $("#boxNo").focus();
+            var table = $('#dataTable').DataTable({
+                // paging: false,
+                // scrollY: 420,
+                // info: false
+            });
+            $("#addBoxBtn").click(addNewBox);
+            $("#addModelBtn").click(addNewModel);
+            $("#addPartBtn").click(addNewPart);
+            $("#createBoxBtn").click(createBoxBtn);
+            $("#createModelBtn").click(createModelBtn);
+            $("#createPartBtn").click(createPartBtn);
+            $("#addStockBtn").click(() => {
+                if (validateFields()) {
+                    savaData();
+                }
+                return false;
+            })
+            $("#clearFieldsBtn").click(() => {
+                initFields();
+            })
+            $('#dataTable tbody').css("cursor", "pointer").on('click', 'tr', function () {
+                var data = table.row(this).data();
+                $("#boxNo").val(data[0]);
+                $("#model").val(data[1]);
+                $("#partNo").val(data[2]);
+                $("#qty").val(data[3]);
+                enableClearFieldButton();
+            });
         });
-
-        const savaData = () => {
+        function createBoxBtn() {
+            $("#createBoxBtn").attr("disabled", "disabled")
+            if ($("#boxName").val() == "") {
+                $("#boxName").focus();
+                $("#omsToast").html("Please enter box no.");
+                $('.toast').removeClass('bg-danger').removeClass('bg-success').addClass('bg-warning').toast('show');
+                $("#createBoxBtn").removeAttr("disabled");
+                return false;
+            }
             var requestData = {
-                "boxNo": $("#boxNo").val(),
-                "partNo": $("#partNo").val(),
-                "model": $("#model").val(),
-                "qty": $("#qty").val()
+                "storageLocation": $("#boxName").val()
             };
-
-            $.post("/stock", JSON.stringify(requestData), function (res) {
+            $.post("/storageLocations", JSON.stringify(requestData), function (res) {
+                $('#stockAddBoxModal').modal('hide');
                 $("#omsToast").html(res.message);
-                $('.toast').removeClass('bg-danger').addClass('bg-success').toast('show');
+                $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
+                $("#createBoxBtn").removeAttr("disabled");
+            }).fail(function (res) {
+                $('#stockAddBoxModal').modal('hide');
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $('.toast').addClass('bg-danger').toast('show');
+                $("#createBoxBtn").removeAttr("disabled");
+            });
+        }
+
+        function createModelBtn() {
+            $("#createModelBtn").attr("disabled", "disabled")
+            if ($("#modelName").val() == "") {
+                $("#modelName").focus();
+                $("#omsToast").html("Please enter Model name.");
+                $('.toast').removeClass('bg-danger').removeClass('bg-success').addClass('bg-warning').toast('show');
+                $("#createModelBtn").removeAttr("disabled");
+                return false;
+            }
+            var requestData = {
+                "itemName": $("#modelName").val()
+            };
+            $.post("/items", JSON.stringify(requestData), function (res) {
+                $('#stockAddModelModal').modal('hide');
+                $("#omsToast").html(res.message);
+                $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
+                $("#createBoxBtn").removeAttr("disabled");
+            }).fail(function (res) {
+                $('#stockAddModelModal').modal('hide');
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $('.toast').addClass('bg-danger').toast('show');
+                $("#createBoxBtn").removeAttr("disabled");
+            });
+        }
+
+        function createPartBtn() {
+            $("#createPartBtn").attr("disabled", "disabled")
+            if ($("#modelForPart").val() == "") {
+                $("#modelForPart").focus();
+                $("#omsToast").html("Please select Model name.");
+                $('.toast').removeClass('bg-danger').removeClass('bg-success').addClass('bg-warning').toast('show');
+                $("#createPartBtn").removeAttr("disabled");
+                return false;
+            }
+            if ($("#partName").val() == "") {
+                $("#partName").focus();
+                $("#omsToast").html("Please enter part no.");
+                $('.toast').removeClass('bg-danger').removeClass('bg-success').addClass('bg-warning').toast('show');
+                $("#createPartBtn").removeAttr("disabled");
+                return false;
+            }
+            var requestData = {
+                "itemName": $("#modelForPart").val(),
+                "partNo": $("#partName").val()
+            };
+            $.post("/items", JSON.stringify(requestData), function (res) {
+                $('#stockAddPartModal').modal('hide');
+                $("#omsToast").html(res.message);
+                $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
+                $("#createPartBtn").removeAttr("disabled");
+            }).fail(function (res) {
+                $('#stockAddPartModal').modal('hide');
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $('.toast').addClass('bg-danger').toast('show');
+                $("#createPartBtn").removeAttr("disabled");
+            });
+        }
+
+        function addNewBox() {
+            $("#stockAddBoxModal").modal("show");
+            $("#boxName").val("");
+            $("#boxName").focus();
+        }
+        function addNewModel() {
+            $("#stockAddModelModal").modal("show");
+            $("#modelName").val("");
+            $("#modelName").focus();
+        }
+        function addNewPart() {
+            $("#stockAddPartModal").modal("show");
+            // $("#modelForPart").val("");
+            $("#modelForPart").focus();
+        }
+
+        function initLocationData() {
+            $.get("/storageLocations", function (res) {
+                res.forEach(element => {
+                    $("#boxNoOptions").append("<option value='" + element.locationName + "'>");
+                });
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $('.toast').addClass('bg-danger').toast('show');
             });
+        }
 
+        function initModelData() {
+            $.get("/items", function (res) {
+                res.forEach(element => {
+                    $("#modelOptions").append("<option value='" + element.itemName + "'>");
+                    $("#modelOptionsForPart").append("<option value='" + element.itemName + "'>");
+                });
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $('.toast').addClass('bg-danger').toast('show');
+            });
         }
     </script>
 </head>
@@ -46,31 +180,35 @@
     <div class="row" style="width: 100%;">
         <div class="col-3 pt-2">
             <div class="mb-1 ps-2">
-                <label for="boxNo" class="p-1 pb-0">Box No</label>
-                <input class="form-control" list="boxNoOptions" id="boxNo" placeholder="Select Box No">
-                <datalist id="boxNoOptions">
-                    <option value='L1'>
-                    <option value='B1'>
-                    <option value='B2'>
-                </datalist>
+                <label class="p-1 pb-0" for="boxNo">Box</label>
+                <div class="input-group">
+                    <input class="form-control" list="boxNoOptions" id="boxNo" placeholder="Select Box No">
+                    <datalist id="boxNoOptions"></datalist>
+                    <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                        data-bs-placement="top" id="addBoxBtn" title="Add new Box">+</button>
+                </div>
             </div>
             <div class="mb-1 ps-2">
                 <label for="model" class="p-1 pb-0">Motherboard Model</label>
-                <input class="form-control" list="modelOptions" id="model" placeholder="Select model">
-                <datalist id="modelOptions">
-                    <option value="Model1">
-                    <option value="Model2">
-                    <option value="Model2">
-                </datalist>
+                <div class="input-group">
+                    <input class="form-control" list="modelOptions" id="model" placeholder="Select model">
+                    <datalist id="modelOptions"></datalist>
+                    <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                        data-bs-placement="top" id="addModelBtn" title="Add new Model">+</button>
+                </div>
             </div>
             <div class="mb-1 ps-2">
-                <label for="partNo" class="p-1 pb-0">Part No</label>
-                <input class="form-control" list="partNoOptions" id="partNo" placeholder="Select Part No">
-                <datalist id="partNoOptions">
-                    <option value="Part no 1">
-                    <option value="Part no 2">
-                    <option value="Part no 3">
-                </datalist>
+                <label for="partNo" class="p-1 pb-0">Part</label>
+                <div class="input-group">
+                    <input class="form-control" list="partNoOptions" id="partNo" placeholder="Select Part No">
+                    <datalist id="partNoOptions">
+                        <option value="Part no 1">
+                        <option value="Part no 2">
+                        <option value="Part no 3">
+                    </datalist>
+                    <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                        data-bs-placement="top" id="addPartBtn" title="Add new Part">+</button>
+                </div>
             </div>
             <div class="mb-3 ps-2">
                 <label for="qty" class="p-1 pb-0">Quantity</label>
@@ -113,31 +251,13 @@
                         <td>63</td>
                     </tr>
                     <tr>
-                        <td>Ashton Cox</td>
-                        <td>Junior Technical Author</td>
-                        <td>San Francisco</td>
-                        <td>66</td>
-                    </tr>
-                    <tr>
-                        <td>Cedric Kelly</td>
-                        <td>Senior Javascript Developer</td>
-                        <td>Edinburgh</td>
-                        <td>22</td>
-                    </tr>
-                    <tr>
-                        <td>Airi Satou</td>
-                        <td>Accountant</td>
-                        <td>Tokyo</td>
-                        <td>33</td>
-                    </tr>
-                    <tr>
-                        <td>Brielle Williamson</td>
+                        <td>Williamson</td>
                         <td>Integration Specialist</td>
                         <td>New York</td>
                         <td>61</td>
                     </tr>
                     <tr>
-                        <td>Herrod Chandler</td>
+                        <td>Chandler</td>
                         <td>Sales Assistant</td>
                         <td>San Francisco</td>
                         <td>59</td>
@@ -173,7 +293,7 @@
                         <td>22</td>
                     </tr>
                     <tr>
-                        <td>Charde Marshall</td>
+                        <td>Marshall</td>
                         <td>Regional Director</td>
                         <td>San Francisco</td>
                         <td>36</td>
@@ -185,7 +305,7 @@
                         <td>43</td>
                     </tr>
                     <tr>
-                        <td>Tatyana Fitzpatrick</td>
+                        <td>Fitzpatrick</td>
                         <td>Regional Director</td>
                         <td>London</td>
                         <td>19</td>
@@ -221,7 +341,7 @@
                         <td>35</td>
                     </tr>
                     <tr>
-                        <td>Jenette Caldwell</td>
+                        <td>Caldwell</td>
                         <td>Development Lead</td>
                         <td>New York</td>
                         <td>30</td>
@@ -263,7 +383,7 @@
                         <td>28</td>
                     </tr>
                     <tr>
-                        <td>Brenden Wagner</td>
+                        <td>Wagner</td>
                         <td>Software Engineer</td>
                         <td>San Francisco</td>
                         <td>28</td>
@@ -274,50 +394,82 @@
                         <td>San Francisco</td>
                         <td>48</td>
                     </tr>
-                    <tr>
-                        <td>Shou Itou</td>
-                        <td>Regional Marketing</td>
-                        <td>Tokyo</td>
-                        <td>20</td>
-                    </tr>
-                    <tr>
-                        <td>Michelle House</td>
-                        <td>Integration Specialist</td>
-                        <td>Sidney</td>
-                        <td>37</td>
-                    </tr>
-                    <tr>
-                        <td>Sakura Yamamoto</td>
-                        <td>Support Engineer</td>
-                        <td>Tokyo</td>
-                        <td>37</td>
-                    </tr>
-                    <tr>
-                        <td>Thor Walton</td>
-                        <td>Developer</td>
-                        <td>New York</td>
-                        <td>61</td>
-                    </tr>
-                    <tr>
-                        <td>Finn Camacho</td>
-                        <td>Support Engineer</td>
-                        <td>San Francisco</td>
-                        <td>47</td>
-                    </tr>
-                    <tr>
-                        <td>Serge Baldwin</td>
-                        <td>Data Coordinator</td>
-                        <td>Singapore</td>
-                        <td>64</td>
-                    </tr>
-                    <tr>
-                        <td>Donna Snider</td>
-                        <td>Customer Support</td>
-                        <td>New York</td>
-                        <td>27</td>
-                    </tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+    <div class="modal fade" id="stockAddBoxModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Create Box</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Box Name</span>
+                        <input type="text" class="form-control" id="boxName" placeholder="Box Name" aria-label="boxName"
+                            aria-describedby="boxName">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="createBoxBtn" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="stockAddModelModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Create Model</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Model</span>
+                        <input type="text" class="form-control" id="modelName" placeholder="Model Name"
+                            aria-label="modelName" aria-describedby="modelName">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="createModelBtn" class="btn btn-primary">Create Model</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="stockAddPartModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Create Part</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <label for="model" class="p-1 pb-0">Motherboard Model</label>
+                        <div class="input-group">
+                            <input class="form-control" list="modelOptionsForPart" id="modelForPart"
+                                placeholder="Select model">
+                            <datalist id="modelOptionsForPart"></datalist>
+                        </div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Part no</span>
+                        <input type="text" class="form-control" id="partName" placeholder="Part Name"
+                            aria-label="partName" aria-describedby="partName">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="createPartBtn" class="btn btn-primary">Save</button>
+                </div>
+            </div>
         </div>
     </div>
 </body>

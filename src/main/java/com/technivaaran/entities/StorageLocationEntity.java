@@ -11,18 +11,15 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "unit_master")
+@Table(name = "storage_location")
 @Builder
 @Data
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class UnitMaster extends BaseEntity<Integer>{
+@EqualsAndHashCode(callSuper = true)
+public class StorageLocationEntity extends BaseEntity<Integer>{
 	
-	@Column(name = "unit_name", nullable = false, unique = true)
-	private String unitName;
-	
-	@Column(name = "unit_code", nullable = false, unique = true)
-	private String unitCode;
+	@Column(name = "location_name", nullable = false, unique = true)
+	private String locationName;
 	
 }

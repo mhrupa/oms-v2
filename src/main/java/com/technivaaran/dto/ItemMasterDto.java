@@ -15,15 +15,9 @@ public class ItemMasterDto {
 	private String itemName;
 
 	@Length(max = 100)
-	@NonNull
 	private String partNo;
 
 	@Length(max = 10)
 	private String status;
 
-	@NonNull
-	private int itemUnitId;
-
-	@NonNull
-	private int itemCategoryId;
 }

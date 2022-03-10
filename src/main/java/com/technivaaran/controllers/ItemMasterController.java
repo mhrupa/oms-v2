@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.technivaaran.AppUrlConstants;
 import com.technivaaran.dto.ItemMasterDto;
 import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.entities.ItemMaster;
@@ -20,8 +22,9 @@ import com.technivaaran.services.ItemMasterService;
 
 import lombok.extern.slf4j.Slf4j;
 
-@RestController
 @Slf4j
+@RestController
+@RequestMapping(AppUrlConstants.BASE_URL)
 public class ItemMasterController {
 
 	@Autowired

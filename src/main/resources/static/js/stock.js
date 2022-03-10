@@ -1,33 +1,24 @@
 function initPage() {
-    initData();
-    $("#boxNo").focus();
-    var table = $('#dataTable').DataTable({
-        // paging: false,
-        // scrollY: 420,
-        // info: false
-    });
-
-    $("#addStockBtn").click(() => {
-        if (validateFields()) {
-            savaData();
-        }
-        return false;
-
-    })
-    $("#clearFieldsBtn").click(() => {
-        initFields();
-    })
-    $('#dataTable tbody').css("cursor", "pointer").on('click', 'tr', function () {
-        var data = table.row(this).data();
-        $("#boxNo").val(data[0]);
-        $("#model").val(data[1]);
-        $("#partNo").val(data[2]);
-        $("#qty").val(data[3]);
-        enableClearFieldButton();
-    });
+    
 }
 
+const savaData = () => {
+    var requestData = {
+        "boxNo": $("#boxNo").val(),
+        "partNo": $("#partNo").val(),
+        "model": $("#model").val(),
+        "qty": $("#qty").val()
+    };
 
+    $.post("/stock", JSON.stringify(requestData), function (res) {
+        $("#omsToast").html(res.message);
+        $('.toast').removeClass('bg-danger').addClass('bg-success').toast('show');
+    }).fail(function (res) {
+        $("#omsToast").html(JSON.parse(res.responseText).message);
+        $('.toast').addClass('bg-danger').toast('show');
+    });
+
+}
 
 function validateFields() {
     if ($("#boxNo").val() == "") {
@@ -58,22 +49,6 @@ function initFields() {
     $("#partNo").val("");
     $("#qty").val("");
     disableClearFieldButton();
-}
-
-function initData() {
-    $.getJSON("/stock", function (data) {
-        alert();
-        // var items = [];
-        // $.each(data, function (key, val) {
-        //     items.push("<li id='" + key + "'>" + val + "</li>");
-        // });
-
-        // $("<ul/>", {
-        //     "class": "my-new-list",
-        //     html: items.join("")
-        // }).appendTo("body");
-        alert(JSON.stringify(data));
-    });
 }
 
 function enableClearFieldButton() {
