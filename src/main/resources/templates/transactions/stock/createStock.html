@@ -18,10 +18,9 @@
         }
     </style>
     <script>
+        var items = new Array();
         $(document).ready(function () {
-            //initPage();
-            initLocationData();
-            initModelData();
+            initPage();
             $("#boxNo").focus();
             var table = $('#dataTable').DataTable({
                 // paging: false,
@@ -34,6 +33,7 @@
             $("#createBoxBtn").click(createBoxBtn);
             $("#createModelBtn").click(createModelBtn);
             $("#createPartBtn").click(createPartBtn);
+            $('#model').change(modelOnChange);
             $("#addStockBtn").click(() => {
                 if (validateFields()) {
                     savaData();
@@ -52,6 +52,31 @@
                 enableClearFieldButton();
             });
         });
+        function initPage() {
+            initLocationData();
+            initModelData();
+            initPartNoData();
+        }
+
+        function modelOnChange() {
+            if ($('#model').val() != "0") {
+                items.forEach(item => {
+                    if (item.itemName == $('#model').val()) {
+                        $("#partNo").empty();
+                        $("#partNo").append("<option value='0' selected>Select Part</option>");
+                        item.parts.forEach(element => {
+                            $("#partNo").append("<option value='" + element.partNo + "'>" + element.partNo + "</option>");
+                        });
+                    }
+                })
+            } else {
+                $("#model").focus();
+                $("#partNo").empty();
+                $("#omsToast").html("Please select model");
+                $('.toast').addClass('bg-warning').toast('show');
+            }
+        }
+
         function createBoxBtn() {
             $("#createBoxBtn").attr("disabled", "disabled")
             if ($("#boxName").val() == "") {
@@ -69,6 +94,7 @@
                 $("#omsToast").html(res.message);
                 $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
                 $("#createBoxBtn").removeAttr("disabled");
+                initPage();
             }).fail(function (res) {
                 $('#stockAddBoxModal').modal('hide');
                 $("#omsToast").html(JSON.parse(res.responseText).message);
@@ -93,12 +119,13 @@
                 $('#stockAddModelModal').modal('hide');
                 $("#omsToast").html(res.message);
                 $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
-                $("#createBoxBtn").removeAttr("disabled");
+                $("#createModelBtn").removeAttr("disabled");
+                initPage();
             }).fail(function (res) {
                 $('#stockAddModelModal').modal('hide');
+                $("#createModelBtn").removeAttr("disabled");
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $('.toast').addClass('bg-danger').toast('show');
-                $("#createBoxBtn").removeAttr("disabled");
             });
         }
 
@@ -122,11 +149,12 @@
                 "itemName": $("#modelForPart").val(),
                 "partNo": $("#partName").val()
             };
-            $.post("/items", JSON.stringify(requestData), function (res) {
+            $.post("/parts", JSON.stringify(requestData), function (res) {
                 $('#stockAddPartModal').modal('hide');
                 $("#omsToast").html(res.message);
                 $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
                 $("#createPartBtn").removeAttr("disabled");
+                initPage();
             }).fail(function (res) {
                 $('#stockAddPartModal').modal('hide');
                 $("#omsToast").html(JSON.parse(res.responseText).message);
@@ -153,8 +181,9 @@
 
         function initLocationData() {
             $.get("/storageLocations", function (res) {
+                $("#boxNo").empty();
                 res.forEach(element => {
-                    $("#boxNoOptions").append("<option value='" + element.locationName + "'>");
+                    $("#boxNo").append("<option value='" + element + "'>" + element.locationName + "</option>");
                 });
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
@@ -164,14 +193,29 @@
 
         function initModelData() {
             $.get("/items", function (res) {
+                $("#model").empty();
+                $("#model").append("<option value='0' selected>Select model</option>");
+                $("#modelForPart").empty();
+                $("#modelForPart").append("<option value='0' selected>Select model</option>");
                 res.forEach(element => {
-                    $("#modelOptions").append("<option value='" + element.itemName + "'>");
-                    $("#modelOptionsForPart").append("<option value='" + element.itemName + "'>");
+                    var item = {}
+                    item.name = element.itemName;
+                    const parts = new Array();
+                    element.parts.forEach(part => {
+                        parts.push(part.partNo);
+                    });
+                    item.parts = parts;
+                    items.push(element);
+                    $("#model").append("<option value='" + element.itemName + "'>" + element.itemName + "</option>");
+                    $("#modelForPart").append("<option value='" + element.itemName + "'>" + element.itemName + "</option>");
                 });
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $('.toast').addClass('bg-danger').toast('show');
             });
+        }
+
+        function initPartNoData() {
         }
     </script>
 </head>
@@ -182,8 +226,7 @@
             <div class="mb-1 ps-2">
                 <label class="p-1 pb-0" for="boxNo">Box</label>
                 <div class="input-group">
-                    <input class="form-control" list="boxNoOptions" id="boxNo" placeholder="Select Box No">
-                    <datalist id="boxNoOptions"></datalist>
+                    <select class="form-control" id="boxNo"></select>
                     <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
                         data-bs-placement="top" id="addBoxBtn" title="Add new Box">+</button>
                 </div>
@@ -191,8 +234,7 @@
             <div class="mb-1 ps-2">
                 <label for="model" class="p-1 pb-0">Motherboard Model</label>
                 <div class="input-group">
-                    <input class="form-control" list="modelOptions" id="model" placeholder="Select model">
-                    <datalist id="modelOptions"></datalist>
+                    <select class="form-control" id="model"></select>
                     <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
                         data-bs-placement="top" id="addModelBtn" title="Add new Model">+</button>
                 </div>
@@ -200,19 +242,14 @@
             <div class="mb-1 ps-2">
                 <label for="partNo" class="p-1 pb-0">Part</label>
                 <div class="input-group">
-                    <input class="form-control" list="partNoOptions" id="partNo" placeholder="Select Part No">
-                    <datalist id="partNoOptions">
-                        <option value="Part no 1">
-                        <option value="Part no 2">
-                        <option value="Part no 3">
-                    </datalist>
+                    <select class="form-control" id="partNo"></select>
                     <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
                         data-bs-placement="top" id="addPartBtn" title="Add new Part">+</button>
                 </div>
             </div>
             <div class="mb-3 ps-2">
                 <label for="qty" class="p-1 pb-0">Quantity</label>
-                <input type="text" class="form-control" aria-label="qty" id="qty">
+                <input autocomplete="off" type="number" class="form-control" aria-label="qty" id="qty">
             </div>
             <div class="ps-2">
                 <button type="button" style="width: 100%;" id="addStockBtn" class="btn btn-primary">Add</button>
@@ -454,9 +491,7 @@
                     <div class="input-group mb-3">
                         <label for="model" class="p-1 pb-0">Motherboard Model</label>
                         <div class="input-group">
-                            <input class="form-control" list="modelOptionsForPart" id="modelForPart"
-                                placeholder="Select model">
-                            <datalist id="modelOptionsForPart"></datalist>
+                            <select class="form-control" id="modelForPart"></select>
                         </div>
                     </div>
                     <div class="input-group mb-3">

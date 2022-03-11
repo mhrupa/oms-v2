@@ -1,7 +1,11 @@
 package com.technivaaran.entities;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.hibernate.validator.constraints.Length;
@@ -25,11 +29,10 @@ public class ItemMaster extends BaseEntity<Long> {
 	@Length(max = 50)
 	private String itemName;
 
-	@Column(name = "part_no")
-	@Length(max = 100)
-	private String partNo;
-
 	@Column(name = "status", columnDefinition = "char(10) default 'Active'")
 	private String status;
 
+	// @JsonIgnore
+	@OneToMany(mappedBy = "itemMaster", fetch = FetchType.EAGER)
+	private List<PartEntity> parts;
 }

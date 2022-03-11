@@ -22,7 +22,6 @@ public class ItemMasterMapper {
 	public ItemMaster convertToEntity(ItemMasterDto itemMasterDto) {
 		try {
 			return ItemMaster.builder().itemName(itemMasterDto.getItemName())
-					.partNo(itemMasterDto.getPartNo())
 					.status(StringUtils.hasLength(itemMasterDto.getStatus()) ? itemMasterDto.getStatus()
 							: AppConstants.STATUS_ACTIVE)
 					.build();

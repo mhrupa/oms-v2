@@ -33,10 +33,7 @@ public class ItemMasterController {
 	@PostMapping(value = "/items", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<OmsResponse> saveItemMaster(@RequestBody ItemMasterDto itemMasterDto) {
 		log.info("Item creation started.");
-		itemMasterService.saveItemMaster(itemMasterDto);
-		log.info("Item Creation completed.");
-		return new ResponseEntity<>(OmsResponse.builder().message("Item created successfully").build(),
-				HttpStatus.CREATED);
+		return itemMasterService.saveItemMaster(itemMasterDto);
 	}
 
 	@GetMapping("/items")
