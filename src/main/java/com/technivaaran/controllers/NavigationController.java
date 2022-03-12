@@ -120,4 +120,10 @@ public class NavigationController {
 	public String getUpdateStockPage() {
 		return "transactions/stock/updateStock";
 	}
+
+	// ****************Sales-menu*****************//
+	@GetMapping("/salesHome")
+	public String getSalesPage() {
+		return "transactions/sale/saleHome";
+	}
 }

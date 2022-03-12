@@ -1,12 +1,8 @@
 package com.technivaaran.entities;
 
-import java.util.List;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -18,22 +14,18 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "part_details")
+@Table(name = "config_details")
 @Builder
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class PartEntity extends BaseEntity<Long> {
+public class ConfigDetailsEntity extends BaseEntity<Long> {
 
-    @Column(name = "part_no", unique = true)
-    private String partNo;
+    @Column(name = "configuration", unique = true)
+    private String configuration;
 
     @JsonIgnore
     @ManyToOne
-    private ItemMaster itemMaster;
-
-    // @JsonIgnore
-	@OneToMany(mappedBy = "partEntity", fetch = FetchType.EAGER)
-	private List<ConfigDetailsEntity> configurations;
+    private PartEntity partEntity;
 }

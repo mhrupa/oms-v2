@@ -20,4 +20,6 @@ public class ItemMasterDto {
 	@Length(max = 10)
 	private String status;
 
+	private String configDetails;
+
 }

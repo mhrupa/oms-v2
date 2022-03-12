@@ -12,5 +12,7 @@ import org.springframework.stereotype.Repository;
 public interface PartRepository extends JpaRepository<PartEntity, Long> {
 
     Optional<PartEntity> findByPartNoAndItemMaster(String partNo, ItemMaster itemMaster);
+
+    Optional<PartEntity> findByPartNo(String partNo);
     
 }

@@ -50,6 +50,11 @@ public class PartService {
         }
     }
 
+    public Optional<PartEntity> getPartByPartName(String partNo) {
+        log.info("find by part no called.");
+        return partRepository.findByPartNo(partNo);
+    }
+
     public List<PartEntity> getAllParts() {
         log.info("Get all parts called");
         return partRepository.findAll();

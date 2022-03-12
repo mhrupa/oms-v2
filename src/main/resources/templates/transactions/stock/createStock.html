@@ -30,9 +30,11 @@
             $("#addBoxBtn").click(addNewBox);
             $("#addModelBtn").click(addNewModel);
             $("#addPartBtn").click(addNewPart);
-            $("#createBoxBtn").click(createBoxBtn);
-            $("#createModelBtn").click(createModelBtn);
-            $("#createPartBtn").click(createPartBtn);
+            $("#addConfigBtn").click(addNewConfig);
+            $("#createBoxBtn").click(createBoxBtnClick);
+            $("#createModelBtn").click(createModelBtnClick);
+            $("#createPartBtn").click(createPartBtnClick);
+            $("#createConfigBtn").click(createConfigBtnClick);
             $('#model').change(modelOnChange);
             $("#addStockBtn").click(() => {
                 if (validateFields()) {
@@ -55,7 +57,6 @@
         function initPage() {
             initLocationData();
             initModelData();
-            initPartNoData();
         }
 
         function modelOnChange() {
@@ -77,7 +78,7 @@
             }
         }
 
-        function createBoxBtn() {
+        function createBoxBtnClick() {
             $("#createBoxBtn").attr("disabled", "disabled")
             if ($("#boxName").val() == "") {
                 $("#boxName").focus();
@@ -102,8 +103,7 @@
                 $("#createBoxBtn").removeAttr("disabled");
             });
         }
-
-        function createModelBtn() {
+        function createModelBtnClick() {
             $("#createModelBtn").attr("disabled", "disabled")
             if ($("#modelName").val() == "") {
                 $("#modelName").focus();
@@ -128,8 +128,7 @@
                 $('.toast').addClass('bg-danger').toast('show');
             });
         }
-
-        function createPartBtn() {
+        function createPartBtnClick() {
             $("#createPartBtn").attr("disabled", "disabled")
             if ($("#modelForPart").val() == "") {
                 $("#modelForPart").focus();
@@ -162,6 +161,41 @@
                 $("#createPartBtn").removeAttr("disabled");
             });
         }
+        function createConfigBtnClick() {
+            $("#createConfigBtn").attr("disabled", "disabled")
+            if ($("#partForConfiguration").val() == "") {
+                $("#partForConfiguration").focus();
+                $("#omsToast").html("Please select Part No.");
+                $('.toast').removeClass('bg-danger').removeClass('bg-success').addClass('bg-warning').toast('show');
+                $("#createConfigBtn").removeAttr("disabled");
+                return false;
+            }
+            if ($("#configName").val() == "") {
+                $("#configName").focus();
+                $("#omsToast").html("Please enter Configuration");
+                $('.toast').removeClass('bg-danger').removeClass('bg-success').addClass('bg-warning').toast('show');
+                $("#createConfigBtn").removeAttr("disabled");
+                return false;
+            }
+            var requestData = {
+                "itemName": $("#model").val(),
+                "partNo": $("#partForConfiguration").val(),
+                "configDetails": $("#configName").val()
+            };
+            console.log(JSON.stringify(requestData));
+            $.post("/configs", JSON.stringify(requestData), function (res) {
+                $('#stockAddConfigModal').modal('hide');
+                $("#omsToast").html(res.message);
+                $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
+                $("#createConfigBtn").removeAttr("disabled");
+                initPage();
+            }).fail(function (res) {
+                $('#stockAddConfigModal').modal('hide');
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $('.toast').addClass('bg-danger').toast('show');
+                $("#createConfigBtn").removeAttr("disabled");
+            });
+        }
 
         function addNewBox() {
             $("#stockAddBoxModal").modal("show");
@@ -174,9 +208,24 @@
             $("#modelName").focus();
         }
         function addNewPart() {
-            $("#stockAddPartModal").modal("show");
-            // $("#modelForPart").val("");
-            $("#modelForPart").focus();
+            if ($("#model").val() != '0') {
+                $("#stockAddPartModal").modal("show");
+                $("#modelForPart").val($("#model").val());
+                $("#modelForPart").focus();
+            } else {
+                $("#omsToast").html("Please select model.");
+                $('.toast').addClass('bg-warning').toast('show');
+            }
+        }
+        function addNewConfig() {
+            if (null != $("#partNo").val() && $("#partNo").val() != '0') {
+                $("#stockAddConfigModal").modal("show");
+                $("#partForConfiguration").val($("#partNo").val());
+                $("#partForConfiguration").focus();
+            } else {
+                $("#omsToast").html("Please select Part No.");
+                $('.toast').addClass('bg-warning').toast('show');
+            }
         }
 
         function initLocationData() {
@@ -197,7 +246,9 @@
                 $("#model").append("<option value='0' selected>Select model</option>");
                 $("#modelForPart").empty();
                 $("#modelForPart").append("<option value='0' selected>Select model</option>");
-                res.forEach(element => {
+                items = res;
+                items.forEach(element => {
+// TODO: loop on items array here
                     var item = {}
                     item.name = element.itemName;
                     const parts = new Array();
@@ -207,22 +258,19 @@
                     item.parts = parts;
                     items.push(element);
                     $("#model").append("<option value='" + element.itemName + "'>" + element.itemName + "</option>");
-                    $("#modelForPart").append("<option value='" + element.itemName + "'>" + element.itemName + "</option>");
+                    // $("#modelForPart").append("<option value='" + element.itemName + "'>" + element.itemName + "</option>");
                 });
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $('.toast').addClass('bg-danger').toast('show');
             });
         }
-
-        function initPartNoData() {
-        }
     </script>
 </head>
 
 <body style="overflow: hidden;">
     <div class="row" style="width: 100%;">
-        <div class="col-3 pt-2">
+        <div class="pt-2" style="width: 250px;">
             <div class="mb-1 ps-2">
                 <label class="p-1 pb-0" for="boxNo">Box</label>
                 <div class="input-group">
@@ -231,7 +279,7 @@
                         data-bs-placement="top" id="addBoxBtn" title="Add new Box">+</button>
                 </div>
             </div>
-            <div class="mb-1 ps-2">
+            <div class="ps-2">
                 <label for="model" class="p-1 pb-0">Motherboard Model</label>
                 <div class="input-group">
                     <select class="form-control" id="model"></select>
@@ -239,7 +287,7 @@
                         data-bs-placement="top" id="addModelBtn" title="Add new Model">+</button>
                 </div>
             </div>
-            <div class="mb-1 ps-2">
+            <div class="ps-2">
                 <label for="partNo" class="p-1 pb-0">Part</label>
                 <div class="input-group">
                     <select class="form-control" id="partNo"></select>
@@ -247,16 +295,55 @@
                         data-bs-placement="top" id="addPartBtn" title="Add new Part">+</button>
                 </div>
             </div>
-            <div class="mb-3 ps-2">
-                <label for="qty" class="p-1 pb-0">Quantity</label>
-                <input autocomplete="off" type="number" class="form-control" aria-label="qty" id="qty">
-            </div>
             <div class="ps-2">
-                <button type="button" style="width: 100%;" id="addStockBtn" class="btn btn-primary">Add</button>
+                <label for="config" class="p-1 pb-0">Configuration</label>
+                <div class="input-group">
+                    <select class="form-control" id="config"></select>
+                    <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                        data-bs-placement="top" id="addConfigBtn" title="Add new Configuration">+</button>
+                </div>
             </div>
-            <div class="ps-2 pt-2">
-                <button type="button" style="width: 100%;" disabled id="clearFieldsBtn"
-                    class="btn btn-secondary">Clear</button>
+            <div class="row" style="padding-left: 12px;">
+                <div class="col mb-1 ps-2">
+                    <label for="details" class="p-1 pb-0">Details</label>
+                    <div class="input-group">
+                        <select class="form-control" id="details">
+                            <option>GM</option>
+                            <option>PM</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col ps-2 mb-1">
+                    <label for="qty" class="p-1 pb-0">Quantity</label>
+                    <input autocomplete="off" type="number" class="form-control" aria-label="qty" id="qty">
+                </div>
+            </div>
+            <div class="row mb-1" style="padding-left: 12px;">
+                <div class="col ps-2">
+                    <label for="qty" class="p-1 pb-0">Buy Price</label>
+                    <input autocomplete="off" type="number" class="form-control" aria-label="qty" id="buyPrice">
+                </div>
+                <div class="col ps-2">
+                    <label for="qty" class="p-1 pb-0">Sell Price</label>
+                    <input autocomplete="off" type="number" class="form-control" aria-label="qty" id="sellPrice">
+                </div>
+            </div>
+            <div class="ps-2 mb-1">
+                <label for="qty" class="p-1 pb-0">Remark 1</label>
+                <input autocomplete="off" class="form-control" aria-label="qty" id="remark1">
+            </div>
+            <div class="mb-3 ps-2">
+                <label for="qty" class="p-1 pb-0">Remark 2</label>
+                <input autocomplete="off" class="form-control" aria-label="qty" id="remark2">
+            </div>
+            <div class="row" style="padding-left: 12px;">
+                <div class="col ps-2">
+                    <button type="button" style="width: 100%;" id="addStockBtn" class="btn btn-primary">Add</button>
+                </div>
+                <div class="col ps-2">
+                    <button type="button" style="width: 100%;" disabled id="clearFieldsBtn"
+                        class="btn btn-secondary">Clear</button>
+                </div>
             </div>
         </div>
         <div class="col mt-4">
@@ -264,172 +351,54 @@
                 <caption></caption>
                 <thead>
                     <tr>
-                        <th class="th-sm">Box No
-                        </th>
-                        <th class="th-sm">Motherboard Model
-                        </th>
-                        <th class="th-sm">Part No
-                        </th>
-                        <th class="th-sm">Quantity
-                        </th>
+                        <th class="th-sm">Box No</th>
+                        <th class="th-sm">Model</th>
+                        <th class="th-sm">Part No</th>
+                        <th class="th-sm">Configuration</th>
+                        <th class="th-sm">Details</th>
+                        <th class="th-sm">Quantity</th>
+                        <th class="th-sm">Buy Price</th>
+                        <th class="th-sm">Sell Price</th>
+                        <th class="th-sm">Remark1</th>
+                        <th class="th-sm">Remark2</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Tiger Nixon</td>
-                        <td>System Architect</td>
+                        <td>G1</td>
+                        <td>Gigabyte</td>
                         <td>Edinburgh</td>
+                        <td>Config</td>
+                        <td>Details</td>
                         <td>61</td>
+                        <td>Buy Price</td>
+                        <td>Sell Price</td>
+                        <td>Remark1</td>
+                        <td>Remark2</td>
                     </tr>
                     <tr>
-                        <td>Garrett Winters</td>
-                        <td>Accountant</td>
+                        <td>Box3</td>
+                        <td>Gigabyte</td>
                         <td>Tokyo</td>
+                        <td>Config</td>
+                        <td>Details</td>
                         <td>63</td>
+                        <td>Buy Price</td>
+                        <td>Sell Price</td>
+                        <td>Remark1</td>
+                        <td>Remark2</td>
                     </tr>
                     <tr>
-                        <td>Williamson</td>
-                        <td>Integration Specialist</td>
+                        <td>Box3</td>
+                        <td>Asus</td>
                         <td>New York</td>
+                        <td>Config</td>
+                        <td>Details</td>
+                        <td>Buy Price</td>
+                        <td>Sell Price</td>
+                        <td>Remark1</td>
+                        <td>Remark2</td>
                         <td>61</td>
-                    </tr>
-                    <tr>
-                        <td>Chandler</td>
-                        <td>Sales Assistant</td>
-                        <td>San Francisco</td>
-                        <td>59</td>
-                    </tr>
-                    <tr>
-                        <td>Rhona Davidson</td>
-                        <td>Integration Specialist</td>
-                        <td>Tokyo</td>
-                        <td>55</td>
-                    </tr>
-                    <tr>
-                        <td>Colleen Hurst</td>
-                        <td>Javascript Developer</td>
-                        <td>San Francisco</td>
-                        <td>39</td>
-                    </tr>
-                    <tr>
-                        <td>Sonya Frost</td>
-                        <td>Software Engineer</td>
-                        <td>Edinburgh</td>
-                        <td>23</td>
-                    </tr>
-                    <tr>
-                        <td>Jena Gaines</td>
-                        <td>Office Manager</td>
-                        <td>London</td>
-                        <td>30</td>
-                    </tr>
-                    <tr>
-                        <td>Quinn Flynn</td>
-                        <td>Support Lead</td>
-                        <td>Edinburgh</td>
-                        <td>22</td>
-                    </tr>
-                    <tr>
-                        <td>Marshall</td>
-                        <td>Regional Director</td>
-                        <td>San Francisco</td>
-                        <td>36</td>
-                    </tr>
-                    <tr>
-                        <td>Haley Kennedy</td>
-                        <td>Senior Marketing Designer</td>
-                        <td>London</td>
-                        <td>43</td>
-                    </tr>
-                    <tr>
-                        <td>Fitzpatrick</td>
-                        <td>Regional Director</td>
-                        <td>London</td>
-                        <td>19</td>
-                    </tr>
-                    <tr>
-                        <td>Michael Silva</td>
-                        <td>Marketing Designer</td>
-                        <td>London</td>
-                        <td>66</td>
-                    </tr>
-                    <tr>
-                        <td>Paul Byrd</td>
-                        <td>Chief Financial Officer (CFO)</td>
-                        <td>New York</td>
-                        <td>64</td>
-                    </tr>
-                    <tr>
-                        <td>Gloria Little</td>
-                        <td>Systems Administrator</td>
-                        <td>New York</td>
-                        <td>59</td>
-                    </tr>
-                    <tr>
-                        <td>Bradley Greer</td>
-                        <td>Software Engineer</td>
-                        <td>London</td>
-                        <td>41</td>
-                    </tr>
-                    <tr>
-                        <td>Dai Rios</td>
-                        <td>Personnel Lead</td>
-                        <td>Edinburgh</td>
-                        <td>35</td>
-                    </tr>
-                    <tr>
-                        <td>Caldwell</td>
-                        <td>Development Lead</td>
-                        <td>New York</td>
-                        <td>30</td>
-                    </tr>
-                    <tr>
-                        <td>Yuri Berry</td>
-                        <td>Chief Marketing Officer (CMO)</td>
-                        <td>New York</td>
-                        <td>40</td>
-                    </tr>
-                    <tr>
-                        <td>Caesar Vance</td>
-                        <td>Pre-Sales Support</td>
-                        <td>New York</td>
-                        <td>21</td>
-                    </tr>
-                    <tr>
-                        <td>Doris Wilder</td>
-                        <td>Sales Assistant</td>
-                        <td>Sidney</td>
-                        <td>23</td>
-                    </tr>
-                    <tr>
-                        <td>Angelica Ramos</td>
-                        <td>Chief Executive Officer (CEO)</td>
-                        <td>London</td>
-                        <td>47</td>
-                    </tr>
-                    <tr>
-                        <td>Gavin Joyce</td>
-                        <td>Developer</td>
-                        <td>Edinburgh</td>
-                        <td>42</td>
-                    </tr>
-                    <tr>
-                        <td>Jennifer Chang</td>
-                        <td>Regional Director</td>
-                        <td>Singapore</td>
-                        <td>28</td>
-                    </tr>
-                    <tr>
-                        <td>Wagner</td>
-                        <td>Software Engineer</td>
-                        <td>San Francisco</td>
-                        <td>28</td>
-                    </tr>
-                    <tr>
-                        <td>Fiona Green</td>
-                        <td>Chief Operating Officer (COO)</td>
-                        <td>San Francisco</td>
-                        <td>48</td>
                     </tr>
                 </tbody>
             </table>
@@ -503,6 +472,35 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" id="createPartBtn" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="stockAddConfigModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Create Configuration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <label for="model" class="p-1 pb-0">Part No</label>
+                        <div class="input-group">
+                            <input type="text" disabled="disabled" class="form-control"
+                                id="partForConfiguration"></select>
+                        </div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Part no</span>
+                        <input type="text" class="form-control" id="configName" placeholder="Configuration"
+                            aria-label="configName" aria-describedby="configName">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="createConfigBtn" class="btn btn-primary">Save</button>
                 </div>
             </div>
         </div>
