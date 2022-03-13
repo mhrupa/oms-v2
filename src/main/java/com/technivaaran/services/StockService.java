@@ -39,18 +39,18 @@ public class StockService {
         if (itemOp.isPresent()) {
             ItemMaster item = itemOp.get();
             // if (item.getPartNo().equalsIgnoreCase(stockRequestDto.getPartNo())) {
-            //     StockHeader stockHeader = null;
-            //     Optional<StockHeader> stockHeaderOp = stockHeaderRepository
-            //             .findByLocationAndItemMaster(stockRequestDto.getBoxNo(), item);
-            //     if (!stockHeaderOp.isEmpty()) {
-            //         stockHeader = stockHeaderOp.get();
-            //     } else {
-            //         stockHeader = StockHeader.builder()
-            //                 .itemMaster(item).location(stockRequestDto.getBoxNo())
-            //                 .stockDate(DateUtils.getCurrentDate()).build();
-            //     }
-            //     createStockDetail(stockRequestDto, stockHeader);
-            //     updateStockHeader(stockHeader);
+            // StockHeader stockHeader = null;
+            // Optional<StockHeader> stockHeaderOp = stockHeaderRepository
+            // .findByLocationAndItemMaster(stockRequestDto.getBoxNo(), item);
+            // if (!stockHeaderOp.isEmpty()) {
+            // stockHeader = stockHeaderOp.get();
+            // } else {
+            // stockHeader = StockHeader.builder()
+            // .itemMaster(item).location(stockRequestDto.getBoxNo())
+            // .stockDate(DateUtils.getCurrentDate()).build();
+            // }
+            // createStockDetail(stockRequestDto, stockHeader);
+            // updateStockHeader(stockHeader);
             // }
         }
     }

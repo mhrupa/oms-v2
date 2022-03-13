@@ -14,5 +14,7 @@ public interface PartRepository extends JpaRepository<PartEntity, Long> {
     Optional<PartEntity> findByPartNoAndItemMaster(String partNo, ItemMaster itemMaster);
 
     Optional<PartEntity> findByPartNo(String partNo);
+
+    Optional<PartEntity> findByItemMasterAndPartNo(ItemMaster itemMaster, String partNo);
     
 }

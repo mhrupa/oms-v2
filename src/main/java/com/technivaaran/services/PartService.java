@@ -37,9 +37,9 @@ public class PartService {
             if (partOp.isEmpty()) {
                 PartEntity part = PartEntity.builder()
                         .partNo(itemMasterDto.getPartNo()).itemMaster(itemMasterOp.get()).build();
-                partRepository.save(part);
-                return new ResponseEntity<>(OmsResponse.builder().message("Part created successfully.").build(),
-                        HttpStatus.CREATED);
+                part = partRepository.save(part);
+                return new ResponseEntity<>(OmsResponse.builder().message("Part created successfully.")
+                        .data(part).build(), HttpStatus.CREATED);
             } else {
                 return new ResponseEntity<>(OmsResponse.builder().message("Part No already exists.").build(),
                         HttpStatus.BAD_REQUEST);
@@ -53,6 +53,11 @@ public class PartService {
     public Optional<PartEntity> getPartByPartName(String partNo) {
         log.info("find by part no called.");
         return partRepository.findByPartNo(partNo);
+    }
+
+    public Optional<PartEntity> getPartByPartNoAndItemMaster(String partNo, ItemMaster itemMaster) {
+        log.info("find by part no called.");
+        return partRepository.findByItemMasterAndPartNo(itemMaster, partNo);
     }
 
     public List<PartEntity> getAllParts() {

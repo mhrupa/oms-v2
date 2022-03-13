@@ -15,5 +15,12 @@ public class StockRequestDto {
     private String boxNo;
     private String model;
     private String partNo;
-    private float qty;
+    private String config;
+    private String details;
+    private String vendor;
+    private int qty;
+    private float buyPrice;
+    private float sellPrice;
+    private String remark1;
+    private String remark2;
 }

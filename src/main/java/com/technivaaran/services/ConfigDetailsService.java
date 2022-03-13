@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.technivaaran.dto.ItemMasterDto;
 import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.entities.ConfigDetailsEntity;
+import com.technivaaran.entities.ItemMaster;
 import com.technivaaran.entities.PartEntity;
 import com.technivaaran.repositories.ConfigDetailsRepository;
 
@@ -27,28 +28,40 @@ public class ConfigDetailsService {
     @Autowired
     PartService partService;
 
+    @Autowired
+    ItemMasterService itemMasterService;
+
     public ResponseEntity<OmsResponse> createConfigDetails(ItemMasterDto itemMasterDto) {
         log.info("Create config details service method called {}", itemMasterDto.getConfigDetails());
         if (!ObjectUtils.isEmpty(itemMasterDto.getConfigDetails())) {
-            Optional<ConfigDetailsEntity> configDetailsOp = configDetailsRepository
-                    .findByConfiguration(itemMasterDto.getConfigDetails());
-            if (configDetailsOp.isEmpty()) {
-                Optional<PartEntity> partEntityOp = partService.getPartByPartName(itemMasterDto.getPartNo());
-                if (!partEntityOp.isEmpty()) {
-                    ConfigDetailsEntity configDetailsEntity = ConfigDetailsEntity.builder()
-                            .configuration(itemMasterDto.getConfigDetails())
-                            .partEntity(partEntityOp.get())
-                            .build();
-                    configDetailsRepository.save(configDetailsEntity);
-                    return new ResponseEntity<>(
-                            OmsResponse.builder().message("Configuration created successfully.").build(),
-                            HttpStatus.CREATED);
+            Optional<ItemMaster> itemMasterOp = itemMasterService.findByItemName(itemMasterDto.getItemName());
+            if (itemMasterOp.isPresent()) {
+                Optional<PartEntity> partEntityOp = partService
+                        .getPartByPartNoAndItemMaster(itemMasterDto.getPartNo(), itemMasterOp.get());
+                if (partEntityOp.isPresent()) {
+                    Optional<ConfigDetailsEntity> configDetailsOp = configDetailsRepository
+                            .findByConfigurationAndPartEntity(itemMasterDto.getConfigDetails(), partEntityOp.get());
+                    if (configDetailsOp.isEmpty()) {
+                        ConfigDetailsEntity configDetailsEntity = ConfigDetailsEntity.builder()
+                                .configuration(itemMasterDto.getConfigDetails())
+                                .partEntity(partEntityOp.get()).build();
+                        configDetailsEntity = configDetailsRepository.save(configDetailsEntity);
+                        return new ResponseEntity<>(
+                                OmsResponse.builder().message("Configuration created successfully.")
+                                        .data(configDetailsEntity).build(),
+                                HttpStatus.CREATED);
+
+                    } else {
+                        return new ResponseEntity<>(
+                                OmsResponse.builder().message("Configuration already exists").build(),
+                                HttpStatus.BAD_REQUEST);
+                    }
                 } else {
                     return new ResponseEntity<>(OmsResponse.builder().message("Invalid Part No received.").build(),
                             HttpStatus.BAD_REQUEST);
                 }
             } else {
-                return new ResponseEntity<>(OmsResponse.builder().message("Configuration already exists").build(),
+                return new ResponseEntity<>(OmsResponse.builder().message("Invalid Model received.").build(),
                         HttpStatus.BAD_REQUEST);
             }
         } else {

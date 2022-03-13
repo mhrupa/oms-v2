@@ -1,10 +1,10 @@
 package com.technivaaran.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -34,6 +34,7 @@ public class PartEntity extends BaseEntity<Long> {
     private ItemMaster itemMaster;
 
     // @JsonIgnore
-	@OneToMany(mappedBy = "partEntity", fetch = FetchType.EAGER)
-	private List<ConfigDetailsEntity> configurations;
+    @Builder.Default
+    @OneToMany(mappedBy = "partEntity")
+    private List<ConfigDetailsEntity> configurations = new ArrayList<>();
 }

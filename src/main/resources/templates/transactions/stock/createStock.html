@@ -21,6 +21,7 @@
         var items = new Array();
         $(document).ready(function () {
             initPage();
+            $(".numberOnly").keypress(numberOnly);
             $("#boxNo").focus();
             var table = $('#dataTable').DataTable({
                 // paging: false,
@@ -36,6 +37,7 @@
             $("#createPartBtn").click(createPartBtnClick);
             $("#createConfigBtn").click(createConfigBtnClick);
             $('#model').change(modelOnChange);
+            $("#partNo").change(partNoOnChange);
             $("#addStockBtn").click(() => {
                 if (validateFields()) {
                     savaData();
@@ -59,6 +61,54 @@
             initModelData();
         }
 
+        function savaData() {
+            var requestData = {
+                "boxNo": $("#boxNo").val(),
+                "model": $("#model").val(),
+                "partNo": $("#partNo").val(),
+                "config": $("#config").val(),
+                "details": $("#details").val(),
+                "qty": $("#qty").val(),
+                "buyPrice": $("#buyPrice").val(),
+                "sellPrice": $("#sellPrice").val(),
+                "remark1": $("#remark1").val(),
+                "remark2": $("#remark2").val()
+            };
+
+            $.post("/stock", JSON.stringify(requestData), function (res) {
+                $("#omsToast").html(res.message);
+                $('.toast').removeClass('bg-danger').addClass('bg-success').toast('show');
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $('.toast').addClass('bg-danger').toast('show');
+            });
+
+        }
+        function validateFields() {
+            if ($("#boxNo").val() == '0') {
+                $("#boxNo").focus();
+                return false;
+            }
+            if ($("#model").val() == '0') {
+                $("#model").focus();
+                return false;
+            }
+            if ($("#partNo").val() == '0') {
+                $("#partNo").focus();
+                return false;
+            }
+            if ($("#config").val() == '0') {
+                $("#config").focus();
+                return false;
+            }
+            if ($("#qty").val() == "" || $("#qty").val() == 0) {
+                $("#qty").focus();
+                return false;
+            }
+            return true;
+        }
+
+
         function modelOnChange() {
             if ($('#model').val() != "0") {
                 items.forEach(item => {
@@ -68,13 +118,33 @@
                         item.parts.forEach(element => {
                             $("#partNo").append("<option value='" + element.partNo + "'>" + element.partNo + "</option>");
                         });
+                        return;
                     }
                 })
             } else {
                 $("#model").focus();
                 $("#partNo").empty();
-                $("#omsToast").html("Please select model");
-                $('.toast').addClass('bg-warning').toast('show');
+            }
+        }
+        function partNoOnChange() {
+            if ($('#partNo').val() != "0") {
+                items.forEach(item => {
+                    if (item.itemName == $('#model').val()) {
+                        item.parts.forEach(part => {
+                            if (part.partNo == $('#partNo').val()) {
+                                $("#config").empty();
+                                $("#config").append("<option value='0' selected>Select Configuration</option>");
+                                part.configurations.forEach(config => {
+                                    $("#config").append("<option value='" + config.configuration + "'>" + config.configuration + "</option>");
+                                });
+                                return;
+                            }
+                        })
+                    }
+                })
+            } else {
+                $("#partNo").focus();
+                $("#config").empty();
             }
         }
 
@@ -120,7 +190,8 @@
                 $("#omsToast").html(res.message);
                 $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
                 $("#createModelBtn").removeAttr("disabled");
-                initPage();
+                items.push(res.data);
+                initModelResponseData(res.data);
             }).fail(function (res) {
                 $('#stockAddModelModal').modal('hide');
                 $("#createModelBtn").removeAttr("disabled");
@@ -153,7 +224,7 @@
                 $("#omsToast").html(res.message);
                 $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
                 $("#createPartBtn").removeAttr("disabled");
-                initPage();
+                initPartResponseData(res.data);
             }).fail(function (res) {
                 $('#stockAddPartModal').modal('hide');
                 $("#omsToast").html(JSON.parse(res.responseText).message);
@@ -182,13 +253,12 @@
                 "partNo": $("#partForConfiguration").val(),
                 "configDetails": $("#configName").val()
             };
-            console.log(JSON.stringify(requestData));
             $.post("/configs", JSON.stringify(requestData), function (res) {
                 $('#stockAddConfigModal').modal('hide');
                 $("#omsToast").html(res.message);
                 $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
                 $("#createConfigBtn").removeAttr("disabled");
-                initPage();
+                initConfigResponseData(res.data);
             }).fail(function (res) {
                 $('#stockAddConfigModal').modal('hide');
                 $("#omsToast").html(JSON.parse(res.responseText).message);
@@ -231,38 +301,69 @@
         function initLocationData() {
             $.get("/storageLocations", function (res) {
                 $("#boxNo").empty();
+                $("#boxNo").append("<option selected='selected' value='0'>Select box</option>");
                 res.forEach(element => {
-                    $("#boxNo").append("<option value='" + element + "'>" + element.locationName + "</option>");
+                    $("#boxNo").append("<option value='" + element.locationName + "'>" + element.locationName + "</option>");
                 });
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $('.toast').addClass('bg-danger').toast('show');
             });
         }
-
         function initModelData() {
             $.get("/items", function (res) {
-                $("#model").empty();
-                $("#model").append("<option value='0' selected>Select model</option>");
-                $("#modelForPart").empty();
-                $("#modelForPart").append("<option value='0' selected>Select model</option>");
                 items = res;
-                items.forEach(element => {
-// TODO: loop on items array here
-                    var item = {}
-                    item.name = element.itemName;
-                    const parts = new Array();
-                    element.parts.forEach(part => {
-                        parts.push(part.partNo);
-                    });
-                    item.parts = parts;
-                    items.push(element);
-                    $("#model").append("<option value='" + element.itemName + "'>" + element.itemName + "</option>");
-                    // $("#modelForPart").append("<option value='" + element.itemName + "'>" + element.itemName + "</option>");
-                });
+                initModelResponseData();
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $('.toast').addClass('bg-danger').toast('show');
+            });
+        }
+
+        function initModelResponseData(ele) {
+            $("#model").empty();
+            $("#model").append("<option value='0' selected>Select model</option>");
+            items.forEach(element => {
+                $("#model").append("<option value='" + element.itemName + "'>" + element.itemName + "</option>");
+            });
+            if (ele) {
+                $("#model").val(ele.itemName);
+            }
+        }
+        function initPartResponseData(ele) {
+            items.forEach(item => {
+                if ($("#model").val() == item.itemName) {
+                    item.parts.push(ele);
+                    $("#partNo").empty();
+                    $("#partNo").append("<option value='0' selected>Select Part No</option>");
+                    item.parts.forEach(part => {
+                        $("#partNo").append("<option value='" + part.partNo + "'>" + part.partNo + "</option>");
+                    })
+                    if (ele) {
+                        $("#partNo").val(ele.partNo);
+                    }
+                    return;
+                }
+            });
+        }
+        function initConfigResponseData(ele) {
+            items.forEach(item => {
+                if ($("#model").val() == item.itemName) {
+                    item.parts.forEach(part => {
+                        if ($("#partNo").val() == part.partNo) {
+                            part.configurations.push(ele);
+                            $("#config").empty();
+                            $("#config").append("<option value='0' selected>Select Configuration</option>");
+                            part.configurations.forEach(config => {
+                                $("#config").append("<option value='" + config.configuration + "'>" + config.configuration + "</option>");
+                            })
+                            if (ele) {
+                                $("#config").val(ele.configuration);
+                            }
+                            return;
+                        }
+                    })
+                }
             });
         }
     </script>
@@ -315,17 +416,23 @@
                 </div>
                 <div class="col ps-2 mb-1">
                     <label for="qty" class="p-1 pb-0">Quantity</label>
-                    <input autocomplete="off" type="number" class="form-control" aria-label="qty" id="qty">
+                    <input autocomplete="off" required type="test" class="form-control numberOnly" aria-label="qty"
+                        id="qty">
+                    <div class="invalid-tooltip">
+                        Please enter quantity
+                    </div>
                 </div>
             </div>
             <div class="row mb-1" style="padding-left: 12px;">
                 <div class="col ps-2">
                     <label for="qty" class="p-1 pb-0">Buy Price</label>
-                    <input autocomplete="off" type="number" class="form-control" aria-label="qty" id="buyPrice">
+                    <input autocomplete="off" type="text" class="form-control numberOnly" aria-label="qty"
+                        id="buyPrice">
                 </div>
                 <div class="col ps-2">
                     <label for="qty" class="p-1 pb-0">Sell Price</label>
-                    <input autocomplete="off" type="number" class="form-control" aria-label="qty" id="sellPrice">
+                    <input autocomplete="off" type="text" class="form-control numberOnly" aria-label="qty"
+                        id="sellPrice">
                 </div>
             </div>
             <div class="ps-2 mb-1">
@@ -426,7 +533,7 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="stockAddModelModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    <div class="modal fade" id="stockAddModelModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -437,8 +544,8 @@
                 <div class="modal-body">
                     <div class="input-group mb-3">
                         <span class="input-group-text">Model</span>
-                        <input type="text" class="form-control" id="modelName" placeholder="Model Name"
-                            aria-label="modelName" aria-describedby="modelName">
+                        <input autocomplete="off" type="text" class="form-control" id="modelName"
+                            placeholder="Model Name" aria-label="modelName" aria-describedby="modelName">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -448,7 +555,7 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="stockAddPartModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    <div class="modal fade" id="stockAddPartModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -460,12 +567,12 @@
                     <div class="input-group mb-3">
                         <label for="model" class="p-1 pb-0">Motherboard Model</label>
                         <div class="input-group">
-                            <select class="form-control" id="modelForPart"></select>
+                            <input type="text" disabled="disabled" class="form-control" id="modelForPart"></input>
                         </div>
                     </div>
                     <div class="input-group mb-3">
                         <span class="input-group-text">Part no</span>
-                        <input type="text" class="form-control" id="partName" placeholder="Part Name"
+                        <input type="text" class="form-control" id="partName" placeholder="Part Name" autocomplete="off"
                             aria-label="partName" aria-describedby="partName">
                     </div>
                 </div>
@@ -476,7 +583,7 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="stockAddConfigModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    <div class="modal fade" id="stockAddConfigModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -493,9 +600,9 @@
                         </div>
                     </div>
                     <div class="input-group mb-3">
-                        <span class="input-group-text">Part no</span>
+                        <span class="input-group-text">Configuration</span>
                         <input type="text" class="form-control" id="configName" placeholder="Configuration"
-                            aria-label="configName" aria-describedby="configName">
+                            autocomplete="off" aria-label="configName" aria-describedby="configName">
                     </div>
                 </div>
                 <div class="modal-footer">

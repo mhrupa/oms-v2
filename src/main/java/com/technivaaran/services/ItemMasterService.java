@@ -38,10 +38,10 @@ public class ItemMasterService {
 				if (itemMasterOp.isEmpty()) {
 					itemMaster = ItemMaster.builder()
 							.itemName(itemMasterDto.getItemName()).build();
-					itemMasterRepository.save(itemMaster);
+					itemMaster = itemMasterRepository.save(itemMaster);
 					log.info("Item creation completed.");
-					return new ResponseEntity<>(OmsResponse.builder().message("Item created successfully").build(),
-							HttpStatus.CREATED);
+					return new ResponseEntity<>(OmsResponse.builder().message("Item created successfully")
+							.data(itemMaster).build(), HttpStatus.CREATED);
 				} else {
 					throw new OMSException("Item exists with Item name: " + itemMasterDto.getItemName());
 				}
