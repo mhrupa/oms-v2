@@ -28,9 +28,7 @@ public class PartService {
 
     public ResponseEntity<OmsResponse> createPartNo(ItemMasterDto itemMasterDto) {
         log.info("Creating part no in service for {}", itemMasterDto.getPartNo());
-
-        Optional<ItemMaster> itemMasterOp = itemMasterService.findByItemName(itemMasterDto.getItemName());
-
+        Optional<ItemMaster> itemMasterOp = itemMasterService.getItemById(itemMasterDto.getItemId());
         if (itemMasterOp.isPresent()) {
             Optional<PartEntity> partOp = partRepository.findByPartNoAndItemMaster(itemMasterDto.getPartNo(),
                     itemMasterOp.get());
@@ -56,8 +54,13 @@ public class PartService {
     }
 
     public Optional<PartEntity> getPartByPartNoAndItemMaster(String partNo, ItemMaster itemMaster) {
-        log.info("find by part no called.");
+        log.info("find by part no and Item Master called.");
         return partRepository.findByItemMasterAndPartNo(itemMaster, partNo);
+    }
+
+    public Optional<PartEntity> getPartById(long partId) {
+        log.info("find by part id called.");
+        return partRepository.findById(partId);
     }
 
     public List<PartEntity> getAllParts() {

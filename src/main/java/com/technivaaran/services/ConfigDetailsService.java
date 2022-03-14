@@ -6,7 +6,6 @@ import java.util.Optional;
 import com.technivaaran.dto.ItemMasterDto;
 import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.entities.ConfigDetailsEntity;
-import com.technivaaran.entities.ItemMaster;
 import com.technivaaran.entities.PartEntity;
 import com.technivaaran.repositories.ConfigDetailsRepository;
 
@@ -34,34 +33,26 @@ public class ConfigDetailsService {
     public ResponseEntity<OmsResponse> createConfigDetails(ItemMasterDto itemMasterDto) {
         log.info("Create config details service method called {}", itemMasterDto.getConfigDetails());
         if (!ObjectUtils.isEmpty(itemMasterDto.getConfigDetails())) {
-            Optional<ItemMaster> itemMasterOp = itemMasterService.findByItemName(itemMasterDto.getItemName());
-            if (itemMasterOp.isPresent()) {
-                Optional<PartEntity> partEntityOp = partService
-                        .getPartByPartNoAndItemMaster(itemMasterDto.getPartNo(), itemMasterOp.get());
-                if (partEntityOp.isPresent()) {
-                    Optional<ConfigDetailsEntity> configDetailsOp = configDetailsRepository
-                            .findByConfigurationAndPartEntity(itemMasterDto.getConfigDetails(), partEntityOp.get());
-                    if (configDetailsOp.isEmpty()) {
-                        ConfigDetailsEntity configDetailsEntity = ConfigDetailsEntity.builder()
-                                .configuration(itemMasterDto.getConfigDetails())
-                                .partEntity(partEntityOp.get()).build();
-                        configDetailsEntity = configDetailsRepository.save(configDetailsEntity);
-                        return new ResponseEntity<>(
-                                OmsResponse.builder().message("Configuration created successfully.")
-                                        .data(configDetailsEntity).build(),
-                                HttpStatus.CREATED);
-
-                    } else {
-                        return new ResponseEntity<>(
-                                OmsResponse.builder().message("Configuration already exists").build(),
-                                HttpStatus.BAD_REQUEST);
-                    }
+            Optional<PartEntity> partEntityOp = partService.getPartById(itemMasterDto.getPartId());
+            if (partEntityOp.isPresent()) {
+                Optional<ConfigDetailsEntity> configDetailsOp = configDetailsRepository
+                        .findByConfigurationAndPartEntity(itemMasterDto.getConfigDetails(), partEntityOp.get());
+                if (configDetailsOp.isEmpty()) {
+                    ConfigDetailsEntity configDetailsEntity = ConfigDetailsEntity.builder()
+                            .configuration(itemMasterDto.getConfigDetails())
+                            .partEntity(partEntityOp.get()).build();
+                    configDetailsEntity = configDetailsRepository.save(configDetailsEntity);
+                    return new ResponseEntity<>(
+                            OmsResponse.builder().message("Configuration created successfully.")
+                                    .data(configDetailsEntity).build(),
+                            HttpStatus.CREATED);
                 } else {
-                    return new ResponseEntity<>(OmsResponse.builder().message("Invalid Part No received.").build(),
+                    return new ResponseEntity<>(
+                            OmsResponse.builder().message("Configuration already exists").build(),
                             HttpStatus.BAD_REQUEST);
                 }
             } else {
-                return new ResponseEntity<>(OmsResponse.builder().message("Invalid Model received.").build(),
+                return new ResponseEntity<>(OmsResponse.builder().message("Invalid Part No received.").build(),
                         HttpStatus.BAD_REQUEST);
             }
         } else {
@@ -74,5 +65,10 @@ public class ConfigDetailsService {
     public List<ConfigDetailsEntity> getAllConfigs() {
         log.info("Get all config details called");
         return configDetailsRepository.findAll();
+    }
+
+    public Optional<ConfigDetailsEntity> findById(long configDetailId) {
+        log.info("Get config details by id called");
+        return configDetailsRepository.findById(configDetailId);
     }
 }

@@ -3,11 +3,7 @@ package com.technivaaran.entities;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -35,6 +31,6 @@ public class PartEntity extends BaseEntity<Long> {
 
     // @JsonIgnore
     @Builder.Default
-    @OneToMany(mappedBy = "partEntity")
+    @OneToMany(mappedBy = "partEntity", fetch = FetchType.EAGER)
     private List<ConfigDetailsEntity> configurations = new ArrayList<>();
 }

@@ -1,6 +1,13 @@
 package com.technivaaran.controllers;
 
 import java.util.List;
+import java.util.Optional;
+
+import com.technivaaran.AppUrlConstants;
+import com.technivaaran.dto.ItemMasterDto;
+import com.technivaaran.dto.OmsResponse;
+import com.technivaaran.entities.ItemMaster;
+import com.technivaaran.services.ItemMasterService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,12 +20,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.technivaaran.AppUrlConstants;
-import com.technivaaran.dto.ItemMasterDto;
-import com.technivaaran.dto.OmsResponse;
-import com.technivaaran.entities.ItemMaster;
-import com.technivaaran.services.ItemMasterService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,7 +44,7 @@ public class ItemMasterController {
 	}
 
 	@GetMapping("/items/{itemId}")
-	public ItemMaster getItemById(@PathVariable(name = "itemId") int itemId) {
+	public Optional<ItemMaster> getItemById(@PathVariable(name = "itemId") int itemId) {
 		log.info("Get Item by Id called");
 		return itemMasterService.getItemById(itemId);
 	}

@@ -58,14 +58,8 @@ public class ItemMasterService {
 		return itemMasterRepository.findAll();
 	}
 
-	public ItemMaster getItemById(long itemMasterId) {
-		Optional<ItemMaster> itemMasterOp = itemMasterRepository.findById(itemMasterId);
-
-		if (itemMasterOp.isPresent()) {
-			return itemMasterOp.get();
-		} else {
-			throw new OMSException("Item not found for id : " + itemMasterId);
-		}
+	public Optional<ItemMaster> getItemById(long itemMasterId) {
+		return itemMasterRepository.findById(itemMasterId);
 	}
 
 	public ItemMaster updateItemById(long itemId, ItemMasterDto itemMasterDto) {

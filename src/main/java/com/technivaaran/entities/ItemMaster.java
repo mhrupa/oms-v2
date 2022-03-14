@@ -3,10 +3,7 @@ package com.technivaaran.entities;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -37,6 +34,6 @@ public class ItemMaster extends BaseEntity<Long> {
 
 	// @JsonIgnore
 	@Builder.Default
-	@OneToMany(mappedBy = "itemMaster")
+	@OneToMany(mappedBy = "itemMaster", fetch = FetchType.EAGER)
 	private List<PartEntity> parts = new ArrayList<>();
 }

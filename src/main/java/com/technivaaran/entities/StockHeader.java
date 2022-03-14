@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -24,8 +25,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StockHeader extends BaseEntity<Long> {
 
-    @Column(name = "location")
-    private String location;
+    
 
     @Column(name = "stock_date")
 	@JsonIgnore
@@ -44,6 +44,18 @@ public class StockHeader extends BaseEntity<Long> {
     private float closingQty;
 
     @ManyToOne
+    @JoinColumn(name = "location_id")
+    private StorageLocationEntity locationStorageLocation;
+
+    @ManyToOne
     private ItemMaster itemMaster;
+
+    @ManyToOne
+    @JoinColumn(name = "part_id")
+    private PartEntity partEntity;
+
+    @ManyToOne
+    @JoinColumn(name = "config_detail_id")
+    private ConfigDetailsEntity configDetailsEntity;
 
 }

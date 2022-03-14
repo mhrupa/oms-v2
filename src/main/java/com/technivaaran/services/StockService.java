@@ -4,9 +4,12 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.technivaaran.dto.request.StockRequestDto;
+import com.technivaaran.entities.ConfigDetailsEntity;
 import com.technivaaran.entities.ItemMaster;
+import com.technivaaran.entities.PartEntity;
 import com.technivaaran.entities.StockDetails;
 import com.technivaaran.entities.StockHeader;
+import com.technivaaran.entities.StorageLocationEntity;
 import com.technivaaran.repositories.StockDetailsRepository;
 import com.technivaaran.repositories.StockHeaderRepository;
 import com.technivaaran.utils.DateUtils;
@@ -29,15 +32,24 @@ public class StockService {
     @Autowired
     ItemMasterService itemMasterService;
 
+    @Autowired
+    ConfigDetailsService configDetailsService;
+
+    @Autowired
+    StorageLocationService storageLocationService;
+
     public void getMaterialDetailsByMaterialName() {
         stockHeaderRepository.findById(1L);
         stockDetailsRepository.findById(1L);
     }
 
     public void createStockEntry(StockRequestDto stockRequestDto) {
-        Optional<ItemMaster> itemOp = itemMasterService.findByItemName(stockRequestDto.getModel());
-        if (itemOp.isPresent()) {
-            ItemMaster item = itemOp.get();
+        Optional<ConfigDetailsEntity> configOp = configDetailsService.findById(stockRequestDto.getConfigId());
+        if (configOp.isPresent()) {
+            ConfigDetailsEntity configEntity = configOp.get();
+            
+          //  findStockHeaderByLocationAndModelAndPartAndConfig(st)
+
             // if (item.getPartNo().equalsIgnoreCase(stockRequestDto.getPartNo())) {
             // StockHeader stockHeader = null;
             // Optional<StockHeader> stockHeaderOp = stockHeaderRepository
@@ -53,6 +65,14 @@ public class StockService {
             // updateStockHeader(stockHeader);
             // }
         }
+    }
+
+    public Optional<StockHeader> findStockHeaderByLocationAndModelAndPartAndConfig(
+            StorageLocationEntity storageLocationEntity,
+            ItemMaster itemMaster, PartEntity partEntity, ConfigDetailsEntity configDetailsEntity) {
+
+       return stockHeaderRepository.findByStorageLocationAndItemMasterAndPartEntityAndConfigDetailsEntity(
+                storageLocationEntity, itemMaster, partEntity, configDetailsEntity);
     }
 
     private StockDetails createStockDetail(StockRequestDto stockRequestDto, StockHeader stockHeader) {

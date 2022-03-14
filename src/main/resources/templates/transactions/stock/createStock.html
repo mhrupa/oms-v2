@@ -63,10 +63,10 @@
 
         function savaData() {
             var requestData = {
-                "boxNo": $("#boxNo").val(),
-                "model": $("#model").val(),
-                "partNo": $("#partNo").val(),
-                "config": $("#config").val(),
+                "boxId": $("#boxNo").val(),
+                "modelId": $("#model").val(),
+                "partId": $("#partNo").val(),
+                "configId": $("#config").val(),
                 "details": $("#details").val(),
                 "qty": $("#qty").val(),
                 "buyPrice": $("#buyPrice").val(),
@@ -112,11 +112,11 @@
         function modelOnChange() {
             if ($('#model').val() != "0") {
                 items.forEach(item => {
-                    if (item.itemName == $('#model').val()) {
+                    if (item.id == $('#model').val()) {
                         $("#partNo").empty();
                         $("#partNo").append("<option value='0' selected>Select Part</option>");
                         item.parts.forEach(element => {
-                            $("#partNo").append("<option value='" + element.partNo + "'>" + element.partNo + "</option>");
+                            $("#partNo").append("<option value='" + element.id + "'>" + element.partNo + "</option>");
                         });
                         return;
                     }
@@ -129,13 +129,13 @@
         function partNoOnChange() {
             if ($('#partNo').val() != "0") {
                 items.forEach(item => {
-                    if (item.itemName == $('#model').val()) {
+                    if (item.id == $('#model').val()) {
                         item.parts.forEach(part => {
-                            if (part.partNo == $('#partNo').val()) {
+                            if (part.id == $('#partNo').val()) {
                                 $("#config").empty();
                                 $("#config").append("<option value='0' selected>Select Configuration</option>");
                                 part.configurations.forEach(config => {
-                                    $("#config").append("<option value='" + config.configuration + "'>" + config.configuration + "</option>");
+                                    $("#config").append("<option value='" + config.id + "'>" + config.configuration + "</option>");
                                 });
                                 return;
                             }
@@ -201,13 +201,6 @@
         }
         function createPartBtnClick() {
             $("#createPartBtn").attr("disabled", "disabled")
-            if ($("#modelForPart").val() == "") {
-                $("#modelForPart").focus();
-                $("#omsToast").html("Please select Model name.");
-                $('.toast').removeClass('bg-danger').removeClass('bg-success').addClass('bg-warning').toast('show');
-                $("#createPartBtn").removeAttr("disabled");
-                return false;
-            }
             if ($("#partName").val() == "") {
                 $("#partName").focus();
                 $("#omsToast").html("Please enter part no.");
@@ -216,7 +209,7 @@
                 return false;
             }
             var requestData = {
-                "itemName": $("#modelForPart").val(),
+                "itemId": $("#model").val(),
                 "partNo": $("#partName").val()
             };
             $.post("/parts", JSON.stringify(requestData), function (res) {
@@ -225,6 +218,7 @@
                 $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
                 $("#createPartBtn").removeAttr("disabled");
                 initPartResponseData(res.data);
+                $("#config").focus();
             }).fail(function (res) {
                 $('#stockAddPartModal').modal('hide');
                 $("#omsToast").html(JSON.parse(res.responseText).message);
@@ -234,13 +228,6 @@
         }
         function createConfigBtnClick() {
             $("#createConfigBtn").attr("disabled", "disabled")
-            if ($("#partForConfiguration").val() == "") {
-                $("#partForConfiguration").focus();
-                $("#omsToast").html("Please select Part No.");
-                $('.toast').removeClass('bg-danger').removeClass('bg-success').addClass('bg-warning').toast('show');
-                $("#createConfigBtn").removeAttr("disabled");
-                return false;
-            }
             if ($("#configName").val() == "") {
                 $("#configName").focus();
                 $("#omsToast").html("Please enter Configuration");
@@ -249,8 +236,8 @@
                 return false;
             }
             var requestData = {
-                "itemName": $("#model").val(),
-                "partNo": $("#partForConfiguration").val(),
+                "itemId": $("#model").val(),
+                "partId": $("#partNo").val(),
                 "configDetails": $("#configName").val()
             };
             $.post("/configs", JSON.stringify(requestData), function (res) {
@@ -259,6 +246,7 @@
                 $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
                 $("#createConfigBtn").removeAttr("disabled");
                 initConfigResponseData(res.data);
+                $("#details").focus();
             }).fail(function (res) {
                 $('#stockAddConfigModal').modal('hide');
                 $("#omsToast").html(JSON.parse(res.responseText).message);
@@ -280,7 +268,7 @@
         function addNewPart() {
             if ($("#model").val() != '0') {
                 $("#stockAddPartModal").modal("show");
-                $("#modelForPart").val($("#model").val());
+                $("#modelForPart").val($("#model option:selected").text());
                 $("#modelForPart").focus();
             } else {
                 $("#omsToast").html("Please select model.");
@@ -290,7 +278,7 @@
         function addNewConfig() {
             if (null != $("#partNo").val() && $("#partNo").val() != '0') {
                 $("#stockAddConfigModal").modal("show");
-                $("#partForConfiguration").val($("#partNo").val());
+                $("#partForConfiguration").val($("#partNo  option:selected").text());
                 $("#partForConfiguration").focus();
             } else {
                 $("#omsToast").html("Please select Part No.");
@@ -303,7 +291,7 @@
                 $("#boxNo").empty();
                 $("#boxNo").append("<option selected='selected' value='0'>Select box</option>");
                 res.forEach(element => {
-                    $("#boxNo").append("<option value='" + element.locationName + "'>" + element.locationName + "</option>");
+                    $("#boxNo").append("<option value='" + element.id + "'>" + element.locationName + "</option>");
                 });
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
@@ -324,23 +312,23 @@
             $("#model").empty();
             $("#model").append("<option value='0' selected>Select model</option>");
             items.forEach(element => {
-                $("#model").append("<option value='" + element.itemName + "'>" + element.itemName + "</option>");
+                $("#model").append("<option value='" + element.id + "'>" + element.itemName + "</option>");
             });
             if (ele) {
-                $("#model").val(ele.itemName);
+                $("#model").val(ele.id);
             }
         }
         function initPartResponseData(ele) {
             items.forEach(item => {
-                if ($("#model").val() == item.itemName) {
+                if ($("#model").val() == item.id) {
                     item.parts.push(ele);
                     $("#partNo").empty();
                     $("#partNo").append("<option value='0' selected>Select Part No</option>");
                     item.parts.forEach(part => {
-                        $("#partNo").append("<option value='" + part.partNo + "'>" + part.partNo + "</option>");
+                        $("#partNo").append("<option value='" + part.id + "'>" + part.partNo + "</option>");
                     })
                     if (ele) {
-                        $("#partNo").val(ele.partNo);
+                        $("#partNo").val(ele.id);
                     }
                     return;
                 }
@@ -348,17 +336,17 @@
         }
         function initConfigResponseData(ele) {
             items.forEach(item => {
-                if ($("#model").val() == item.itemName) {
+                if ($("#model").val() == item.id) {
                     item.parts.forEach(part => {
-                        if ($("#partNo").val() == part.partNo) {
+                        if ($("#partNo").val() == part.id) {
                             part.configurations.push(ele);
                             $("#config").empty();
                             $("#config").append("<option value='0' selected>Select Configuration</option>");
                             part.configurations.forEach(config => {
-                                $("#config").append("<option value='" + config.configuration + "'>" + config.configuration + "</option>");
+                                $("#config").append("<option value='" + config.id + "'>" + config.configuration + "</option>");
                             })
                             if (ele) {
-                                $("#config").val(ele.configuration);
+                                $("#config").val(ele.id);
                             }
                             return;
                         }

@@ -12,10 +12,10 @@ import lombok.Data;
 @JsonInclude(Include.NON_NULL)
 public class StockRequestDto {
     @JsonProperty("boxNo")
-    private String boxNo;
-    private String model;
-    private String partNo;
-    private String config;
+    private long boxId;
+    private long modelId;
+    private long partId;
+    private long configId;
     private String details;
     private String vendor;
     private int qty;

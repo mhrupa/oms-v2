@@ -1,7 +1,6 @@
 package com.technivaaran.dto;
 
 import org.hibernate.validator.constraints.Length;
-import org.springframework.lang.NonNull;
 
 import lombok.Builder;
 import lombok.Data;
@@ -11,11 +10,15 @@ import lombok.Data;
 public class ItemMasterDto {
 
 	@Length(max = 50)
-	@NonNull
 	private String itemName;
+
+	private long itemId;
 
 	@Length(max = 100)
 	private String partNo;
+
+	@Length(max = 100)
+	private long partId;
 
 	@Length(max = 10)
 	private String status;
