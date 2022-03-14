@@ -2,7 +2,6 @@ package com.technivaaran.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import lombok.Data;
@@ -11,8 +10,7 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
 public class StockRequestDto {
-    @JsonProperty("boxNo")
-    private long boxId;
+    private int boxId;
     private long modelId;
     private long partId;
     private long configId;

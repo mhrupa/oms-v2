@@ -45,7 +45,7 @@ public class StockHeader extends BaseEntity<Long> {
 
     @ManyToOne
     @JoinColumn(name = "location_id")
-    private StorageLocationEntity locationStorageLocation;
+    private StorageLocationEntity storageLocation;
 
     @ManyToOne
     private ItemMaster itemMaster;

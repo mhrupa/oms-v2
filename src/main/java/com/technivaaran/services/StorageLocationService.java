@@ -1,6 +1,7 @@
 package com.technivaaran.services;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.entities.StorageLocationEntity;
@@ -33,5 +34,9 @@ public class StorageLocationService {
 
     public List<StorageLocationEntity> findAllStorageLocations() {
         return storageLocationRepository.findAll();
+    }
+
+    public Optional<StorageLocationEntity> findById(int locationId) {
+       return storageLocationRepository.findById(locationId);
     }
 }

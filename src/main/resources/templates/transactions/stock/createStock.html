@@ -19,6 +19,7 @@
     </style>
     <script>
         var items = new Array();
+        var stockData = new Array();
         $(document).ready(function () {
             initPage();
             $(".numberOnly").keypress(numberOnly);
@@ -61,6 +62,8 @@
             initModelData();
         }
 
+
+
         function savaData() {
             var requestData = {
                 "boxId": $("#boxNo").val(),
@@ -76,6 +79,7 @@
             };
 
             $.post("/stock", JSON.stringify(requestData), function (res) {
+                stockData = res.data;
                 $("#omsToast").html(res.message);
                 $('.toast').removeClass('bg-danger').addClass('bg-success').toast('show');
             }).fail(function (res) {
@@ -302,6 +306,18 @@
             $.get("/items", function (res) {
                 items = res;
                 initModelResponseData();
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $('.toast').addClass('bg-danger').toast('show');
+            });
+        }
+        function initStockData(){
+            $.get("/stock", function (res) {
+                $("#boxNo").empty();
+                $("#boxNo").append("<option selected='selected' value='0'>Select box</option>");
+                res.forEach(element => {
+                    $("#boxNo").append("<option value='" + element.id + "'>" + element.locationName + "</option>");
+                });
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $('.toast').addClass('bg-danger').toast('show');

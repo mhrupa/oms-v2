@@ -14,8 +14,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface StockHeaderRepository extends JpaRepository<StockHeader, Long> {
 
-    Optional<StockHeader> findByLocationAndItemMaster(String boxNo, ItemMaster item);
-
     Optional<StockHeader> findByStorageLocationAndItemMasterAndPartEntityAndConfigDetailsEntity(
             StorageLocationEntity storageLocationEntity, ItemMaster itemMaster, PartEntity partEntity,
             ConfigDetailsEntity configDetailsEntity);

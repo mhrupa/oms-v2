@@ -1,8 +1,10 @@
 package com.technivaaran.services;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.dto.request.StockRequestDto;
 import com.technivaaran.entities.ConfigDetailsEntity;
 import com.technivaaran.entities.ItemMaster;
@@ -15,6 +17,8 @@ import com.technivaaran.repositories.StockHeaderRepository;
 import com.technivaaran.utils.DateUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,35 +47,58 @@ public class StockService {
         stockDetailsRepository.findById(1L);
     }
 
-    public void createStockEntry(StockRequestDto stockRequestDto) {
-        Optional<ConfigDetailsEntity> configOp = configDetailsService.findById(stockRequestDto.getConfigId());
-        if (configOp.isPresent()) {
-            ConfigDetailsEntity configEntity = configOp.get();
-            
-          //  findStockHeaderByLocationAndModelAndPartAndConfig(st)
+    public List<StockHeader> getStockHeader() {
 
-            // if (item.getPartNo().equalsIgnoreCase(stockRequestDto.getPartNo())) {
-            // StockHeader stockHeader = null;
-            // Optional<StockHeader> stockHeaderOp = stockHeaderRepository
-            // .findByLocationAndItemMaster(stockRequestDto.getBoxNo(), item);
-            // if (!stockHeaderOp.isEmpty()) {
-            // stockHeader = stockHeaderOp.get();
-            // } else {
-            // stockHeader = StockHeader.builder()
-            // .itemMaster(item).location(stockRequestDto.getBoxNo())
-            // .stockDate(DateUtils.getCurrentDate()).build();
-            // }
-            // createStockDetail(stockRequestDto, stockHeader);
-            // updateStockHeader(stockHeader);
-            // }
+        
+    }
+
+    public ResponseEntity<OmsResponse> createStockEntry(StockRequestDto stockRequestDto) {
+        Optional<ConfigDetailsEntity> configOp = configDetailsService.findById(stockRequestDto.getConfigId());
+
+        Optional<StorageLocationEntity> storageLocationOp = storageLocationService.findById(stockRequestDto.getBoxId());
+
+        if (configOp.isEmpty()) {
+            return new ResponseEntity<>(OmsResponse.builder().message("Invalid configuration received.").build(),
+                    HttpStatus.BAD_REQUEST);
         }
+        if (storageLocationOp.isEmpty()) {
+            return new ResponseEntity<>(OmsResponse.builder().message("Invalid box no received.").build(),
+                    HttpStatus.BAD_REQUEST);
+        }
+        ConfigDetailsEntity configEntity = configOp.get();
+
+        Optional<StockHeader> stockHeaderOp = findStockHeaderByLocationAndModelAndPartAndConfig(storageLocationOp.get(),
+                configEntity.getPartEntity().getItemMaster(), configEntity.getPartEntity(), configEntity);
+
+        StockHeader stockHeader = null;
+        if (stockHeaderOp.isPresent()) {
+            stockHeader = stockHeaderOp.get();
+            stockHeader.setInQty(stockHeader.getInQty() + stockRequestDto.getQty());
+
+            stockHeaderRepository.save(stockHeader);
+        } else {
+            stockHeader = StockHeader.builder()
+                    .openingQty(stockRequestDto.getQty())
+                    .inQty(stockRequestDto.getQty())
+                    .outQty(0).closingQty(stockRequestDto.getQty())
+                    .storageLocation(storageLocationOp.get())
+                    .itemMaster(configEntity.getPartEntity().getItemMaster())
+                    .partEntity(configEntity.getPartEntity()).configDetailsEntity(configEntity)
+                    .build();
+
+            stockHeaderRepository.save(stockHeader);
+        }
+
+        return new ResponseEntity<>(OmsResponse.builder().message("Stock updated successfully.")
+                .data(stockHeader).build(), HttpStatus.OK);
+
     }
 
     public Optional<StockHeader> findStockHeaderByLocationAndModelAndPartAndConfig(
             StorageLocationEntity storageLocationEntity,
             ItemMaster itemMaster, PartEntity partEntity, ConfigDetailsEntity configDetailsEntity) {
 
-       return stockHeaderRepository.findByStorageLocationAndItemMasterAndPartEntityAndConfigDetailsEntity(
+        return stockHeaderRepository.findByStorageLocationAndItemMasterAndPartEntityAndConfigDetailsEntity(
                 storageLocationEntity, itemMaster, partEntity, configDetailsEntity);
     }
 
