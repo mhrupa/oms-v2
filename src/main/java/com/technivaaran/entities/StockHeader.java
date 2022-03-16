@@ -43,6 +43,8 @@ public class StockHeader extends BaseEntity<Long> {
     @Column(name = "closing_qty", nullable = false)
     private float closingQty;
 
+    private String details;
+    
     @ManyToOne
     @JoinColumn(name = "location_id")
     private StorageLocationEntity storageLocation;

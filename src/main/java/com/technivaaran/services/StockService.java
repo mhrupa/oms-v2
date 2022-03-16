@@ -1,17 +1,20 @@
 package com.technivaaran.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.dto.request.StockRequestDto;
+import com.technivaaran.dto.response.StockResponseDto;
 import com.technivaaran.entities.ConfigDetailsEntity;
 import com.technivaaran.entities.ItemMaster;
 import com.technivaaran.entities.PartEntity;
 import com.technivaaran.entities.StockDetails;
 import com.technivaaran.entities.StockHeader;
 import com.technivaaran.entities.StorageLocationEntity;
+import com.technivaaran.mapper.StockHeaderResponseMapper;
 import com.technivaaran.repositories.StockDetailsRepository;
 import com.technivaaran.repositories.StockHeaderRepository;
 import com.technivaaran.utils.DateUtils;
@@ -34,22 +37,24 @@ public class StockService {
     private StockDetailsRepository stockDetailsRepository;
 
     @Autowired
-    ItemMasterService itemMasterService;
+    private ConfigDetailsService configDetailsService;
 
     @Autowired
-    ConfigDetailsService configDetailsService;
+    private StorageLocationService storageLocationService;
 
     @Autowired
-    StorageLocationService storageLocationService;
+    private StockHeaderResponseMapper stockHeaderResponseMapper;
 
     public void getMaterialDetailsByMaterialName() {
         stockHeaderRepository.findById(1L);
         stockDetailsRepository.findById(1L);
     }
 
-    public List<StockHeader> getStockHeader() {
-
-        
+    public List<StockResponseDto> getStockHeader() {
+        List<StockResponseDto> stockResponseDtos = new ArrayList<>();
+        stockHeaderRepository.findAll().forEach(
+            stockHeader -> stockResponseDtos.add(stockHeaderResponseMapper.convertToDto(stockHeader)));
+        return stockResponseDtos;
     }
 
     public ResponseEntity<OmsResponse> createStockEntry(StockRequestDto stockRequestDto) {
@@ -73,6 +78,7 @@ public class StockService {
         StockHeader stockHeader = null;
         if (stockHeaderOp.isPresent()) {
             stockHeader = stockHeaderOp.get();
+            stockHeader.setDetails(stockRequestDto.getDetails());
             stockHeader.setInQty(stockHeader.getInQty() + stockRequestDto.getQty());
 
             stockHeaderRepository.save(stockHeader);
@@ -84,6 +90,7 @@ public class StockService {
                     .storageLocation(storageLocationOp.get())
                     .itemMaster(configEntity.getPartEntity().getItemMaster())
                     .partEntity(configEntity.getPartEntity()).configDetailsEntity(configEntity)
+                    .details(stockRequestDto.getDetails())
                     .build();
 
             stockHeaderRepository.save(stockHeader);

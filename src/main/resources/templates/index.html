@@ -19,6 +19,7 @@
 
     <script type="text/javascript">
         $.ajaxSetup({
+            async: false,
             contentType: "application/json; charset=utf-8",
             beforeSend: function (xhr, settings) {
                 settings.url = "/api" + settings.url;

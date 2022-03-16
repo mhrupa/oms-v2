@@ -2,10 +2,10 @@
 <html lang="en">
 
 <head>
-    <meta charset='utf-8'>
-    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Page Title</title>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         .dataTables_wrapper .dataTables_filter {
             float: left;
@@ -20,35 +20,53 @@
     <script>
         var items = new Array();
         var stockData = new Array();
+        var table;
+        var vendors;
         $(document).ready(function () {
             initPage();
             $(".numberOnly").keypress(numberOnly);
             $("#boxNo").focus();
-            var table = $('#dataTable').DataTable({
+
+            table = $("#dataTable").DataTable({
                 // paging: false,
                 // scrollY: 420,
                 // info: false
+                data: stockData,
+                "columns": [
+                    { data: "box" },
+                    { data: "model" },
+                    { data: "part" },
+                    { data: "configuration" },
+                    { data: "details" },
+                    { data: "qty" },
+                    { data: "buyPrice" },
+                    { data: "sellPrice" },
+                    { data: "id", visible: false }
+                ]
             });
+
             $("#addBoxBtn").click(addNewBox);
+            $("#addVendorBtn").click(addNewVendor);
             $("#addModelBtn").click(addNewModel);
             $("#addPartBtn").click(addNewPart);
             $("#addConfigBtn").click(addNewConfig);
             $("#createBoxBtn").click(createBoxBtnClick);
             $("#createModelBtn").click(createModelBtnClick);
             $("#createPartBtn").click(createPartBtnClick);
+            $("#createVendorBtn").click(createVendorBtnClick);
             $("#createConfigBtn").click(createConfigBtnClick);
-            $('#model').change(modelOnChange);
+            $("#model").change(modelOnChange);
             $("#partNo").change(partNoOnChange);
             $("#addStockBtn").click(() => {
                 if (validateFields()) {
                     savaData();
                 }
                 return false;
-            })
+            });
             $("#clearFieldsBtn").click(() => {
                 initFields();
-            })
-            $('#dataTable tbody').css("cursor", "pointer").on('click', 'tr', function () {
+            });
+            $("#dataTable tbody").css("cursor", "pointer").on("click", "tr", function () {
                 var data = table.row(this).data();
                 $("#boxNo").val(data[0]);
                 $("#model").val(data[1]);
@@ -60,9 +78,8 @@
         function initPage() {
             initLocationData();
             initModelData();
+            initStockData();
         }
-
-
 
         function savaData() {
             var requestData = {
@@ -74,34 +91,37 @@
                 "qty": $("#qty").val(),
                 "buyPrice": $("#buyPrice").val(),
                 "sellPrice": $("#sellPrice").val(),
-                "remark1": $("#remark1").val(),
-                "remark2": $("#remark2").val()
+                "vendor": $("#vendor").val()
             };
 
             $.post("/stock", JSON.stringify(requestData), function (res) {
                 stockData = res.data;
+                //initStockData();
+
+                table.row.add({ "id": 121, "box": "G1", "model": "AA", "part": "CC", "configuration": "A", "details": "AM", "qty": 11, "buyPrice": 0, "sellPrice": 0 }).draw(false);
+
                 $("#omsToast").html(res.message);
-                $('.toast').removeClass('bg-danger').addClass('bg-success').toast('show');
+                $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
-                $('.toast').addClass('bg-danger').toast('show');
+                $(".toast").addClass("bg-danger").toast("show");
             });
 
         }
         function validateFields() {
-            if ($("#boxNo").val() == '0') {
+            if ($("#boxNo").val() == "0") {
                 $("#boxNo").focus();
                 return false;
             }
-            if ($("#model").val() == '0') {
+            if ($("#model").val() == "0") {
                 $("#model").focus();
                 return false;
             }
-            if ($("#partNo").val() == '0') {
+            if ($("#partNo").val() == "0") {
                 $("#partNo").focus();
                 return false;
             }
-            if ($("#config").val() == '0') {
+            if ($("#config").val() == "0") {
                 $("#config").focus();
                 return false;
             }
@@ -112,30 +132,30 @@
             return true;
         }
 
-
         function modelOnChange() {
-            if ($('#model').val() != "0") {
+            if ($("#model").val() != "0") {
                 items.forEach(item => {
-                    if (item.id == $('#model').val()) {
+                    if (item.id == $("#model").val()) {
                         $("#partNo").empty();
                         $("#partNo").append("<option value='0' selected>Select Part</option>");
                         item.parts.forEach(element => {
-                            $("#partNo").append("<option value='" + element.id + "'>" + element.partNo + "</option>");
+                            $("#partNo").append("<option value='" + element.id + "'>"
+                                + element.partNo + "</option>");
                         });
                         return;
                     }
-                })
+                });
             } else {
                 $("#model").focus();
                 $("#partNo").empty();
             }
         }
         function partNoOnChange() {
-            if ($('#partNo').val() != "0") {
+            if ($("#partNo").val() != "0") {
                 items.forEach(item => {
-                    if (item.id == $('#model').val()) {
+                    if (item.id == $("#model").val()) {
                         item.parts.forEach(part => {
-                            if (part.id == $('#partNo').val()) {
+                            if (part.id == $("#partNo").val()) {
                                 $("#config").empty();
                                 $("#config").append("<option value='0' selected>Select Configuration</option>");
                                 part.configurations.forEach(config => {
@@ -157,7 +177,7 @@
             if ($("#boxName").val() == "") {
                 $("#boxName").focus();
                 $("#omsToast").html("Please enter box no.");
-                $('.toast').removeClass('bg-danger').removeClass('bg-success').addClass('bg-warning').toast('show');
+                $(".toast").removeClass("bg-danger").removeClass("bg-success").addClass("bg-warning").toast("show");
                 $("#createBoxBtn").removeAttr("disabled");
                 return false;
             }
@@ -165,15 +185,15 @@
                 "storageLocation": $("#boxName").val()
             };
             $.post("/storageLocations", JSON.stringify(requestData), function (res) {
-                $('#stockAddBoxModal').modal('hide');
+                $("#stockAddBoxModal").modal("hide");
                 $("#omsToast").html(res.message);
-                $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
+                $(".toast").removeClass("bg-danger").removeClass("bg-warning").addClass("bg-success").toast("show");
                 $("#createBoxBtn").removeAttr("disabled");
                 initPage();
             }).fail(function (res) {
-                $('#stockAddBoxModal').modal('hide');
+                $("#stockAddBoxModal").modal("hide");
                 $("#omsToast").html(JSON.parse(res.responseText).message);
-                $('.toast').addClass('bg-danger').toast('show');
+                $(".toast").addClass("bg-danger").toast("show");
                 $("#createBoxBtn").removeAttr("disabled");
             });
         }
@@ -182,7 +202,7 @@
             if ($("#modelName").val() == "") {
                 $("#modelName").focus();
                 $("#omsToast").html("Please enter Model name.");
-                $('.toast').removeClass('bg-danger').removeClass('bg-success').addClass('bg-warning').toast('show');
+                $(".toast").removeClass("bg-danger").removeClass("bg-success").addClass("bg-warning").toast("show");
                 $("#createModelBtn").removeAttr("disabled");
                 return false;
             }
@@ -190,17 +210,17 @@
                 "itemName": $("#modelName").val()
             };
             $.post("/items", JSON.stringify(requestData), function (res) {
-                $('#stockAddModelModal').modal('hide');
+                $("#stockAddModelModal").modal("hide");
                 $("#omsToast").html(res.message);
-                $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
+                $(".toast").removeClass("bg-danger").removeClass("bg-warning").addClass("bg-success").toast("show");
                 $("#createModelBtn").removeAttr("disabled");
                 items.push(res.data);
                 initModelResponseData(res.data);
             }).fail(function (res) {
-                $('#stockAddModelModal').modal('hide');
+                $("#stockAddModelModal").modal("hide");
                 $("#createModelBtn").removeAttr("disabled");
                 $("#omsToast").html(JSON.parse(res.responseText).message);
-                $('.toast').addClass('bg-danger').toast('show');
+                $(".toast").addClass("bg-danger").toast("show");
             });
         }
         function createPartBtnClick() {
@@ -208,7 +228,7 @@
             if ($("#partName").val() == "") {
                 $("#partName").focus();
                 $("#omsToast").html("Please enter part no.");
-                $('.toast').removeClass('bg-danger').removeClass('bg-success').addClass('bg-warning').toast('show');
+                $(".toast").removeClass("bg-danger").removeClass("bg-success").addClass("bg-warning").toast("show");
                 $("#createPartBtn").removeAttr("disabled");
                 return false;
             }
@@ -217,16 +237,16 @@
                 "partNo": $("#partName").val()
             };
             $.post("/parts", JSON.stringify(requestData), function (res) {
-                $('#stockAddPartModal').modal('hide');
+                $("#stockAddPartModal").modal("hide");
                 $("#omsToast").html(res.message);
-                $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
+                $(".toast").removeClass("bg-danger").removeClass("bg-warning").addClass("bg-success").toast("show");
                 $("#createPartBtn").removeAttr("disabled");
                 initPartResponseData(res.data);
                 $("#config").focus();
             }).fail(function (res) {
-                $('#stockAddPartModal').modal('hide');
+                $("#stockAddPartModal").modal("hide");
                 $("#omsToast").html(JSON.parse(res.responseText).message);
-                $('.toast').addClass('bg-danger').toast('show');
+                $(".toast").addClass("bg-danger").toast("show");
                 $("#createPartBtn").removeAttr("disabled");
             });
         }
@@ -235,7 +255,7 @@
             if ($("#configName").val() == "") {
                 $("#configName").focus();
                 $("#omsToast").html("Please enter Configuration");
-                $('.toast').removeClass('bg-danger').removeClass('bg-success').addClass('bg-warning').toast('show');
+                $(".toast").removeClass("bg-danger").removeClass("bg-success").addClass("bg-warning").toast("show");
                 $("#createConfigBtn").removeAttr("disabled");
                 return false;
             }
@@ -245,22 +265,52 @@
                 "configDetails": $("#configName").val()
             };
             $.post("/configs", JSON.stringify(requestData), function (res) {
-                $('#stockAddConfigModal').modal('hide');
+                $("#stockAddConfigModal").modal("hide");
                 $("#omsToast").html(res.message);
-                $('.toast').removeClass('bg-danger').removeClass('bg-warning').addClass('bg-success').toast('show');
+                $(".toast").removeClass("bg-danger").removeClass("bg-warning").addClass("bg-success").toast("show");
                 $("#createConfigBtn").removeAttr("disabled");
                 initConfigResponseData(res.data);
                 $("#details").focus();
             }).fail(function (res) {
-                $('#stockAddConfigModal').modal('hide');
+                $("#stockAddConfigModal").modal("hide");
                 $("#omsToast").html(JSON.parse(res.responseText).message);
-                $('.toast').addClass('bg-danger').toast('show');
+                $(".toast").addClass("bg-danger").toast("show");
                 $("#createConfigBtn").removeAttr("disabled");
             });
         }
-
+        function createVendorBtnClick() {
+            $("#createVendorBtn").attr("disabled", "disabled")
+            if ($("#vendorName").val() == "") {
+                $("#vendorName").focus();
+                $("#omsToast").html("Please enter Vendor Name");
+                $(".toast").removeClass("bg-danger").removeClass("bg-success").addClass("bg-warning").toast("show");
+                $("#createConfigBtn").removeAttr("disabled");
+                return false;
+            }
+            var requestData = {
+                "vendorName": $("#vendorName").val()
+            };
+            $.post("/vendors", JSON.stringify(requestData), function (res) {
+                $("#stockAddConfigModal").modal("hide");
+                $("#omsToast").html(res.message);
+                $(".toast").removeClass("bg-danger").removeClass("bg-warning").addClass("bg-success").toast("show");
+                $("#createConfigBtn").removeAttr("disabled");
+                initVendorResponseData(res.data);
+                $("#model").focus();
+            }).fail(function (res) {
+                $("#stockAddConfigModal").modal("hide");
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+                $("#createConfigBtn").removeAttr("disabled");
+            });
+        }
         function addNewBox() {
             $("#stockAddBoxModal").modal("show");
+            $("#boxName").val("");
+            $("#boxName").focus();
+        }
+        function addNewVendor() {
+            $("#addVendorModal").modal("show");
             $("#boxName").val("");
             $("#boxName").focus();
         }
@@ -270,26 +320,39 @@
             $("#modelName").focus();
         }
         function addNewPart() {
-            if ($("#model").val() != '0') {
+            if ($("#model").val() != "0") {
                 $("#stockAddPartModal").modal("show");
                 $("#modelForPart").val($("#model option:selected").text());
                 $("#modelForPart").focus();
             } else {
                 $("#omsToast").html("Please select model.");
-                $('.toast').addClass('bg-warning').toast('show');
+                $(".toast").addClass("bg-warning").toast("show");
             }
         }
         function addNewConfig() {
-            if (null != $("#partNo").val() && $("#partNo").val() != '0') {
+            if (null != $("#partNo").val() && $("#partNo").val() != "0") {
                 $("#stockAddConfigModal").modal("show");
                 $("#partForConfiguration").val($("#partNo  option:selected").text());
                 $("#partForConfiguration").focus();
             } else {
                 $("#omsToast").html("Please select Part No.");
-                $('.toast').addClass('bg-warning').toast('show');
+                $(".toast").addClass("bg-warning").toast("show");
             }
         }
 
+        function initVendorData() {
+            $.get("/vendors", function (res) {
+                vendors = res;
+                $("#vendor").empty();
+                $("#vendor").append("<option selected='selected' value='0'>Select Vendor</option>");
+                vendors.forEach(vendor => {
+                    $("#vendor").append("<option value='" + vendor.id + "'>" + vendor.vendorName + "</option>");
+                });
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
+        }
         function initLocationData() {
             $.get("/storageLocations", function (res) {
                 $("#boxNo").empty();
@@ -299,7 +362,7 @@
                 });
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
-                $('.toast').addClass('bg-danger').toast('show');
+                $(".toast").addClass("bg-danger").toast("show");
             });
         }
         function initModelData() {
@@ -308,19 +371,15 @@
                 initModelResponseData();
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
-                $('.toast').addClass('bg-danger').toast('show');
+                $(".toast").addClass("bg-danger").toast("show");
             });
         }
-        function initStockData(){
+        function initStockData() {
             $.get("/stock", function (res) {
-                $("#boxNo").empty();
-                $("#boxNo").append("<option selected='selected' value='0'>Select box</option>");
-                res.forEach(element => {
-                    $("#boxNo").append("<option value='" + element.id + "'>" + element.locationName + "</option>");
-                });
+                stockData = res;
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
-                $('.toast').addClass('bg-danger').toast('show');
+                $(".toast").addClass("bg-danger").toast("show");
             });
         }
 
@@ -342,7 +401,7 @@
                     $("#partNo").append("<option value='0' selected>Select Part No</option>");
                     item.parts.forEach(part => {
                         $("#partNo").append("<option value='" + part.id + "'>" + part.partNo + "</option>");
-                    })
+                    });
                     if (ele) {
                         $("#partNo").val(ele.id);
                     }
@@ -360,15 +419,28 @@
                             $("#config").append("<option value='0' selected>Select Configuration</option>");
                             part.configurations.forEach(config => {
                                 $("#config").append("<option value='" + config.id + "'>" + config.configuration + "</option>");
-                            })
+                            });
                             if (ele) {
                                 $("#config").val(ele.id);
                             }
                             return;
                         }
-                    })
+                    });
                 }
             });
+        }
+        function initVendorResponseData(vendor) {
+            vendors.push(vendor);
+            // $("#vendor").empty();
+            // $("#vendor").append("<option value='0' selected>Select Configuration</option>");
+            // part.configurations.forEach(config => {
+            //     $("#vendor").append("<option value='" + config.id + "'>" + config.configuration + "</option>");
+            // });
+            if (vendor) {
+                $("#vendor").append("<option value='" + vendor.id + "' selected>" + vendor.vendorName + "</option>");
+                $("#vendor").val(vendor.id);
+            }
+            return;
         }
     </script>
 </head>
@@ -382,6 +454,14 @@
                     <select class="form-control" id="boxNo"></select>
                     <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
                         data-bs-placement="top" id="addBoxBtn" title="Add new Box">+</button>
+                </div>
+            </div>
+            <div class="ps-2">
+                <label for="vendor" class="p-1 pb-0">Vendor</label>
+                <div class="input-group">
+                    <select class="form-control" id="vendor"></select>
+                    <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                        data-bs-placement="top" id="addVendorBtn" title="Add new Vendor">+</button>
                 </div>
             </div>
             <div class="ps-2">
@@ -420,7 +500,7 @@
                 </div>
                 <div class="col ps-2 mb-1">
                     <label for="qty" class="p-1 pb-0">Quantity</label>
-                    <input autocomplete="off" required type="test" class="form-control numberOnly" aria-label="qty"
+                    <input autocomplete="off" required type="number" class="form-control numberOnly" aria-label="qty"
                         id="qty">
                     <div class="invalid-tooltip">
                         Please enter quantity
@@ -439,27 +519,18 @@
                         id="sellPrice">
                 </div>
             </div>
-            <div class="ps-2 mb-1">
-                <label for="qty" class="p-1 pb-0">Remark 1</label>
-                <input autocomplete="off" class="form-control" aria-label="qty" id="remark1">
+            <!-- <div class="row mt-2" style="padding-left: 12px;"> -->
+            <div class="ps-2 mt-3">
+                <button type="button" style="width: 100%;" id="addStockBtn" class="btn btn-primary">Add</button>
             </div>
-            <div class="mb-3 ps-2">
-                <label for="qty" class="p-1 pb-0">Remark 2</label>
-                <input autocomplete="off" class="form-control" aria-label="qty" id="remark2">
+            <div class="ps-2 mt-2">
+                <button type="button" style="width: 100%;" disabled id="clearFieldsBtn"
+                    class="btn btn-secondary">Clear</button>
             </div>
-            <div class="row" style="padding-left: 12px;">
-                <div class="col ps-2">
-                    <button type="button" style="width: 100%;" id="addStockBtn" class="btn btn-primary">Add</button>
-                </div>
-                <div class="col ps-2">
-                    <button type="button" style="width: 100%;" disabled id="clearFieldsBtn"
-                        class="btn btn-secondary">Clear</button>
-                </div>
-            </div>
+            <!-- </div> -->
         </div>
         <div class="col mt-4">
             <table id="dataTable" style="width: 100%;" class="display">
-                <caption></caption>
                 <thead>
                     <tr>
                         <th class="th-sm">Box No</th>
@@ -470,49 +541,33 @@
                         <th class="th-sm">Quantity</th>
                         <th class="th-sm">Buy Price</th>
                         <th class="th-sm">Sell Price</th>
-                        <th class="th-sm">Remark1</th>
-                        <th class="th-sm">Remark2</th>
+                        <!-- <th class="th-sm">Vendor</th> -->
+                        <th class="th-sm">Id</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>G1</td>
-                        <td>Gigabyte</td>
-                        <td>Edinburgh</td>
-                        <td>Config</td>
-                        <td>Details</td>
-                        <td>61</td>
-                        <td>Buy Price</td>
-                        <td>Sell Price</td>
-                        <td>Remark1</td>
-                        <td>Remark2</td>
-                    </tr>
-                    <tr>
-                        <td>Box3</td>
-                        <td>Gigabyte</td>
-                        <td>Tokyo</td>
-                        <td>Config</td>
-                        <td>Details</td>
-                        <td>63</td>
-                        <td>Buy Price</td>
-                        <td>Sell Price</td>
-                        <td>Remark1</td>
-                        <td>Remark2</td>
-                    </tr>
-                    <tr>
-                        <td>Box3</td>
-                        <td>Asus</td>
-                        <td>New York</td>
-                        <td>Config</td>
-                        <td>Details</td>
-                        <td>Buy Price</td>
-                        <td>Sell Price</td>
-                        <td>Remark1</td>
-                        <td>Remark2</td>
-                        <td>61</td>
-                    </tr>
-                </tbody>
             </table>
+        </div>
+    </div>
+    <div class="modal fade" id="addVendorModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Create Vendor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Vendor Name</span>
+                        <input type="text" class="form-control" id="vendorName" placeholder="Vendor Name"
+                            aria-label="vendorName" aria-describedby="vendorName">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="createVendorBtn" class="btn btn-primary">Save</button>
+                </div>
+            </div>
         </div>
     </div>
     <div class="modal fade" id="stockAddBoxModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
@@ -571,7 +626,7 @@
                     <div class="input-group mb-3">
                         <label for="model" class="p-1 pb-0">Motherboard Model</label>
                         <div class="input-group">
-                            <input type="text" disabled="disabled" class="form-control" id="modelForPart"></input>
+                            <input type="text" disabled="disabled" class="form-control" id="modelForPart">
                         </div>
                     </div>
                     <div class="input-group mb-3">
@@ -599,8 +654,7 @@
                     <div class="input-group mb-3">
                         <label for="model" class="p-1 pb-0">Part No</label>
                         <div class="input-group">
-                            <input type="text" disabled="disabled" class="form-control"
-                                id="partForConfiguration"></select>
+                            <input type="text" disabled="disabled" class="form-control" id="partForConfiguration">
                         </div>
                     </div>
                     <div class="input-group mb-3">
