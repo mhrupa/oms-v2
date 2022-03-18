@@ -60,4 +60,7 @@ public class StockHeader extends BaseEntity<Long> {
     @JoinColumn(name = "config_detail_id")
     private ConfigDetailsEntity configDetailsEntity;
 
+    @ManyToOne
+    @JoinColumn(name = "vendor_id")
+    private VendorEntity vendor;
 }

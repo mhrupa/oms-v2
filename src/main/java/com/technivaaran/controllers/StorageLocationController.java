@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class StorageLocationController {
 
     @Autowired
-    StorageLocationService storageLocationService;
+    private StorageLocationService storageLocationService;
 
     @PostMapping("/storageLocations")
     public ResponseEntity<OmsResponse> createStorageLocation(@RequestBody Map<String, String> requestData) {

@@ -1,6 +1,7 @@
 package com.technivaaran.services;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.entities.VendorEntity;
@@ -27,15 +28,19 @@ public class VendorService {
         return vendorRepository.findAll();
     }
 
-    public ResponseEntity<OmsResponse> createStorageLocation(String vendorName) {
+    public ResponseEntity<OmsResponse> createVendor(String vendorName) {
         VendorEntity vendorEntity = VendorEntity.builder()
                 .vendorName(vendorName).build();
         try {
             vendorRepository.save(vendorEntity);
-            return new ResponseEntity<>(OmsResponse.builder().message("Vendor created successfully.").build(),
-                    HttpStatus.OK);
+            return new ResponseEntity<>(OmsResponse.builder().message("Vendor created successfully.")
+                    .data(vendorEntity).build(), HttpStatus.OK);
         } catch (DataIntegrityViolationException integrityViolationException) {
             throw new OMSException("Vendor already exists with name: " + vendorName);
         }
+    }
+
+    public Optional<VendorEntity> findById(long vendorId) {
+        return vendorRepository.findById(vendorId);
     }
 }

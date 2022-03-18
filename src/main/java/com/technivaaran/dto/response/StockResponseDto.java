@@ -16,14 +16,18 @@ import lombok.Data;
 public class StockResponseDto {
     private long id;
     private String box;
+    private long boxId;
     private String model;
+    private long modelId;
     private String part;
+    private long partId;
     private String configuration;
+    private long configurationId;
     private String details;
+    private long detailsId;
     private float qty;
     private float buyPrice;
     private float sellPrice;
-    private String remark1;
-    private String remark2;
-    
+    private String vendor;
+    private long vendorId;
 }

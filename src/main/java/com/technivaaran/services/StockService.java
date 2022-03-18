@@ -14,6 +14,7 @@ import com.technivaaran.entities.PartEntity;
 import com.technivaaran.entities.StockDetails;
 import com.technivaaran.entities.StockHeader;
 import com.technivaaran.entities.StorageLocationEntity;
+import com.technivaaran.entities.VendorEntity;
 import com.technivaaran.mapper.StockHeaderResponseMapper;
 import com.technivaaran.repositories.StockDetailsRepository;
 import com.technivaaran.repositories.StockHeaderRepository;
@@ -45,6 +46,9 @@ public class StockService {
     @Autowired
     private StockHeaderResponseMapper stockHeaderResponseMapper;
 
+    @Autowired
+    private VendorService vendorService;
+
     public void getMaterialDetailsByMaterialName() {
         stockHeaderRepository.findById(1L);
         stockDetailsRepository.findById(1L);
@@ -53,14 +57,14 @@ public class StockService {
     public List<StockResponseDto> getStockHeader() {
         List<StockResponseDto> stockResponseDtos = new ArrayList<>();
         stockHeaderRepository.findAll().forEach(
-            stockHeader -> stockResponseDtos.add(stockHeaderResponseMapper.convertToDto(stockHeader)));
+                stockHeader -> stockResponseDtos.add(stockHeaderResponseMapper.convertToDto(stockHeader)));
         return stockResponseDtos;
     }
 
     public ResponseEntity<OmsResponse> createStockEntry(StockRequestDto stockRequestDto) {
         Optional<ConfigDetailsEntity> configOp = configDetailsService.findById(stockRequestDto.getConfigId());
-
         Optional<StorageLocationEntity> storageLocationOp = storageLocationService.findById(stockRequestDto.getBoxId());
+        Optional<VendorEntity> vendorOp = vendorService.findById(stockRequestDto.getVendorId());
 
         if (configOp.isEmpty()) {
             return new ResponseEntity<>(OmsResponse.builder().message("Invalid configuration received.").build(),
@@ -70,8 +74,11 @@ public class StockService {
             return new ResponseEntity<>(OmsResponse.builder().message("Invalid box no received.").build(),
                     HttpStatus.BAD_REQUEST);
         }
+        if (vendorOp.isEmpty()) {
+            return new ResponseEntity<>(OmsResponse.builder().message("Invalid Vendor name received.").build(),
+                    HttpStatus.BAD_REQUEST);
+        }
         ConfigDetailsEntity configEntity = configOp.get();
-
         Optional<StockHeader> stockHeaderOp = findStockHeaderByLocationAndModelAndPartAndConfig(storageLocationOp.get(),
                 configEntity.getPartEntity().getItemMaster(), configEntity.getPartEntity(), configEntity);
 
@@ -80,6 +87,7 @@ public class StockService {
             stockHeader = stockHeaderOp.get();
             stockHeader.setDetails(stockRequestDto.getDetails());
             stockHeader.setInQty(stockHeader.getInQty() + stockRequestDto.getQty());
+            stockHeader.setClosingQty(stockHeader.getInQty() + stockRequestDto.getQty());
 
             stockHeaderRepository.save(stockHeader);
         } else {
@@ -91,14 +99,15 @@ public class StockService {
                     .itemMaster(configEntity.getPartEntity().getItemMaster())
                     .partEntity(configEntity.getPartEntity()).configDetailsEntity(configEntity)
                     .details(stockRequestDto.getDetails())
+                    .vendor(vendorOp.get())
                     .build();
 
             stockHeaderRepository.save(stockHeader);
         }
 
         return new ResponseEntity<>(OmsResponse.builder().message("Stock updated successfully.")
-                .data(stockHeader).build(), HttpStatus.OK);
-
+                .data(stockHeaderResponseMapper.convertToDto(stockHeader)).build(),
+                HttpStatus.OK);
     }
 
     public Optional<StockHeader> findStockHeaderByLocationAndModelAndPartAndConfig(

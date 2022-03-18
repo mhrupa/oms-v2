@@ -15,10 +15,8 @@ public class StockRequestDto {
     private long partId;
     private long configId;
     private String details;
-    private String vendor;
+    private long vendorId;
     private int qty;
     private float buyPrice;
     private float sellPrice;
-    private String remark1;
-    private String remark2;
 }

@@ -41,10 +41,19 @@
                     { data: "qty" },
                     { data: "buyPrice" },
                     { data: "sellPrice" },
-                    { data: "id", visible: false }
+                    { data: "vendor" },
+                    { data: "id", visible: false },
+                    { data: "boxId", visible: false },
+                    { data: "vendorId", visible: false },
+                    { data: "modelId", visible: false },
+                    { data: "partId", visible: false },
+                    { data: "detailsId", visible: false },
+                    { data: "configurationId", visible: false }
                 ]
             });
-
+            $('#stockEditModal').on('shown.bs.modal', function () {
+                $('#qtyForEditStock').focus();
+            })
             $("#addBoxBtn").click(addNewBox);
             $("#addVendorBtn").click(addNewVendor);
             $("#addModelBtn").click(addNewModel);
@@ -55,6 +64,7 @@
             $("#createPartBtn").click(createPartBtnClick);
             $("#createVendorBtn").click(createVendorBtnClick);
             $("#createConfigBtn").click(createConfigBtnClick);
+            $("#updateStockBtn").click(updateStock);
             $("#model").change(modelOnChange);
             $("#partNo").change(partNoOnChange);
             $("#addStockBtn").click(() => {
@@ -67,20 +77,27 @@
                 initFields();
             });
             $("#dataTable tbody").css("cursor", "pointer").on("click", "tr", function () {
+                $("#stockEditModal").modal("show");
                 var data = table.row(this).data();
-                $("#boxNo").val(data[0]);
-                $("#model").val(data[1]);
-                $("#partNo").val(data[2]);
-                $("#qty").val(data[3]);
-                enableClearFieldButton();
+                $("#stockHeaderId").val(data.id);
+                $("#boxForEditStock").val(data.box);
+                $("#vendorForEditStock").val(data.vendor);
+                $("#modelForEditStock").val(data.model);
+                $("#partForEditStock").val(data.part);
+                $("#configForEditStock").val(data.configuration);
+                $("#detailsForEditStock").val(data.details);
             });
         });
         function initPage() {
+            initVendorData();
             initLocationData();
             initModelData();
             initStockData();
         }
 
+        function updateStock() {
+            alert();
+        }
         function savaData() {
             var requestData = {
                 "boxId": $("#boxNo").val(),
@@ -91,14 +108,28 @@
                 "qty": $("#qty").val(),
                 "buyPrice": $("#buyPrice").val(),
                 "sellPrice": $("#sellPrice").val(),
-                "vendor": $("#vendor").val()
+                "vendorId": $("#vendor").val()
             };
 
             $.post("/stock", JSON.stringify(requestData), function (res) {
-                stockData = res.data;
-                //initStockData();
+                var rowUpdated = false;
+                table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+                    var d = this.data();
+                    if(d.box == res.data.box && d.model== res.data.model
+                    && d.part == res.data.part && d.configuration == res.data.configuration
+                    && d.details == res.data.details && d.vendor == res.data.vendor
+                    && d.buyPrice == res.data.buyPrice) {
+                        d.qty = res.data.qty;
+                        this.invalidate();
+                        rowUpdated = true;
+                        return false;
+                    }
+                });
+                table.draw();
 
-                table.row.add({ "id": 121, "box": "G1", "model": "AA", "part": "CC", "configuration": "A", "details": "AM", "qty": 11, "buyPrice": 0, "sellPrice": 0 }).draw(false);
+                if(!rowUpdated) {
+                    table.row.add(res.data).draw(false);
+                }
 
                 $("#omsToast").html(res.message);
                 $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
@@ -291,14 +322,14 @@
                 "vendorName": $("#vendorName").val()
             };
             $.post("/vendors", JSON.stringify(requestData), function (res) {
-                $("#stockAddConfigModal").modal("hide");
+                $("#addVendorModal").modal("hide");
                 $("#omsToast").html(res.message);
                 $(".toast").removeClass("bg-danger").removeClass("bg-warning").addClass("bg-success").toast("show");
                 $("#createConfigBtn").removeAttr("disabled");
                 initVendorResponseData(res.data);
                 $("#model").focus();
             }).fail(function (res) {
-                $("#stockAddConfigModal").modal("hide");
+                $("#addVendorModal").modal("hide");
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $(".toast").addClass("bg-danger").toast("show");
                 $("#createConfigBtn").removeAttr("disabled");
@@ -311,8 +342,8 @@
         }
         function addNewVendor() {
             $("#addVendorModal").modal("show");
-            $("#boxName").val("");
-            $("#boxName").focus();
+            $("#vendorName").val("");
+            $("#vendorName").focus();
         }
         function addNewModel() {
             $("#stockAddModelModal").modal("show");
@@ -431,11 +462,6 @@
         }
         function initVendorResponseData(vendor) {
             vendors.push(vendor);
-            // $("#vendor").empty();
-            // $("#vendor").append("<option value='0' selected>Select Configuration</option>");
-            // part.configurations.forEach(config => {
-            //     $("#vendor").append("<option value='" + config.id + "'>" + config.configuration + "</option>");
-            // });
             if (vendor) {
                 $("#vendor").append("<option value='" + vendor.id + "' selected>" + vendor.vendorName + "</option>");
                 $("#vendor").val(vendor.id);
@@ -447,7 +473,7 @@
 
 <body style="overflow: hidden;">
     <div class="row" style="width: 100%;">
-        <div class="pt-2" style="width: 250px;">
+        <div class="pt-0" style="width: 250px;">
             <div class="mb-1 ps-2">
                 <label class="p-1 pb-0" for="boxNo">Box</label>
                 <div class="input-group">
@@ -500,8 +526,8 @@
                 </div>
                 <div class="col ps-2 mb-1">
                     <label for="qty" class="p-1 pb-0">Quantity</label>
-                    <input autocomplete="off" required type="number" class="form-control numberOnly" aria-label="qty"
-                        id="qty">
+                    <input min="1" autocomplete="off" required type="number" class="form-control numberOnly"
+                        aria-label="qty" id="qty">
                     <div class="invalid-tooltip">
                         Please enter quantity
                     </div>
@@ -510,16 +536,15 @@
             <div class="row mb-1" style="padding-left: 12px;">
                 <div class="col ps-2">
                     <label for="qty" class="p-1 pb-0">Buy Price</label>
-                    <input autocomplete="off" type="text" class="form-control numberOnly" aria-label="qty"
+                    <input min="0" autocomplete="off" type="number" class="form-control numberOnly" aria-label="qty"
                         id="buyPrice">
                 </div>
                 <div class="col ps-2">
                     <label for="qty" class="p-1 pb-0">Sell Price</label>
-                    <input autocomplete="off" type="text" class="form-control numberOnly" aria-label="qty"
+                    <input min="0" autocomplete="off" type="number" class="form-control numberOnly" aria-label="qty"
                         id="sellPrice">
                 </div>
             </div>
-            <!-- <div class="row mt-2" style="padding-left: 12px;"> -->
             <div class="ps-2 mt-3">
                 <button type="button" style="width: 100%;" id="addStockBtn" class="btn btn-primary">Add</button>
             </div>
@@ -527,7 +552,6 @@
                 <button type="button" style="width: 100%;" disabled id="clearFieldsBtn"
                     class="btn btn-secondary">Clear</button>
             </div>
-            <!-- </div> -->
         </div>
         <div class="col mt-4">
             <table id="dataTable" style="width: 100%;" class="display">
@@ -541,8 +565,14 @@
                         <th class="th-sm">Quantity</th>
                         <th class="th-sm">Buy Price</th>
                         <th class="th-sm">Sell Price</th>
-                        <!-- <th class="th-sm">Vendor</th> -->
+                        <th class="th-sm">Vendor</th>
                         <th class="th-sm">Id</th>
+                        <th class="th-sm">BoxId</th>
+                        <th class="th-sm">VendorId</th>
+                        <th class="th-sm">modelId</th>
+                        <th class="th-sm">PartId</th>
+                        <th class="th-sm">DetailsId</th>
+                        <th class="th-sm">ConfigId</th>
                     </tr>
                 </thead>
             </table>
@@ -559,8 +589,8 @@
                 <div class="modal-body">
                     <div class="input-group mb-3">
                         <span class="input-group-text">Vendor Name</span>
-                        <input type="text" class="form-control" id="vendorName" placeholder="Vendor Name"
-                            aria-label="vendorName" aria-describedby="vendorName">
+                        <input autocomplete="off" type="text" class="form-control" id="vendorName"
+                            placeholder="Vendor Name" aria-label="vendorName" aria-describedby="vendorName">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -666,6 +696,56 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" id="createConfigBtn" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="stockEditModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Update Stock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3" style="display: none;">
+                        <span class="input-group-text">stockHeaderId</span>
+                        <input type="text" disabled="disabled" class="form-control" id="stockHeaderId">
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Box No</span>
+                        <input type="text" disabled="disabled" class="form-control" id="boxForEditStock">
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Vendor</span>
+                        <input type="text" disabled="disabled" class="form-control" id="vendorForEditStock">
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Model</span>
+                        <input type="text" disabled="disabled" class="form-control" id="modelForEditStock">
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Part</span>
+                        <input type="text" disabled="disabled" class="form-control" id="partForEditStock">
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Configuration</span>
+                        <input type="text" disabled="disabled" class="form-control" id="configForEditStock">
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Details</span>
+                        <input type="text" disabled="disabled" class="form-control" id="detailsForEditStock">
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Quantity</span>
+                        <input autofocus type="text" class="form-control" id="qtyForEditStock" placeholder="Quantity"
+                            autocomplete="off">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="updateStockBtn" class="btn btn-primary">Update</button>
                 </div>
             </div>
         </div>
