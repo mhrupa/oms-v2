@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.technivaaran.dto.CustomerDto;
 import com.technivaaran.dto.OmsResponse;
-import com.technivaaran.entities.Customer;
+import com.technivaaran.entities.CustomerEntity;
 import com.technivaaran.services.CustomerService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -37,13 +37,13 @@ public class CustomerController {
 	}
 
 	@GetMapping("/customers")
-	public List<Customer> getAllUsers() {
+	public List<CustomerEntity> getAllUsers() {
 		log.info("Get all Customer is called.");
 		return customerService.findAllCustomers();
 	}
 
 	@GetMapping("/customers/{customerId}")
-	public Customer getCustomerById(@PathVariable(name = "customerId") long customerId) {
+	public CustomerEntity getCustomerById(@PathVariable(name = "customerId") long customerId) {
 		log.info("Get Customer by Id called");
 		return customerService.findCustomerById(customerId);
 	}

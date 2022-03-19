@@ -14,10 +14,7 @@ public class CustomerDto {
 
 	@Length(max = 50)
 	@NonNull
-	private String firstName;
-	
-	@Length(max = 50)
-	private String lastName;
+	private String customerName;
 	
 	@Length(max = 50)
 	@Email
@@ -27,22 +24,7 @@ public class CustomerDto {
 	private String contact;
 	
 	@Length(max = 20)
-	private String contact1;
-	
-	@Length(max = 100)
-	private String add1;
-	
-	@Length(max = 100)
-	private String add2;
-	
-	@Length(max = 50)
-	private String city;
-	
-	@Length(max = 50)
-	private String state;
-	
-	@Length(max = 20)
-	private String pincode;
+	private String location;
 	
 	@NonNull
 	private int userId;

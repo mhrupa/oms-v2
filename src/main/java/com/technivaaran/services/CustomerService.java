@@ -8,7 +8,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.technivaaran.dto.CustomerDto;
-import com.technivaaran.entities.Customer;
+import com.technivaaran.entities.CustomerEntity;
 import com.technivaaran.exceptions.OMSException;
 import com.technivaaran.mapper.CustomerMapper;
 import com.technivaaran.repositories.CustomerRepository;
@@ -22,8 +22,8 @@ public class CustomerService {
 	@Autowired
 	private CustomerMapper customerMapper;
 
-	public Customer findCustomerById(long customerId) {
-		Optional<Customer> customerOp = customerRepository.findById(customerId);
+	public CustomerEntity findCustomerById(long customerId) {
+		Optional<CustomerEntity> customerOp = customerRepository.findById(customerId);
 		if (customerOp.isPresent()) {
 			return customerOp.get();
 		} else {
@@ -31,13 +31,13 @@ public class CustomerService {
 		}
 	}
 
-	public List<Customer> findAllCustomers() {
+	public List<CustomerEntity> findAllCustomers() {
 		return customerRepository.findAll();
 	}
 
-	public Customer saveCustomer(CustomerDto customerDto) {
+	public CustomerEntity saveCustomer(CustomerDto customerDto) {
 		try {
-			Customer customer = customerMapper.convertToEntity(customerDto);
+			CustomerEntity customer = customerMapper.convertToEntity(customerDto);
 			return customerRepository.save(customer);
 		} catch (DataIntegrityViolationException integrityViolationException) {
 			throw new OMSException(
@@ -45,23 +45,18 @@ public class CustomerService {
 		}
 	}
 
-	public Customer updateCustomerById(long customerId, CustomerDto customerDto) {
-		Optional<Customer> customerOp = customerRepository.findById(customerId);
+	public CustomerEntity updateCustomerById(long customerId, CustomerDto customerDto) {
+		Optional<CustomerEntity> customerOp = customerRepository.findById(customerId);
 
 		if (customerOp.isPresent()) {
-			Customer customer = customerOp.get();
+			CustomerEntity customer = customerOp.get();
 			
-			Customer customerFromDto = customerMapper.convertToEntity(customerDto);
+			CustomerEntity customerFromDto = customerMapper.convertToEntity(customerDto);
 			
-			customer.setFirstName(customerDto.getFirstName());
-			customer.setLastName(customerDto.getLastName());
+			customer.setCustomerName(customerDto.getCustomerName());
+			customer.setEmail(customerDto.getEmail());
 			customer.setContact(customerFromDto.getContact());
-			customer.setContact1(customerFromDto.getContact1());
-			customer.setAdd1(customerFromDto.getAdd1());
-			customer.setAdd2(customerFromDto.getAdd2());
-			customer.setCity(customerFromDto.getCity());
-			customer.setState(customerFromDto.getState());
-			customer.setPincode(customerFromDto.getPincode());
+			customer.setLocation(customerDto.getLocation());
 			customer.setUser(customerFromDto.getUser());
 
 			return customerRepository.save(customer);

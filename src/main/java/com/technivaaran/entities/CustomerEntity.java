@@ -27,15 +27,11 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper=true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Customer extends BaseEntity<Long>{
+public class CustomerEntity extends BaseEntity<Long>{
 	
-	@Column(name = "first_name", nullable = false)
+	@Column(name = "customer_name")
 	@Length(max = 50)
-	private String firstName;
-	
-	@Column(name = "last_name")
-	@Length(max = 50)
-	private String lastName;
+	private String customerName;
 	
 	@Column(name = "email", nullable = false, unique = true)
 	@Length(max = 50)
@@ -46,32 +42,9 @@ public class Customer extends BaseEntity<Long>{
 	@Length(max = 20)
 	private String contact;
 	
-	@Column(name = "contact1")
+	@Column(name = "location")
 	@Length(max = 20)
-	private String contact1;
-	
-	@Column(name = "add1")
-	@Length(max = 100)
-	private String add1;
-	
-	@Column(name = "add2")
-	@Length(max = 100)
-	private String add2;
-	
-	@Column(name = "city")
-	@Length(max = 50)
-	private String city;
-	
-	@Column(name = "state")
-	@Length(max = 50)
-	private String state;
-	
-	@Column(name = "pincode")
-	@Length(max = 20)
-	private String pincode;
-	
-	@OneToMany(mappedBy = "customer")
-	private List<SalesOrderHeader> salesOrders;
+	private String location;
 	
 	@ManyToOne
 	@JsonIgnore

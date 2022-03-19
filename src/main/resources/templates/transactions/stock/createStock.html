@@ -21,7 +21,9 @@
         var items = new Array();
         var stockData = new Array();
         var table;
-        var vendors;
+        var vendors, customers;
+        var selectedRowData;
+        var selectedCustomer;
         $(document).ready(function () {
             initPage();
             $(".numberOnly").keypress(numberOnly);
@@ -56,6 +58,9 @@
             $('#stockEditModal').on('shown.bs.modal', function () {
                 $('#qtyForEditStock').focus();
             })
+            $('#createOrderModal').on('shown.bs.modal', function () {
+                $('#customer').focus();
+            })
             $("#addBoxBtn").click(addNewBox);
             $("#addVendorBtn").click(addNewVendor);
             $("#addModelBtn").click(addNewModel);
@@ -70,37 +75,65 @@
             $("#model").change(modelOnChange);
             $("#partNo").change(partNoOnChange);
             $("#qtyForEditStock").keyup(calculateTempTotal);
+            $("#updateStockModalBtn").click(showUpdateStockModal);
+            $("#createOrderModalBtn").click(showCreateOrderModal);
+            $("#showCustomerModalBtn").click(showCreateCustomerModal);
             $("#addStockBtn").click(() => {
                 if (validateFields()) {
                     savaData();
                 }
                 return false;
             });
+            $("#datepicker").datepicker({
+                format: "dd/mm/yyyy",
+                autoclose: true,
+                todayHighlight: true
+            }).on("changeDate", function (e) {
+                $("#customer").focus();
+            }).val(formatDateAsDDMMYYYY(new Date()));
+
+
             $("#clearFieldsBtn").click(() => {
                 initFields();
             });
             $("#dataTable tbody").css("cursor", "pointer").on("click", "tr", function () {
-                var data = table.row(this).data();
-                $("#stockHeaderId").val(data.id);
-                $("#boxForEditStock").val(data.box);
-                $("#vendorForEditStock").val(data.vendor);
-                $("#modelForEditStock").val(data.model);
-                $("#partForEditStock").val(data.part);
-                $("#configForEditStock").val(data.configuration);
-                $("#detailsForEditStock").val(data.details);
-                $("#buyPriceForEditStock").val(data.buyPrice);
-                $("#currentStock").val(data.qty);
-                $("#qtyForEditStock").val("0");
-                $("#tempTotalStock").val(data.qty);
-                $("#stockEditModal").modal("show");
+                selectedRowData = table.row(this).data();
+                $("#optionModal").modal("show");
             });
+            $("#stockPageBody").css("visibility", "visible");
+            $("#onloadSpinner").css("visibility", "hidden");
         });
-        
+        function showCreateCustomerModal() {
+            selectedCustomer = $("#customer").val();
+            $("#createOrderModal").modal("hide");
+            $("#createCustomerModal").modal("show");
+        }
+        function showCreateOrderModal() {
+            $("#optionModal").modal("hide");
+            $("#createOrderModal").modal("show");
+        }
+
+        function showUpdateStockModal() {
+            $("#stockHeaderId").val(selectedRowData.id);
+            $("#boxForEditStock").val(selectedRowData.box);
+            $("#vendorForEditStock").val(selectedRowData.vendor);
+            $("#modelForEditStock").val(selectedRowData.model);
+            $("#partForEditStock").val(selectedRowData.part);
+            $("#configForEditStock").val(selectedRowData.configuration);
+            $("#detailsForEditStock").val(selectedRowData.details);
+            $("#buyPriceForEditStock").val(selectedRowData.buyPrice);
+            $("#currentStock").val(selectedRowData.qty);
+            $("#qtyForEditStock").val("0");
+            $("#tempTotalStock").val(selectedRowData.qty);
+            $("#optionModal").modal("hide");
+            $("#stockEditModal").modal("show");
+        }
+
         function calculateTempTotal() {
-            if($("#qtyForEditStock").val() == "" || Number.isNaN($("#qtyForEditStock").val())) {
+            if ($("#qtyForEditStock").val() == "" || Number.isNaN($("#qtyForEditStock").val())) {
                 $("#qtyForEditStock").val("0");
-            } 
-           $("#tempTotalStock").val(Number.parseFloat($("#currentStock").val()) + Number.parseFloat($("#qtyForEditStock").val()));
+            }
+            $("#tempTotalStock").val(Number.parseFloat($("#currentStock").val()) + Number.parseFloat($("#qtyForEditStock").val()));
         }
 
         function initPage() {
@@ -108,6 +141,7 @@
             initLocationData();
             initModelData();
             initStockData();
+            initCustomerData();
         }
 
         function updateStock() {
@@ -168,20 +202,20 @@
                 $(".toast").addClass("bg-danger").toast("show");
                 return false;
             }
-            
+
             var requestData = {
                 "qty": $("#qtyForEditStock").val(),
-                "stockType":"IN"
+                "stockType": "IN"
             };
 
             $.post("/stock/" + $("#stockHeaderId").val(), JSON.stringify(requestData), function (res) {
                 var rowUpdated = false;
                 table.rows().every(function (rowIdx, tableLoop, rowLoop) {
                     var d = this.data();
-                    if(d.box == res.data.box && d.model== res.data.model
-                    && d.part == res.data.part && d.configuration == res.data.configuration
-                    && d.details == res.data.details && d.vendor == res.data.vendor
-                    && d.buyPrice == res.data.buyPrice) {
+                    if (d.box == res.data.box && d.model == res.data.model
+                        && d.part == res.data.part && d.configuration == res.data.configuration
+                        && d.details == res.data.details && d.vendor == res.data.vendor
+                        && d.buyPrice == res.data.buyPrice) {
                         d.qty = res.data.qty;
                         this.invalidate();
                         rowUpdated = true;
@@ -193,7 +227,7 @@
                 });
                 table.draw();
 
-                if(!rowUpdated) {
+                if (!rowUpdated) {
                     table.row.add(res.data).draw(false);
                     $("#stockEditModal").modal("hide");
                     $("#omsToast").html(res.message);
@@ -222,10 +256,10 @@
                 var rowUpdated = false;
                 table.rows().every(function (rowIdx, tableLoop, rowLoop) {
                     var d = this.data();
-                    if(d.box == res.data.box && d.model== res.data.model
-                    && d.part == res.data.part && d.configuration == res.data.configuration
-                    && d.details == res.data.details && d.vendor == res.data.vendor
-                    && d.buyPrice == res.data.buyPrice) {
+                    if (d.box == res.data.box && d.model == res.data.model
+                        && d.part == res.data.part && d.configuration == res.data.configuration
+                        && d.details == res.data.details && d.vendor == res.data.vendor
+                        && d.buyPrice == res.data.buyPrice) {
                         d.qty = res.data.qty;
                         this.invalidate();
                         rowUpdated = true;
@@ -234,7 +268,7 @@
                 });
                 table.draw();
 
-                if(!rowUpdated) {
+                if (!rowUpdated) {
                     table.row.add(res.data).draw(false);
                 }
 
@@ -467,6 +501,41 @@
                 $("#createConfigBtn").removeAttr("disabled");
             });
         }
+        function createCustomerBtnClick() {
+            $("#createCustomerBtn").attr("disabled", "disabled")
+            if ($("#customerName").val() == "") {
+                $("#customerName").focus();
+                $("#omsToast").html("Please enter Customer Name");
+                $(".toast").removeClass("bg-danger").removeClass("bg-success").addClass("bg-warning").toast("show");
+                $("#createCustomerBtn").removeAttr("disabled");
+                return false;
+            }
+            if ($("#customerLocation").val() == "") {
+                $("#customerLocation").focus();
+                $("#omsToast").html("Please enter Customer Location");
+                $(".toast").removeClass("bg-danger").removeClass("bg-success").addClass("bg-warning").toast("show");
+                $("#createCustomerBtn").removeAttr("disabled");
+                return false;
+            }
+            var requestData = {
+                "customerName": $("#customerName").val(),
+                "customerLocation": $("#customerLocation").val()
+            };
+            $.post("/customers", JSON.stringify(requestData), function (res) {
+                $("#createCustomerModal").modal("hide");
+                $("#omsToast").html(res.message);
+                $(".toast").removeClass("bg-danger").removeClass("bg-warning").addClass("bg-success").toast("show");
+                $("#createCustomerBtn").removeAttr("disabled");
+                initCustomerResponseData(res.data);
+                $("#model").focus();
+            }).fail(function (res) {
+                $("#createCustomerModal").modal("hide");
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+                $("#createCustomerBtn").removeAttr("disabled");
+            });
+        }
+
         function addNewBox() {
             $("#stockAddBoxModal").modal("show");
             $("#boxName").val("");
@@ -545,6 +614,9 @@
                 $(".toast").addClass("bg-danger").toast("show");
             });
         }
+        function initCustomerData() {
+
+        }
 
         function initLocationResponseData(ele) {
             $("#model").empty();
@@ -556,7 +628,6 @@
                 $("#model").val(ele.id);
             }
         }
-
         function initModelResponseData(ele) {
             $("#model").empty();
             $("#model").append("<option value='0' selected>Select model</option>");
@@ -611,319 +682,462 @@
             }
             return;
         }
+        function initCustomerResponseData(customer) {
+            customers.push(customer);
+            if (customer) {
+                $("#customer").append("<option value='" + customer.id + "' selected>" + customer.vendorName + "</option>");
+                $("#vendor").val(customer.id);
+            }
+            return;
+        }
+
     </script>
 </head>
 
 <body style="overflow: hidden;">
-    <div class="row" style="width: 100%;">
-        <div class="pt-0" style="width: 250px;">
-            <div class="mb-1 ps-2">
-                <label class="p-1 pb-0" for="boxNo"><span style="text-decoration: underline;">B</span>ox</label>
-                <div class="input-group">
-                    <select class="form-control" id="boxNo" accesskey="b"></select>
-                    <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
-                        data-bs-placement="top" id="addBoxBtn" title="Add new Box">+</button>
-                </div>
-            </div>
-            <div class="ps-2">
-                <label for="vendor" class="p-1 pb-0">Vendor</label>
-                <div class="input-group">
-                    <select class="form-control" id="vendor"></select>
-                    <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
-                        data-bs-placement="top" id="addVendorBtn" title="Add new Vendor">+</button>
-                </div>
-            </div>
-            <div class="ps-2">
-                <label for="model" class="p-1 pb-0">Motherboard Model</label>
-                <div class="input-group">
-                    <select class="form-control" id="model"></select>
-                    <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
-                        data-bs-placement="top" id="addModelBtn" title="Add new Model">+</button>
-                </div>
-            </div>
-            <div class="ps-2">
-                <label for="partNo" class="p-1 pb-0">Part</label>
-                <div class="input-group">
-                    <select class="form-control" id="partNo"></select>
-                    <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
-                        data-bs-placement="top" id="addPartBtn" title="Add new Part">+</button>
-                </div>
-            </div>
-            <div class="ps-2">
-                <label for="config" class="p-1 pb-0">Configuration</label>
-                <div class="input-group">
-                    <select class="form-control" id="config"></select>
-                    <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
-                        data-bs-placement="top" id="addConfigBtn" title="Add new Configuration">+</button>
-                </div>
-            </div>
-            <div class="row" style="padding-left: 12px;">
-                <div class="col mb-1 ps-2">
-                    <label for="details" class="p-1 pb-0">Details</label>
+    <div id="stockPageBody" style="visibility: hidden">
+        <div class="row" style="width: 100%;">
+            <div class="pt-0" style="width: 250px;">
+                <div class="mb-1 ps-2">
+                    <label class="p-1 pb-0" for="boxNo"><span style="text-decoration: underline;">B</span>ox</label>
                     <div class="input-group">
-                        <select class="form-control" id="details">
-                            <option>GM</option>
-                            <option>PM</option>
-                        </select>
+                        <select class="form-control" id="boxNo" accesskey="b"></select>
+                        <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                            data-bs-placement="top" id="addBoxBtn" title="Add new Box">+</button>
                     </div>
                 </div>
-                <div class="col ps-2 mb-1">
-                    <label for="qty" class="p-1 pb-0">Quantity</label>
-                    <input min="1" autocomplete="off" required type="number" class="form-control numberOnly"
-                        aria-label="qty" id="qty">
-                    <div class="invalid-tooltip">
-                        Please enter quantity
+                <div class="ps-2">
+                    <label for="vendor" class="p-1 pb-0">Vendor</label>
+                    <div class="input-group">
+                        <select class="form-control" id="vendor"></select>
+                        <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                            data-bs-placement="top" id="addVendorBtn" title="Add new Vendor">+</button>
                     </div>
                 </div>
-            </div>
-            <div class="row mb-1" style="padding-left: 12px;">
-                <div class="col ps-2">
-                    <label for="qty" class="p-1 pb-0">Buy Price</label>
-                    <input min="0" autocomplete="off" type="number" class="form-control numberOnly" aria-label="qty"
-                        id="buyPrice">
-                </div>
-                <div class="col ps-2">
-                    <label for="qty" class="p-1 pb-0">Sell Price</label>
-                    <input min="0" autocomplete="off" type="number" class="form-control numberOnly" aria-label="qty"
-                        id="sellPrice">
-                </div>
-            </div>
-            <div class="ps-2 mt-3">
-                <button type="button" style="width: 100%;" id="addStockBtn" class="btn btn-primary">Add</button>
-            </div>
-            <div class="ps-2 mt-2">
-                <button type="button" style="width: 100%;" id="clearFieldsBtn"
-                    class="btn btn-secondary">Clear</button>
-            </div>
-        </div>
-        <div class="col mt-4">
-            <table id="dataTable" style="width: 100%;" class="display">
-                <thead>
-                    <tr>
-                        <th class="th-sm">Box No</th>
-                        <th class="th-sm">Model</th>
-                        <th class="th-sm">Part No</th>
-                        <th class="th-sm">Configuration</th>
-                        <th class="th-sm">Details</th>
-                        <th class="th-sm">Quantity</th>
-                        <th class="th-sm">Buy Price</th>
-                        <th class="th-sm">Sell Price</th>
-                        <th class="th-sm">Vendor</th>
-                        <th class="th-sm">Id</th>
-                        <th class="th-sm">BoxId</th>
-                        <th class="th-sm">VendorId</th>
-                        <th class="th-sm">modelId</th>
-                        <th class="th-sm">PartId</th>
-                        <th class="th-sm">DetailsId</th>
-                        <th class="th-sm">ConfigId</th>
-                    </tr>
-                </thead>
-            </table>
-        </div>
-    </div>
-    <div class="modal fade" id="addVendorModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-        aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">Create Vendor</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group mb-3">
-                        <span class="input-group-text">Vendor Name</span>
-                        <input autocomplete="off" type="text" class="form-control" id="vendorName"
-                            placeholder="Vendor Name" aria-label="vendorName" aria-describedby="vendorName">
+                <div class="ps-2">
+                    <label for="model" class="p-1 pb-0">Motherboard Model</label>
+                    <div class="input-group">
+                        <select class="form-control" id="model"></select>
+                        <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                            data-bs-placement="top" id="addModelBtn" title="Add new Model">+</button>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="createVendorBtn" class="btn btn-primary">Save</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="stockAddBoxModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-        aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">Create Box</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group mb-3">
-                        <span class="input-group-text">Box Name</span>
-                        <input type="text" class="form-control" id="boxName" placeholder="Box Name" aria-label="boxName"
-                            aria-describedby="boxName">
+                <div class="ps-2">
+                    <label for="partNo" class="p-1 pb-0">Part</label>
+                    <div class="input-group">
+                        <select class="form-control" id="partNo"></select>
+                        <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                            data-bs-placement="top" id="addPartBtn" title="Add new Part">+</button>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="createBoxBtn" class="btn btn-primary">Save</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="stockAddModelModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
-        aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">Create Model</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group mb-3">
-                        <span class="input-group-text">Model</span>
-                        <input autocomplete="off" type="text" class="form-control" id="modelName"
-                            placeholder="Model Name" aria-label="modelName" aria-describedby="modelName">
+                <div class="ps-2">
+                    <label for="config" class="p-1 pb-0">Configuration</label>
+                    <div class="input-group">
+                        <select class="form-control" id="config"></select>
+                        <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                            data-bs-placement="top" id="addConfigBtn" title="Add new Configuration">+</button>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="createModelBtn" class="btn btn-primary">Create Model</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="stockAddPartModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
-        aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">Create Part</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group mb-3">
-                        <label for="model" class="p-1 pb-0">Motherboard Model</label>
+                <div class="row" style="padding-left: 12px;">
+                    <div class="col mb-1 ps-2">
+                        <label for="details" class="p-1 pb-0">Details</label>
                         <div class="input-group">
-                            <input type="text" disabled="disabled" class="form-control" id="modelForPart">
+                            <select class="form-control" id="details">
+                                <option>GM</option>
+                                <option>PM</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="input-group mb-3">
-                        <span class="input-group-text">Part no</span>
-                        <input type="text" class="form-control" id="partName" placeholder="Part Name" autocomplete="off"
-                            aria-label="partName" aria-describedby="partName">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="createPartBtn" class="btn btn-primary">Save</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="stockAddConfigModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">Create Configuration</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group mb-3">
-                        <label for="model" class="p-1 pb-0">Part No</label>
-                        <div class="input-group">
-                            <input type="text" disabled="disabled" class="form-control" id="partForConfiguration">
+                    <div class="col ps-2 mb-1">
+                        <label for="qty" class="p-1 pb-0">Quantity</label>
+                        <input min="1" autocomplete="off" required type="number" class="form-control numberOnly"
+                            aria-label="qty" id="qty">
+                        <div class="invalid-tooltip">
+                            Please enter quantity
                         </div>
                     </div>
-                    <div class="input-group mb-3">
-                        <span class="input-group-text">Configuration</span>
-                        <input type="text" class="form-control" id="configName" placeholder="Configuration"
-                            autocomplete="off" aria-label="configName" aria-describedby="configName">
+                </div>
+                <div class="row mb-1" style="padding-left: 12px;">
+                    <div class="col ps-2">
+                        <label for="qty" class="p-1 pb-0">Buy Price</label>
+                        <input min="0" autocomplete="off" type="number" class="form-control numberOnly" aria-label="qty"
+                            id="buyPrice">
+                    </div>
+                    <div class="col ps-2">
+                        <label for="qty" class="p-1 pb-0">Sell Price</label>
+                        <input min="0" autocomplete="off" type="number" class="form-control numberOnly" aria-label="qty"
+                            id="sellPrice">
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="createConfigBtn" class="btn btn-primary">Save</button>
+                <div class="ps-2 mt-3">
+                    <button type="button" style="width: 100%;" id="addStockBtn" class="btn btn-primary">Add</button>
+                </div>
+                <div class="ps-2 mt-2">
+                    <button type="button" style="width: 100%;" id="clearFieldsBtn"
+                        class="btn btn-secondary">Clear</button>
+                </div>
+            </div>
+            <div class="col mt-4">
+                <table id="dataTable" style="width: 100%;" class="display">
+                    <thead>
+                        <tr>
+                            <th class="th-sm">Box No</th>
+                            <th class="th-sm">Model</th>
+                            <th class="th-sm">Part No</th>
+                            <th class="th-sm">Configuration</th>
+                            <th class="th-sm">Details</th>
+                            <th class="th-sm">Quantity</th>
+                            <th class="th-sm">Buy Price</th>
+                            <th class="th-sm">Sell Price</th>
+                            <th class="th-sm">Vendor</th>
+                            <th class="th-sm">Id</th>
+                            <th class="th-sm">BoxId</th>
+                            <th class="th-sm">VendorId</th>
+                            <th class="th-sm">modelId</th>
+                            <th class="th-sm">PartId</th>
+                            <th class="th-sm">DetailsId</th>
+                            <th class="th-sm">ConfigId</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        <div class="modal fade" id="addVendorModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+            aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Create Vendor</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">Vendor Name</span>
+                            <input autocomplete="off" type="text" class="form-control" id="vendorName"
+                                placeholder="Vendor Name" aria-label="vendorName" aria-describedby="vendorName">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" id="createVendorBtn" class="btn btn-primary">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="stockAddBoxModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+            aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Create Box</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">Box Name</span>
+                            <input type="text" class="form-control" id="boxName" placeholder="Box Name"
+                                aria-label="boxName" aria-describedby="boxName">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" id="createBoxBtn" class="btn btn-primary">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="stockAddModelModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+            aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Create Model</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">Model</span>
+                            <input autocomplete="off" type="text" class="form-control" id="modelName"
+                                placeholder="Model Name" aria-label="modelName" aria-describedby="modelName">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" id="createModelBtn" class="btn btn-primary">Create Model</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="stockAddPartModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+            aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Create Part</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-3">
+                            <label for="model" class="p-1 pb-0">Motherboard Model</label>
+                            <div class="input-group">
+                                <input type="text" disabled="disabled" class="form-control" id="modelForPart">
+                            </div>
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">Part no</span>
+                            <input type="text" class="form-control" id="partName" placeholder="Part Name"
+                                autocomplete="off" aria-label="partName" aria-describedby="partName">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" id="createPartBtn" class="btn btn-primary">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="stockAddConfigModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Create Configuration</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-3">
+                            <label for="model" class="p-1 pb-0">Part No</label>
+                            <div class="input-group">
+                                <input type="text" disabled="disabled" class="form-control" id="partForConfiguration">
+                            </div>
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">Configuration</span>
+                            <input type="text" class="form-control" id="configName" placeholder="Configuration"
+                                autocomplete="off" aria-label="configName" aria-describedby="configName">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" id="createConfigBtn" class="btn btn-primary">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="stockEditModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Update Stock</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-0" style="display: none;">
+                            <span class="input-group-text">stockHeaderId</span>
+                            <input type="text" disabled="disabled" class="form-control" id="stockHeaderId">
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Box
+                                No</span>
+                            <input type="text" disabled="disabled" class="form-control" id="boxForEditStock">
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="width: 120px;text-align: right;display: block;">Vendor</span>
+                            <input type="text" disabled="disabled" class="form-control" id="vendorForEditStock">
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="width: 120px;text-align: right;display: block;">Model</span>
+                            <input type="text" disabled="disabled" class="form-control" id="modelForEditStock">
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="width: 120px;text-align: right;display: block;">Part</span>
+                            <input type="text" disabled="disabled" class="form-control" id="partForEditStock">
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="width: 120px;text-align: right;display: block;">Configuration</span>
+                            <input type="text" disabled="disabled" class="form-control" id="configForEditStock">
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="width: 120px;text-align: right;display: block;">Details</span>
+                            <input type="text" disabled="disabled" class="form-control" id="detailsForEditStock">
+                        </div>
+                        <div class="input-group mb-2">
+                            <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Buy
+                                Price</span>
+                            <input type="text" disabled="disabled" class="form-control" id="buyPriceForEditStock">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"
+                                style="width: 120px;text-align: right;display: block;">Quantity</span>
+                            <span class="input-group-text"
+                                style="width: 80px;text-align: right;display: block;">Available</span>
+                            <input type="text" style="max-width: 60px;text-align: center;" disabled="disabled"
+                                class="form-control" id="currentStock">
+                            <input autofocus type="text" style="max-width: 140px;" class="form-control numberOnly"
+                                id="qtyForEditStock" placeholder="Quantity" value="0" autocomplete="off">
+                            <span class="input-group-text"
+                                style="width: 40px;text-align: right;display: block;">=</span>
+                            <input type="text" style="text-align: center;" disabled="disabled" class="form-control"
+                                id="tempTotalStock">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" id="updateStockBtn" class="btn btn-primary">Update</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="optionModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Select Option</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-0" style="display: none;">
+                            <span class="input-group-text">stockHeaderId</span>
+                            <input type="text" disabled="disabled" class="form-control" id="stockHeaderId">
+                        </div>
+                        <div class="input-group mb-2">
+                            <button type="button" class="btn btn-primary pe-2 me-2" id="createOrderModalBtn">Create
+                                Order</button>
+                            <button type="button" id="updateStockModalBtn" class="btn btn-success">Update Stock</button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="createOrderModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Create Order</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-0">
+                            <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Order
+                                Date</span>
+                            <input type="text" class="form-control" id="datepicker">
+                        </div>
+                        <div class="input-group mb-0" style="display: none;">
+                            <span class="input-group-text">stockHeaderId</span>
+                            <input type="text" disabled="disabled" class="form-control" id="stockHeaderId">
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="width: 140px;text-align: right;display: block;">Particulars</span>
+                            <input type="text" disabled="disabled" class="form-control" id="itemDetailsForOrder">
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Sell
+                                Price</span>
+                            <input type="text" disabled="disabled" class="form-control" id="itemSellRate">
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="width: 140px;text-align: right;display: block;">Customer</span>
+                            <select class="form-control" id="customer">
+                                <option>Select</option>
+                                <option>Select2</option>
+                            </select>
+                            <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                                data-bs-placement="top" id="showCustomerModalBtn" title="Add new Customer">+</button>
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="width: 140px;text-align: right;display: block;">Quantity</span>
+                            <input type="text" style="max-width: 100px;" class="form-control" id="itemQuantity">
+                            <span class="input-group-text"
+                                style="width: 130px;text-align: right;display: block;">Amount</span>
+                            <input type="text" disabled="disabled" class="form-control" id="itemAmount">
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="width: 140px;text-align: right;display: block;">Courier
+                                Charges</span>
+                            <input type="text" class="form-control" style="max-width: 100px;" id="courierCharges">
+                            <span class="input-group-text" style="width: 130px;text-align: right;display: block;">Order
+                                Amount</span>
+                            <input type="text" disabled="disabled" class="form-control" id="orderAmount">
+                        </div>
+                        <div class="input-group mb-0">
+
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="width: 140px;text-align: right;display: block;">Payment
+                                Type</span>
+                            <select class="form-control" id="paymentType" style="max-width: 100px;">
+                                <option value="cash">Cash</option>
+                                <option value="bank">Bank</option>
+                                <option value="pending">pending</option>
+                            </select>
+                            <span class="input-group-text"
+                                style="width: 130px;text-align: right;display: block;">Remark</span>
+                            <input type="text" class="form-control" id="orderRemark">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" id="createOrderBtn" class="btn btn-primary">Create Order</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="createCustomerModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Create Customer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-0">
+                            <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Order
+                                Date</span>
+                            <input type="text" class="form-control" id="datepicker">
+                        </div>
+                        <div class="input-group mb-0" style="display: none;">
+                            <span class="input-group-text">stockHeaderId</span>
+                            <input type="text" disabled="disabled" class="form-control" id="stockHeaderId">
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="width: 140px;text-align: right;display: block;">Customer Name</span>
+                            <input type="text" disabled="disabled" class="form-control" id="customerName">
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="width: 140px;text-align: right;display: block;">Location</span>
+                            <input type="text" disabled="disabled" class="form-control" id="customerLocation">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" id="createOrderBtn" class="btn btn-primary">Create Order</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="modal fade" id="stockEditModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">Update Stock</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group mb-0" style="display: none;">
-                        <span class="input-group-text">stockHeaderId</span>
-                        <input type="text" disabled="disabled" class="form-control" id="stockHeaderId">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Box No</span>
-                        <input type="text" disabled="disabled" class="form-control" id="boxForEditStock">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Vendor</span>
-                        <input type="text" disabled="disabled" class="form-control" id="vendorForEditStock">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Model</span>
-                        <input type="text" disabled="disabled" class="form-control" id="modelForEditStock">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Part</span>
-                        <input type="text" disabled="disabled" class="form-control" id="partForEditStock">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Configuration</span>
-                        <input type="text" disabled="disabled" class="form-control" id="configForEditStock">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Details</span>
-                        <input type="text" disabled="disabled" class="form-control" id="detailsForEditStock">
-                    </div>
-                    <div class="input-group mb-2">
-                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Buy Price</span>
-                        <input type="text" disabled="disabled" class="form-control" id="buyPriceForEditStock">
-                    </div>
-                    <div class="input-group mb-3">
-                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Quantity</span>
-                        <span class="input-group-text" style="width: 80px;text-align: right;display: block;">Available</span>
-                        <input type="text" style="max-width: 60px;text-align: center;" disabled="disabled" class="form-control" id="currentStock">
-                        <input autofocus type="text" style="max-width: 140px;" class="form-control numberOnly" id="qtyForEditStock"
-                            placeholder="Quantity" value="0" autocomplete="off">
-                        <span class="input-group-text" style="width: 40px;text-align: right;display: block;">=</span>
-                        <input type="text" style="text-align: center;" disabled="disabled" class="form-control" id="tempTotalStock">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="updateStockBtn" class="btn btn-primary">Update</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="optionModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">Select Options</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group mb-0" style="display: none;">
-                        <span class="input-group-text">stockHeaderId</span>
-                        <input type="text" disabled="disabled" class="form-control" id="stockHeaderId">
-                    </div>
-                    <div class="input-group mb-2">
-                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Buy Price</span>
-                        <input type="text" disabled="disabled" class="form-control" id="buyPriceForEditStock">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="updateStockBtn" class="btn btn-primary">Update</button>
-                </div>
-            </div>
+    <div class="position-absolute top-0 mt-5 text-center" id="onloadSpinner" style="width:100%;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
     </div>
 </body>

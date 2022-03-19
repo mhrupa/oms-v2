@@ -44,7 +44,7 @@ public class SalesOrderHeader extends BaseEntity<Long> {
 	private String status;
 
 	@ManyToOne
-	private Customer customer;
+	private CustomerEntity customer;
 
 	@OneToMany(mappedBy = "salesOrderHeader")
 	private List<SalesOrderDetails> orderDetails;
