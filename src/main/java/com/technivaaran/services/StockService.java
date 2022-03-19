@@ -109,7 +109,6 @@ public class StockService {
                     .sellPrice(stockRequestDto.getSellPrice())
                     .vendor(vendorOp.get())
                     .build();
-
             stockHeaderRepository.save(stockHeader);
             return new ResponseEntity<>(OmsResponse.builder().message("Stock updated successfully.")
                     .data(stockHeaderResponseMapper.convertToDto(stockHeader)).build(),
