@@ -2,7 +2,6 @@ package com.technivaaran.services;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import com.technivaaran.dto.OmsResponse;
@@ -15,6 +14,7 @@ import com.technivaaran.entities.StockDetails;
 import com.technivaaran.entities.StockHeader;
 import com.technivaaran.entities.StorageLocationEntity;
 import com.technivaaran.entities.VendorEntity;
+import com.technivaaran.enums.StockType;
 import com.technivaaran.mapper.StockHeaderResponseMapper;
 import com.technivaaran.repositories.StockDetailsRepository;
 import com.technivaaran.repositories.StockHeaderRepository;
@@ -79,17 +79,23 @@ public class StockService {
                     HttpStatus.BAD_REQUEST);
         }
         ConfigDetailsEntity configEntity = configOp.get();
-        Optional<StockHeader> stockHeaderOp = findStockHeaderByLocationAndModelAndPartAndConfig(storageLocationOp.get(),
-                configEntity.getPartEntity().getItemMaster(), configEntity.getPartEntity(), configEntity);
+        Optional<StockHeader> stockHeaderOp = findStockHeaderByLocationAndModelAndPartAndConfigAndVendorAndBuyPrice(
+                storageLocationOp.get(), configEntity.getPartEntity().getItemMaster(), configEntity.getPartEntity(),
+                configEntity, vendorOp.get(), stockRequestDto.getBuyPrice());
 
         StockHeader stockHeader = null;
         if (stockHeaderOp.isPresent()) {
+           /**
             stockHeader = stockHeaderOp.get();
             stockHeader.setDetails(stockRequestDto.getDetails());
             stockHeader.setInQty(stockHeader.getInQty() + stockRequestDto.getQty());
             stockHeader.setClosingQty(stockHeader.getInQty() + stockRequestDto.getQty());
 
             stockHeaderRepository.save(stockHeader);
+            */
+            return new ResponseEntity<>(
+                    OmsResponse.builder().message("Stock data already available click on table row to update data.")
+                            .build(), HttpStatus.BAD_REQUEST);
         } else {
             stockHeader = StockHeader.builder()
                     .openingQty(stockRequestDto.getQty())
@@ -99,39 +105,66 @@ public class StockService {
                     .itemMaster(configEntity.getPartEntity().getItemMaster())
                     .partEntity(configEntity.getPartEntity()).configDetailsEntity(configEntity)
                     .details(stockRequestDto.getDetails())
+                    .buyPrice(stockRequestDto.getBuyPrice())
+                    .sellPrice(stockRequestDto.getSellPrice())
                     .vendor(vendorOp.get())
                     .build();
 
             stockHeaderRepository.save(stockHeader);
+            return new ResponseEntity<>(OmsResponse.builder().message("Stock updated successfully.")
+                    .data(stockHeaderResponseMapper.convertToDto(stockHeader)).build(),
+                    HttpStatus.OK);
         }
 
-        return new ResponseEntity<>(OmsResponse.builder().message("Stock updated successfully.")
-                .data(stockHeaderResponseMapper.convertToDto(stockHeader)).build(),
-                HttpStatus.OK);
     }
 
-    public Optional<StockHeader> findStockHeaderByLocationAndModelAndPartAndConfig(
-            StorageLocationEntity storageLocationEntity,
-            ItemMaster itemMaster, PartEntity partEntity, ConfigDetailsEntity configDetailsEntity) {
+    public Optional<StockHeader> findStockHeaderByLocationAndModelAndPartAndConfigAndVendorAndBuyPrice(
+            StorageLocationEntity storageLocationEntity, ItemMaster itemMaster, PartEntity partEntity,
+            ConfigDetailsEntity configDetailsEntity, VendorEntity vendor, float buyPrice) {
 
-        return stockHeaderRepository.findByStorageLocationAndItemMasterAndPartEntityAndConfigDetailsEntity(
-                storageLocationEntity, itemMaster, partEntity, configDetailsEntity);
+        return stockHeaderRepository
+                .findByStorageLocationAndItemMasterAndPartEntityAndConfigDetailsEntityAndVendorAndBuyPrice(
+                        storageLocationEntity, itemMaster, partEntity, configDetailsEntity, vendor, buyPrice);
     }
 
     private StockDetails createStockDetail(StockRequestDto stockRequestDto, StockHeader stockHeader) {
         StockDetails stockDetails = StockDetails.builder()
                 .inQty(stockRequestDto.getQty()).outQty(0).stockHeader(stockHeader)
                 .transactionDate(DateUtils.getCurrentDateTime()).user(null).build();
-
         return stockDetailsRepository.save(stockDetails);
     }
 
-    private void updateStockHeader(StockHeader stockHeader) {
-        log.info("update stock header");
-        Map<String, String> dataMap = stockDetailsRepository.getByStockHeaderAndTransactionDate(stockHeader.getId(),
-                stockHeader.getStockDate());
+    public ResponseEntity<OmsResponse> updateStockHeaderByIdAndType(long stockHeaderId,
+            StockRequestDto stockRequestDto) {
+        log.info("update stock header by stockHeader id and stockType");
+        Optional<StockHeader> stockHeaderOp = stockHeaderRepository.findById(stockHeaderId);
+        if (stockHeaderOp.isPresent()) {
+            StockHeader stockHeader = stockHeaderOp.get();
+            switch (StockType.valueOf(stockRequestDto.getStockType())) {
+                case IN: {
+                    return updateInStock(stockHeader, stockRequestDto);
+                }
+                case OUT: {
+                    break;
+                }
+                case RETURN: {
+                    break;
+                }
+                default:
+            }
+            return null;
+        } else {
+            return new ResponseEntity<>(OmsResponse.builder().message("Invalid stock id received.").build(),
+                    HttpStatus.BAD_REQUEST);
+        }
 
-        log.info("data: " + dataMap);
+    }
 
+    private ResponseEntity<OmsResponse> updateInStock(StockHeader stockHeader, StockRequestDto stockRequestDto) {
+        stockHeader.setInQty(stockHeader.getInQty() + stockRequestDto.getQty());
+        stockHeader.setClosingQty(stockHeader.getClosingQty() + stockRequestDto.getQty());
+        stockHeader = stockHeaderRepository.save(stockHeader);
+        return new ResponseEntity<>(OmsResponse.builder().message("Stock updated successfully.")
+                .data(stockHeaderResponseMapper.convertToDto(stockHeader)).build(), HttpStatus.OK);
     }
 }

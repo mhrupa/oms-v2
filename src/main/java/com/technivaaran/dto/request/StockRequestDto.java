@@ -10,6 +10,8 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
 public class StockRequestDto {
+    private long stockHeaderId;
+    private String stockType;
     private int boxId;
     private long modelId;
     private long partId;

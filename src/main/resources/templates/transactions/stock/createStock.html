@@ -51,6 +51,8 @@
                     { data: "configurationId", visible: false }
                 ]
             });
+            $(":input[type='search']").attr("accesskey", "h");
+
             $('#stockEditModal').on('shown.bs.modal', function () {
                 $('#qtyForEditStock').focus();
             })
@@ -67,6 +69,7 @@
             $("#updateStockBtn").click(updateStock);
             $("#model").change(modelOnChange);
             $("#partNo").change(partNoOnChange);
+            $("#qtyForEditStock").keyup(calculateTempTotal);
             $("#addStockBtn").click(() => {
                 if (validateFields()) {
                     savaData();
@@ -77,7 +80,6 @@
                 initFields();
             });
             $("#dataTable tbody").css("cursor", "pointer").on("click", "tr", function () {
-                $("#stockEditModal").modal("show");
                 var data = table.row(this).data();
                 $("#stockHeaderId").val(data.id);
                 $("#boxForEditStock").val(data.box);
@@ -86,8 +88,21 @@
                 $("#partForEditStock").val(data.part);
                 $("#configForEditStock").val(data.configuration);
                 $("#detailsForEditStock").val(data.details);
+                $("#buyPriceForEditStock").val(data.buyPrice);
+                $("#currentStock").val(data.qty);
+                $("#qtyForEditStock").val("0");
+                $("#tempTotalStock").val(data.qty);
+                $("#stockEditModal").modal("show");
             });
         });
+        
+        function calculateTempTotal() {
+            if($("#qtyForEditStock").val() == "" || Number.isNaN($("#qtyForEditStock").val())) {
+                $("#qtyForEditStock").val("0");
+            } 
+           $("#tempTotalStock").val(Number.parseFloat($("#currentStock").val()) + Number.parseFloat($("#qtyForEditStock").val()));
+        }
+
         function initPage() {
             initVendorData();
             initLocationData();
@@ -96,7 +111,99 @@
         }
 
         function updateStock() {
-            alert();
+            if ($("#stockHeaderId").val() == undefined ||
+                $("#stockHeaderId").val() == "" || $("#stockHeaderId").val() == 0) {
+                $("#omsToast").html("Invalid stockId");
+                $(".toast").addClass("bg-danger").toast("show");
+                $("#stockEditModal").modal("hide");
+                return false;
+            }
+            if ($("#boxForEditStock").val() == undefined ||
+                $("#boxForEditStock").val() == "" || $("#boxForEditStock").val() == 0) {
+                $("#omsToast").html("Invalid box");
+                $(".toast").addClass("bg-danger").toast("show");
+                $("#stockEditModal").modal("hide");
+                return false;
+            }
+            if ($("#vendorForEditStock").val() == undefined ||
+                $("#vendorForEditStock").val() == "" || $("#vendorForEditStock").val() == 0) {
+                $("#omsToast").html("Invalid Vendor");
+                $(".toast").addClass("bg-danger").toast("show");
+                $("#stockEditModal").modal("hide");
+                return false;
+            }
+            if ($("#modelForEditStock").val() == undefined ||
+                $("#modelForEditStock").val() == "" || $("#modelForEditStock").val() == 0) {
+                $("#omsToast").html("Invalid Model");
+                $(".toast").addClass("bg-danger").toast("show");
+                $("#stockEditModal").modal("hide");
+                return false;
+            }
+            if ($("#partForEditStock").val() == undefined ||
+                $("#partForEditStock").val() == "" || $("#partForEditStock").val() == 0) {
+                $("#omsToast").html("Invalid Part");
+                $(".toast").addClass("bg-danger").toast("show");
+                $("#stockEditModal").modal("hide");
+                return false;
+            }
+            if ($("#configForEditStock").val() == undefined ||
+                $("#configForEditStock").val() == "" || $("#configForEditStock").val() == 0) {
+                $("#omsToast").html("Invalid Configuration");
+                $(".toast").addClass("bg-danger").toast("show");
+                $("#stockEditModal").modal("hide");
+                return false;
+            }
+            if ($("#detailsForEditStock").val() == undefined ||
+                $("#detailsForEditStock").val() == "" || $("#detailsForEditStock").val() == 0) {
+                $("#omsToast").html("Invalid Details");
+                $(".toast").addClass("bg-danger").toast("show");
+                $("#stockEditModal").modal("hide");
+                return false;
+            }
+
+            if ($("#qtyForEditStock").val() == undefined ||
+                $("#qtyForEditStock").val() == "" || $("#qtyForEditStock").val() == 0) {
+                $("#qtyForEditStock").focus();
+                $("#omsToast").html("Invalid quantity");
+                $(".toast").addClass("bg-danger").toast("show");
+                return false;
+            }
+            
+            var requestData = {
+                "qty": $("#qtyForEditStock").val(),
+                "stockType":"IN"
+            };
+
+            $.post("/stock/" + $("#stockHeaderId").val(), JSON.stringify(requestData), function (res) {
+                var rowUpdated = false;
+                table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+                    var d = this.data();
+                    if(d.box == res.data.box && d.model== res.data.model
+                    && d.part == res.data.part && d.configuration == res.data.configuration
+                    && d.details == res.data.details && d.vendor == res.data.vendor
+                    && d.buyPrice == res.data.buyPrice) {
+                        d.qty = res.data.qty;
+                        this.invalidate();
+                        rowUpdated = true;
+                        $("#stockEditModal").modal("hide");
+                        $("#omsToast").html(res.message);
+                        $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
+                        return false;
+                    }
+                });
+                table.draw();
+
+                if(!rowUpdated) {
+                    table.row.add(res.data).draw(false);
+                    $("#stockEditModal").modal("hide");
+                    $("#omsToast").html(res.message);
+                    $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
+                }
+                initFields();
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
         }
         function savaData() {
             var requestData = {
@@ -133,15 +240,32 @@
 
                 $("#omsToast").html(res.message);
                 $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
+                initFields();
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $(".toast").addClass("bg-danger").toast("show");
             });
 
         }
+
+        function initFields() {
+            $("#vendor").val(0);
+            $("#model").val(0);
+            $("#partNo").val(0);
+            $("#config").val(0);
+            $("#details").val("GM");
+            $("#qty").val("");
+            $("#buyPrice").val("");
+            $("#sellPrice").val("");
+            $("#boxNo").val(0).focus();
+        }
         function validateFields() {
             if ($("#boxNo").val() == "0") {
                 $("#boxNo").focus();
+                return false;
+            }
+            if ($("#vendor").val() == "0") {
+                $("#vendor").focus();
                 return false;
             }
             if ($("#model").val() == "0") {
@@ -158,6 +282,14 @@
             }
             if ($("#qty").val() == "" || $("#qty").val() == 0) {
                 $("#qty").focus();
+                return false;
+            }
+            if ($("#buyPrice").val() == "" || $("#buyPrice").val() == 0) {
+                $("#buyPrice").focus();
+                return false;
+            }
+            if ($("#sellPrice").val() == "" || $("#sellPrice").val() == 0) {
+                $("#sellPrice").focus();
                 return false;
             }
             return true;
@@ -475,9 +607,9 @@
     <div class="row" style="width: 100%;">
         <div class="pt-0" style="width: 250px;">
             <div class="mb-1 ps-2">
-                <label class="p-1 pb-0" for="boxNo">Box</label>
+                <label class="p-1 pb-0" for="boxNo"><span style="text-decoration: underline;">B</span>ox</label>
                 <div class="input-group">
-                    <select class="form-control" id="boxNo"></select>
+                    <select class="form-control" id="boxNo" accesskey="b"></select>
                     <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
                         data-bs-placement="top" id="addBoxBtn" title="Add new Box">+</button>
                 </div>
@@ -549,7 +681,7 @@
                 <button type="button" style="width: 100%;" id="addStockBtn" class="btn btn-primary">Add</button>
             </div>
             <div class="ps-2 mt-2">
-                <button type="button" style="width: 100%;" disabled id="clearFieldsBtn"
+                <button type="button" style="width: 100%;" id="clearFieldsBtn"
                     class="btn btn-secondary">Clear</button>
             </div>
         </div>
@@ -709,38 +841,46 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="input-group mb-3" style="display: none;">
+                    <div class="input-group mb-0" style="display: none;">
                         <span class="input-group-text">stockHeaderId</span>
                         <input type="text" disabled="disabled" class="form-control" id="stockHeaderId">
                     </div>
-                    <div class="input-group mb-3">
+                    <div class="input-group mb-0">
                         <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Box No</span>
                         <input type="text" disabled="disabled" class="form-control" id="boxForEditStock">
                     </div>
-                    <div class="input-group mb-3">
+                    <div class="input-group mb-0">
                         <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Vendor</span>
                         <input type="text" disabled="disabled" class="form-control" id="vendorForEditStock">
                     </div>
-                    <div class="input-group mb-3">
+                    <div class="input-group mb-0">
                         <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Model</span>
                         <input type="text" disabled="disabled" class="form-control" id="modelForEditStock">
                     </div>
-                    <div class="input-group mb-3">
+                    <div class="input-group mb-0">
                         <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Part</span>
                         <input type="text" disabled="disabled" class="form-control" id="partForEditStock">
                     </div>
-                    <div class="input-group mb-3">
+                    <div class="input-group mb-0">
                         <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Configuration</span>
                         <input type="text" disabled="disabled" class="form-control" id="configForEditStock">
                     </div>
-                    <div class="input-group mb-3">
+                    <div class="input-group mb-0">
                         <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Details</span>
                         <input type="text" disabled="disabled" class="form-control" id="detailsForEditStock">
                     </div>
+                    <div class="input-group mb-2">
+                        <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Buy Price</span>
+                        <input type="text" disabled="disabled" class="form-control" id="buyPriceForEditStock">
+                    </div>
                     <div class="input-group mb-3">
                         <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Quantity</span>
-                        <input autofocus type="text" class="form-control" id="qtyForEditStock" placeholder="Quantity"
-                            autocomplete="off">
+                        <span class="input-group-text" style="width: 80px;text-align: right;display: block;">Available</span>
+                        <input type="text" style="max-width: 60px;text-align: center;" disabled="disabled" class="form-control" id="currentStock">
+                        <input autofocus type="text" style="max-width: 140px;" class="form-control numberOnly" id="qtyForEditStock"
+                            placeholder="Quantity" value="0" autocomplete="off">
+                        <span class="input-group-text" style="width: 40px;text-align: right;display: block;">=</span>
+                        <input type="text" style="text-align: center;" disabled="disabled" class="form-control" id="tempTotalStock">
                     </div>
                 </div>
                 <div class="modal-footer">
