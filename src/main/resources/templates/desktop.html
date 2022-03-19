@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="">
 <head>
+	<title></title>
 <meta charset="UTF-8">
 <script type="text/javascript">
 	$(document).ready(function() {
+		appUser.userId = "[[${user.id}]]";
 		appUser.userName = "[[${user.userName}]]";
 		appUser.email = "[[${user.email}]]";
 		appUser.branch = "[[${user.userBranch.branchName}]]";

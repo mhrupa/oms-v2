@@ -61,6 +61,9 @@
             $('#createOrderModal').on('shown.bs.modal', function () {
                 $('#customer').focus();
             })
+            $('#createCustomerModal').on('shown.bs.modal', function () {
+                $('#customerName').focus();
+            })
             $("#addBoxBtn").click(addNewBox);
             $("#addVendorBtn").click(addNewVendor);
             $("#addModelBtn").click(addNewModel);
@@ -78,6 +81,8 @@
             $("#updateStockModalBtn").click(showUpdateStockModal);
             $("#createOrderModalBtn").click(showCreateOrderModal);
             $("#showCustomerModalBtn").click(showCreateCustomerModal);
+            $("#createCustomerBtn").click(createCustomerBtnClick);
+            
             $("#addStockBtn").click(() => {
                 if (validateFields()) {
                     savaData();
@@ -517,9 +522,13 @@
                 $("#createCustomerBtn").removeAttr("disabled");
                 return false;
             }
+            
             var requestData = {
                 "customerName": $("#customerName").val(),
-                "customerLocation": $("#customerLocation").val()
+                "location": $("#customerLocation").val(),
+                "email": $("#email").val(),
+                "contact": $("#contact").val(),
+                "userId": appUser.userId
             };
             $.post("/customers", JSON.stringify(requestData), function (res) {
                 $("#createCustomerModal").modal("hide");
@@ -527,7 +536,7 @@
                 $(".toast").removeClass("bg-danger").removeClass("bg-warning").addClass("bg-success").toast("show");
                 $("#createCustomerBtn").removeAttr("disabled");
                 initCustomerResponseData(res.data);
-                $("#model").focus();
+                $("#customer").focus();
             }).fail(function (res) {
                 $("#createCustomerModal").modal("hide");
                 $("#omsToast").html(JSON.parse(res.responseText).message);
@@ -1108,28 +1117,29 @@
                     </div>
                     <div class="modal-body">
                         <div class="input-group mb-0">
-                            <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Order
-                                Date</span>
-                            <input type="text" class="form-control" id="datepicker">
-                        </div>
-                        <div class="input-group mb-0" style="display: none;">
-                            <span class="input-group-text">stockHeaderId</span>
-                            <input type="text" disabled="disabled" class="form-control" id="stockHeaderId">
-                        </div>
-                        <div class="input-group mb-0">
                             <span class="input-group-text"
                                 style="width: 140px;text-align: right;display: block;">Customer Name</span>
-                            <input type="text" disabled="disabled" class="form-control" id="customerName">
+                            <input type="text" class="form-control" id="customerName">
                         </div>
                         <div class="input-group mb-0">
                             <span class="input-group-text"
                                 style="width: 140px;text-align: right;display: block;">Location</span>
-                            <input type="text" disabled="disabled" class="form-control" id="customerLocation">
+                            <input type="text" class="form-control" id="customerLocation">
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="width: 140px;text-align: right;display: block;">Email</span>
+                            <input type="email" class="form-control" id="email">
+                        </div>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="width: 140px;text-align: right;display: block;">Contact</span>
+                            <input type="email" class="form-control" id="contact">
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" id="createOrderBtn" class="btn btn-primary">Create Order</button>
+                        <button type="button" id="createCustomerBtn" class="btn btn-primary">Create Customer</button>
                     </div>
                 </div>
             </div>
