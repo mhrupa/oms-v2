@@ -33,10 +33,7 @@ public class CustomerController {
 	@PostMapping(value = "/customers", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<OmsResponse> saveCustomer(@RequestBody CustomerDto customerDto) {
 		log.info("Customer Creation started.");
-		customerService.saveCustomer(customerDto);
-		log.info("Customer Creation completed.");
-		return new ResponseEntity<>(OmsResponse.builder().message("Customer created successfully").build(),
-				HttpStatus.CREATED);
+		return customerService.saveCustomer(customerDto);
 	}
 
 	@GetMapping("/customers")

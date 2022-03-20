@@ -64,6 +64,10 @@
             $('#createCustomerModal').on('shown.bs.modal', function () {
                 $('#customerName').focus();
             })
+            $('#createCustomerModal').on('hidden.bs.modal', function () {
+                $("#createOrderModal").modal("show");
+            })
+            
             $("#addBoxBtn").click(addNewBox);
             $("#addVendorBtn").click(addNewVendor);
             $("#addModelBtn").click(addNewModel);
@@ -536,12 +540,14 @@
                 $(".toast").removeClass("bg-danger").removeClass("bg-warning").addClass("bg-success").toast("show");
                 $("#createCustomerBtn").removeAttr("disabled");
                 initCustomerResponseData(res.data);
+                $("#createOrderModal").modal("show");
                 $("#customer").focus();
             }).fail(function (res) {
                 $("#createCustomerModal").modal("hide");
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $(".toast").addClass("bg-danger").toast("show");
                 $("#createCustomerBtn").removeAttr("disabled");
+                $("#createOrderModal").modal("show");
             });
         }
 

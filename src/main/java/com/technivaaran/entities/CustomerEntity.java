@@ -21,28 +21,28 @@ import lombok.NoArgsConstructor;
 @Table(name = "customer")
 @Builder
 @Data
-@EqualsAndHashCode(callSuper=true)
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class CustomerEntity extends BaseEntity<Long>{
-	
-	@Column(name = "customer_name")
+public class CustomerEntity extends BaseEntity<Long> {
+
+	@Column(name = "customer_name", unique = true)
 	@Length(max = 50)
 	private String customerName;
-	
-	@Column(name = "email", nullable = false, unique = true)
+
+	@Column(name = "email", nullable = false)
 	@Length(max = 50)
 	@Email
 	private String email;
-	
+
 	@Column(name = "contact")
 	@Length(max = 20)
 	private String contact;
-	
+
 	@Column(name = "location")
 	@Length(max = 20)
 	private String location;
-	
+
 	@ManyToOne
 	@JsonIgnore
 	@NonNull
