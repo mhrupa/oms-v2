@@ -37,7 +37,7 @@ public class CustomerController {
 	}
 
 	@GetMapping("/customers")
-	public List<CustomerEntity> getAllUsers() {
+	public List<CustomerEntity> getAllCustomers() {
 		log.info("Get all Customer is called.");
 		return customerService.findAllCustomers();
 	}

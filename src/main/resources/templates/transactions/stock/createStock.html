@@ -67,7 +67,7 @@
             $('#createCustomerModal').on('hidden.bs.modal', function () {
                 $("#createOrderModal").modal("show");
             })
-            
+
             $("#addBoxBtn").click(addNewBox);
             $("#addVendorBtn").click(addNewVendor);
             $("#addModelBtn").click(addNewModel);
@@ -82,11 +82,13 @@
             $("#model").change(modelOnChange);
             $("#partNo").change(partNoOnChange);
             $("#qtyForEditStock").keyup(calculateTempTotal);
+            $("#itemQuantity").keyup(calculateOrderAmount);
+            $("#courierCharges").keyup(calculateOrderTotalAmount);
             $("#updateStockModalBtn").click(showUpdateStockModal);
             $("#createOrderModalBtn").click(showCreateOrderModal);
             $("#showCustomerModalBtn").click(showCreateCustomerModal);
             $("#createCustomerBtn").click(createCustomerBtnClick);
-            
+
             $("#addStockBtn").click(() => {
                 if (validateFields()) {
                     savaData();
@@ -118,10 +120,16 @@
             $("#createCustomerModal").modal("show");
         }
         function showCreateOrderModal() {
+            $("#stockHeaderId").val(selectedRowData.id);
+            $("#itemDetailsForOrder").text(selectedRowData.box
+                + " | " + selectedRowData.model + " | " + selectedRowData.part
+                + " | " + selectedRowData.configuration + " | " + selectedRowData.details
+                + " |" + selectedRowData.vendor);
+            $("#itemSellRate").val(selectedRowData.sellPrice);
+
             $("#optionModal").modal("hide");
             $("#createOrderModal").modal("show");
         }
-
         function showUpdateStockModal() {
             $("#stockHeaderId").val(selectedRowData.id);
             $("#boxForEditStock").val(selectedRowData.box);
@@ -144,7 +152,28 @@
             }
             $("#tempTotalStock").val(Number.parseFloat($("#currentStock").val()) + Number.parseFloat($("#qtyForEditStock").val()));
         }
+        function calculateOrderAmount() {
+            if ($("#itemQuantity").val() == "" || Number.isNaN($("#itemQuantity").val())) {
+                $("#itemQuantity").val("0");
+                return false;
+            }
+            $("#itemAmount").val(Number.parseFloat($("#itemSellRate").val()) * Number.parseFloat($("#itemQuantity").val()));
+        }
+        function calculateOrderTotalAmount() {
+            if ($("#itemQuantity").val() == "0" || $("#itemQuantity").val() == ""
+                || Number.isNaN($("#itemQuantity").val())) {
+                $("#courierCharges").val("0");
+                $("#itemQuantity").focus();
+                $("#omsToast").html("Please enter Quantity.");
+                $(".toast").removeClass("bg-success").addClass("bg-danger").toast("show");
+                return;
 
+            }
+            if ($("#courierCharges").val() == "" || Number.isNaN($("#courierCharges").val())) {
+                $("#courierCharges").val("0");
+            }
+            $("#orderAmount").val(Number.parseFloat($("#itemAmount").val()) + Number.parseFloat($("#courierCharges").val()));
+        }
         function initPage() {
             initVendorData();
             initLocationData();
@@ -526,7 +555,7 @@
                 $("#createCustomerBtn").removeAttr("disabled");
                 return false;
             }
-            
+
             var requestData = {
                 "customerName": $("#customerName").val(),
                 "location": $("#customerLocation").val(),
@@ -630,7 +659,13 @@
             });
         }
         function initCustomerData() {
-
+            $.get("/customers", function (res) {
+                customers = res;
+                initCustomerResponseData();
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
         }
 
         function initLocationResponseData(ele) {
@@ -690,18 +725,24 @@
             });
         }
         function initVendorResponseData(vendor) {
-            vendors.push(vendor);
             if (vendor) {
+                vendors.push(vendor);
                 $("#vendor").append("<option value='" + vendor.id + "' selected>" + vendor.vendorName + "</option>");
                 $("#vendor").val(vendor.id);
             }
             return;
         }
         function initCustomerResponseData(customer) {
-            customers.push(customer);
             if (customer) {
-                $("#customer").append("<option value='" + customer.id + "' selected>" + customer.vendorName + "</option>");
-                $("#vendor").val(customer.id);
+                customers.push(customer);
+                $("#customer").append("<option value='" + customer.id + "' selected>" + customer.customerName + "</option>");
+                $("#customer").val(customer.id);
+            } else {
+                $("#customer").empty();
+                $("#customer").append("<option selected='selected' value='0'>Select Customer</option>");
+                customers.forEach(customer => {
+                    $("#customer").append("<option value='" + customer.id + "'>" + customer.customerName + "</option>");
+                });
             }
             return;
         }
@@ -1036,7 +1077,7 @@
         </div>
         <div class="modal fade" id="createOrderModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
             aria-hidden="true">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="staticBackdropLabel">Create Order</h5>
@@ -1055,7 +1096,8 @@
                         <div class="input-group mb-0">
                             <span class="input-group-text"
                                 style="width: 140px;text-align: right;display: block;">Particulars</span>
-                            <input type="text" disabled="disabled" class="form-control" id="itemDetailsForOrder">
+                            <span type="text" disabled="disabled" class="form-control text-break"
+                                id="itemDetailsForOrder"></span>
                         </div>
                         <div class="input-group mb-0">
                             <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Sell
@@ -1065,29 +1107,29 @@
                         <div class="input-group mb-0">
                             <span class="input-group-text"
                                 style="width: 140px;text-align: right;display: block;">Customer</span>
-                            <select class="form-control" id="customer">
-                                <option>Select</option>
-                                <option>Select2</option>
-                            </select>
+                            <select class="form-control" id="customer"></select>
                             <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
                                 data-bs-placement="top" id="showCustomerModalBtn" title="Add new Customer">+</button>
                         </div>
                         <div class="input-group mb-0">
                             <span class="input-group-text"
                                 style="width: 140px;text-align: right;display: block;">Quantity</span>
-                            <input type="text" style="max-width: 100px;" class="form-control" id="itemQuantity">
+                            <input type="number" style="max-width: 160px;" class="form-control" value="0"
+                                id="itemQuantity">
                             <span class="input-group-text"
                                 style="width: 130px;text-align: right;display: block;">Amount</span>
-                            <input type="text" disabled="disabled" class="form-control" id="itemAmount">
+                            <input type="number" min="0" step=".01" disabled="disabled" class="form-control"
+                                id="itemAmount">
                         </div>
                         <div class="input-group mb-0">
                             <span class="input-group-text"
                                 style="width: 140px;text-align: right;display: block;">Courier
                                 Charges</span>
-                            <input type="text" class="form-control" style="max-width: 100px;" id="courierCharges">
+                            <input type="number" value="0" min="0" class="form-control" style="max-width: 160px;"
+                                id="courierCharges">
                             <span class="input-group-text" style="width: 130px;text-align: right;display: block;">Order
                                 Amount</span>
-                            <input type="text" disabled="disabled" class="form-control" id="orderAmount">
+                            <input type="number" min="0" disabled="disabled" class="form-control" id="orderAmount">
                         </div>
                         <div class="input-group mb-0">
 
@@ -1096,7 +1138,8 @@
                             <span class="input-group-text"
                                 style="width: 140px;text-align: right;display: block;">Payment
                                 Type</span>
-                            <select class="form-control" id="paymentType" style="max-width: 100px;">
+                            <select class="form-control" id="paymentType" style="max-width: 160px;">
+                                <option value="0">Select Payment Type</option>
                                 <option value="cash">Cash</option>
                                 <option value="bank">Bank</option>
                                 <option value="pending">pending</option>
