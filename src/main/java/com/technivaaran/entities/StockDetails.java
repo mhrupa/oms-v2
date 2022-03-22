@@ -36,6 +36,9 @@ public class StockDetails extends BaseEntity<Long> {
     @Column(name = "out_qty", nullable = false)
     private float outQty;
 
+    private float buyPrice;
+    private float sellPrice;
+
     @ManyToOne
     private StockHeader stockHeader;
 

@@ -30,6 +30,7 @@ public class StockHeaderResponseMapper {
                 .vendorId(stockHeaderEntity.getVendor().getId())
                 .buyPrice(stockHeaderEntity.getBuyPrice())
                 .sellPrice(stockHeaderEntity.getSellPrice())
+                .stockDetailsId(stockHeaderEntity.getStockDetailId())
                 .build();
     }
 }

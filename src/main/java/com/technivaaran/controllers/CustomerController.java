@@ -1,11 +1,13 @@
 package com.technivaaran.controllers;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.technivaaran.AppUrlConstants;
 import com.technivaaran.dto.CustomerDto;
 import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.entities.CustomerEntity;
+import com.technivaaran.exceptions.OMSException;
 import com.technivaaran.services.CustomerService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +47,13 @@ public class CustomerController {
 	@GetMapping("/customers/{customerId}")
 	public CustomerEntity getCustomerById(@PathVariable(name = "customerId") long customerId) {
 		log.info("Get Customer by Id called");
-		return customerService.findCustomerById(customerId);
+		Optional<CustomerEntity> customerOp = customerService.findCustomerById(customerId);
+		if (customerOp.isPresent()) {
+			return customerOp.get();
+		} else {
+			throw new OMSException("Customer not found for id : " + customerId);
+		}
+
 	}
 
 	@PutMapping(value = "/customers/{customerId}", produces = MediaType.APPLICATION_JSON_VALUE)

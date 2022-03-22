@@ -1,5 +1,7 @@
 package com.technivaaran.entities;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -24,16 +26,15 @@ public class SalesOrderDetails extends BaseEntity<Long> {
 	private int orderQty;
 
 	@Column(name = "item_rate", nullable = false)
-	private double itemRate;
+	private float sellRate;
 
 	@Column(name = "status", nullable = false, columnDefinition = "char(10) DEFAULT 'Active'")
 	private String status;
 
-	@ManyToOne
-	private SalesOrderHeader salesOrderHeader;
+	private LocalDateTime transactionDateTime;
 
 	@ManyToOne
-	private ItemMaster orderItem;
+	private SalesOrderHeader salesOrderHeader;
 
 	@ManyToOne
 	private User user;

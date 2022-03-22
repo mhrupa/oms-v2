@@ -41,6 +41,6 @@ public class StockController {
     public ResponseEntity<OmsResponse> updateStockById(@RequestBody StockRequestDto stockRequestDto,
             @PathVariable(name = "id") long id) {
         log.info("started update stock {}, id {}", stockRequestDto.getQty(), stockRequestDto.getStockHeaderId());
-        return stockService.updateStockHeaderByIdAndType(id, stockRequestDto);
+        return stockService.updateStockHeaderAndStockDetaisById(id, stockRequestDto);
     }
 }

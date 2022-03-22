@@ -1,18 +1,17 @@
 package com.technivaaran.entities;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.lang.NonNull;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,10 +31,14 @@ public class SalesOrderHeader extends BaseEntity<Long> {
 	@CreationTimestamp
 	@NonNull
 	@Column(name = "order_date")
-	private LocalDateTime orderDate;
+	private LocalDate orderDate;
 
-	@Column(name = "po_no", nullable = false)
-	private String poNo;
+	private long challanNo;
+	private float sellPrice;
+	private long quantity;
+	private float courierCharges;
+	private String paymentType;
+	private String remark;
 
 	@Column(name = "order_amount", nullable = false)
 	private double orderAmount;
@@ -43,11 +46,14 @@ public class SalesOrderHeader extends BaseEntity<Long> {
 	@Column(name = "status", nullable = false, columnDefinition = "char(10) DEFAULT 'Active'")
 	private String status;
 
+	@OneToOne
+	private StockDetails stockDetails;
+
 	@ManyToOne
 	private CustomerEntity customer;
 
-	@OneToMany(mappedBy = "salesOrderHeader")
-	private List<SalesOrderDetails> orderDetails;
+	@ManyToOne
+	private StockHeader stockHeader;
 
 	@ManyToOne
 	@JsonIgnore

@@ -46,6 +46,8 @@ public class StockHeader extends BaseEntity<Long> {
     private float buyPrice;
     private float sellPrice;
     private String details;
+
+    private long stockDetailId;
     
     @ManyToOne
     @JoinColumn(name = "location_id")

@@ -27,13 +27,8 @@ public class CustomerService {
 	@Autowired
 	private CustomerMapper customerMapper;
 
-	public CustomerEntity findCustomerById(long customerId) {
-		Optional<CustomerEntity> customerOp = customerRepository.findById(customerId);
-		if (customerOp.isPresent()) {
-			return customerOp.get();
-		} else {
-			throw new OMSException("Customer not found for id : " + customerId);
-		}
+	public Optional<CustomerEntity> findCustomerById(long customerId) {
+		return customerRepository.findById(customerId);
 	}
 
 	public List<CustomerEntity> findAllCustomers() {

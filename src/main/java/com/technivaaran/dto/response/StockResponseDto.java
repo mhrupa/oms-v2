@@ -30,4 +30,5 @@ public class StockResponseDto {
     private float sellPrice;
     private String vendor;
     private long vendorId;
+    private long stockDetailsId;
 }

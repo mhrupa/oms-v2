@@ -50,7 +50,8 @@
                     { data: "modelId", visible: false },
                     { data: "partId", visible: false },
                     { data: "detailsId", visible: false },
-                    { data: "configurationId", visible: false }
+                    { data: "configurationId", visible: false },
+                    { data: "stockDetailsId", visible: false }
                 ]
             });
             $(":input[type='search']").attr("accesskey", "h");
@@ -88,6 +89,7 @@
             $("#createOrderModalBtn").click(showCreateOrderModal);
             $("#showCustomerModalBtn").click(showCreateCustomerModal);
             $("#createCustomerBtn").click(createCustomerBtnClick);
+            $("#createOrderBtn").click(createOrderButtonClick);
 
             $("#addStockBtn").click(() => {
                 if (validateFields()) {
@@ -121,10 +123,11 @@
         }
         function showCreateOrderModal() {
             $("#stockHeaderId").val(selectedRowData.id);
+            $("#stockDetailsId").val(selectedRowData.stockDetailsId);
             $("#itemDetailsForOrder").text(selectedRowData.box
                 + " | " + selectedRowData.model + " | " + selectedRowData.part
                 + " | " + selectedRowData.configuration + " | " + selectedRowData.details
-                + " |" + selectedRowData.vendor);
+                + " | " + selectedRowData.vendor);
             $("#itemSellRate").val(selectedRowData.sellPrice);
 
             $("#optionModal").modal("hide");
@@ -158,6 +161,7 @@
                 return false;
             }
             $("#itemAmount").val(Number.parseFloat($("#itemSellRate").val()) * Number.parseFloat($("#itemQuantity").val()));
+            $("#orderAmount").val(Number.parseFloat($("#itemAmount").val()) + Number.parseFloat($("#courierCharges").val()));
         }
         function calculateOrderTotalAmount() {
             if ($("#itemQuantity").val() == "0" || $("#itemQuantity").val() == ""
@@ -167,7 +171,6 @@
                 $("#omsToast").html("Please enter Quantity.");
                 $(".toast").removeClass("bg-success").addClass("bg-danger").toast("show");
                 return;
-
             }
             if ($("#courierCharges").val() == "" || Number.isNaN($("#courierCharges").val())) {
                 $("#courierCharges").val("0");
@@ -287,6 +290,7 @@
                 "qty": $("#qty").val(),
                 "buyPrice": $("#buyPrice").val(),
                 "sellPrice": $("#sellPrice").val(),
+                "userId": appUser.userId,
                 "vendorId": $("#vendor").val()
             };
 
@@ -318,6 +322,68 @@
                 $(".toast").addClass("bg-danger").toast("show");
             });
 
+        }
+
+        function createOrderButtonClick() {
+
+            if ($("#customer").val() == 0) {
+                $("#customer").focus();
+                return false;
+            }
+
+            if ($("#itemQuantity").val() == "" || $("#itemQuantity").val() == 0) {
+                $("#itemQuantity").focus();
+                return false;
+            }
+            if ($("#courierCharges").val() == "" || $("#courierCharges").val() == 0) {
+                $("#courierCharges").focus();
+                return false;
+            }
+            if ($("#paymentType").val() == 0) {
+                $("#paymentType").focus();
+                return false;
+            }
+
+            var requestData = {
+                "orderDate": $("#datepicker").val(),
+                "sellPrice": $("#sellPrice").val(),
+                "quantity": $("#itemQuantity").val(),
+                "courierCharges": $("#courierCharges").val(),
+                "paymentType": $("#paymentType").val(),
+                "remark": $("#remark").val(),
+                "customerId": $("#customer").val(),
+                "stockHeaderId": $("#stockHeaderId").val(),
+                "stockDetailId": $("#stockDetailsId").val(),
+                "userId": appUser.userId
+            };
+
+            $.post("/salesOrders", JSON.stringify(requestData), function (res) {
+                var rowUpdated = false;
+                // table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+                //     var d = this.data();
+                //     if (d.box == res.data.box && d.model == res.data.model
+                //         && d.part == res.data.part && d.configuration == res.data.configuration
+                //         && d.details == res.data.details && d.vendor == res.data.vendor
+                //         && d.buyPrice == res.data.buyPrice) {
+                //         d.qty = res.data.qty;
+                //         this.invalidate();
+                //         rowUpdated = true;
+                //         return false;
+                //     }
+                // });
+                // table.draw();
+
+                // if (!rowUpdated) {
+                //     table.row.add(res.data).draw(false);
+                // }
+                console.log(JSON.stringify(res.data));
+                $("#omsToast").html(res.message);
+                $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
+                initFields();
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
         }
 
         function initFields() {
@@ -853,6 +919,7 @@
                             <th class="th-sm">PartId</th>
                             <th class="th-sm">DetailsId</th>
                             <th class="th-sm">ConfigId</th>
+                            <th class="th-sm">StockDetailsId</th>
                         </tr>
                     </thead>
                 </table>
@@ -1092,6 +1159,10 @@
                         <div class="input-group mb-0" style="display: none;">
                             <span class="input-group-text">stockHeaderId</span>
                             <input type="text" disabled="disabled" class="form-control" id="stockHeaderId">
+                        </div>
+                        <div class="input-group mb-0" style="display: none;">
+                            <span class="input-group-text">stockDetailId</span>
+                            <input type="text" disabled="disabled" class="form-control" id="stockDetailsId">
                         </div>
                         <div class="input-group mb-0">
                             <span class="input-group-text"

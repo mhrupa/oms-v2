@@ -9,17 +9,17 @@ import lombok.Data;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
-public class StockRequestDto {
+public class OrderRequestDto {
+    private long orderId;
+    private String orderDate;
+	private long challanNo;
+	private float sellPrice;
+	private int quantity;
+	private float courierCharges;
+	private String paymentType;
+	private String remark;
+    private long customerId;
     private long stockHeaderId;
-    private String stockType;
-    private int boxId;
-    private long modelId;
-    private long partId;
-    private long configId;
-    private String details;
-    private long vendorId;
-    private int qty;
-    private float buyPrice;
-    private float sellPrice;
+    private long stockDetailId;
     private long userId;
 }
