@@ -246,7 +246,8 @@
 
             var requestData = {
                 "qty": $("#qtyForEditStock").val(),
-                "stockType": "IN"
+                "stockType": "IN",
+                "userId": appUser.userId
             };
 
             $.post("/stock/" + $("#stockHeaderId").val(), JSON.stringify(requestData), function (res) {
@@ -359,24 +360,24 @@
 
             $.post("/salesOrders", JSON.stringify(requestData), function (res) {
                 var rowUpdated = false;
-                // table.rows().every(function (rowIdx, tableLoop, rowLoop) {
-                //     var d = this.data();
-                //     if (d.box == res.data.box && d.model == res.data.model
-                //         && d.part == res.data.part && d.configuration == res.data.configuration
-                //         && d.details == res.data.details && d.vendor == res.data.vendor
-                //         && d.buyPrice == res.data.buyPrice) {
-                //         d.qty = res.data.qty;
-                //         this.invalidate();
-                //         rowUpdated = true;
-                //         return false;
-                //     }
-                // });
-                // table.draw();
+                table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+                    var d = this.data();
+                    if (d.box == res.data.box && d.model == res.data.model
+                        && d.part == res.data.part && d.configuration == res.data.configuration
+                        && d.details == res.data.details && d.vendor == res.data.vendor
+                        && d.buyPrice == res.data.buyPrice) {
+                        d.qty = res.data.qty;
+                        this.invalidate();
+                        rowUpdated = true;
+                        return false;
+                    }
+                });
+                table.draw();
 
-                // if (!rowUpdated) {
-                //     table.row.add(res.data).draw(false);
-                // }
-                console.log(JSON.stringify(res.data));
+                if (!rowUpdated) {
+                    table.row.add(res.data).draw(false);
+                }
+                // $("#stockEditModal").modal("hide");
                 $("#omsToast").html(res.message);
                 $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
                 initFields();

@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,79 +29,110 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class SalesOrderService {
 
-    @Autowired
-    private CustomerService customerService;
+	@Autowired
+	private CustomerService customerService;
 
-    @Autowired
-    private StockService stockService;
+	@Autowired
+	private StockService stockService;
 
-    @Autowired
-    private UserService userService;
+	@Autowired
+	private UserService userService;
 
-    @Autowired
-    private SalesOrderHeaderRepository salesOrderHeaderRepository;
+	@Autowired
+	private SalesOrderHeaderRepository salesOrderHeaderRepository;
 
-    @Autowired
-    private SalesOderDetailRepository salesOderDetailRepository;
+	@Autowired
+	private SalesOderDetailRepository salesOderDetailRepository;
 
-    public ResponseEntity<OmsResponse> createSalesOrder(OrderRequestDto orderRequestDto) {
-        log.info("Inside create sales oreder service");
-        Optional<CustomerEntity> customerOp = customerService.findCustomerById(orderRequestDto.getCustomerId());
-        if (customerOp.isPresent()) {
-            Optional<StockHeader> stockHeaderOp = stockService
-                    .getStockHeaderByStockHeaderId(orderRequestDto.getStockHeaderId());
-            if (stockHeaderOp.isPresent()) {
-                Optional<StockDetails> stockDetailsOp = stockService
-                        .findStockDetailsById(orderRequestDto.getStockDetailId());
-                User user = userService.getUserById(orderRequestDto.getUserId());
-                if (stockDetailsOp.isPresent()) {
-                    SalesOrderHeader salesOrderHeader = SalesOrderHeader.builder()
-                            .orderDate(DateUtils.getLocalDateFromDDMMYYYYString(orderRequestDto.getOrderDate()))
-                            .sellPrice(stockDetailsOp.get().getSellPrice())
-                            .quantity(orderRequestDto.getQuantity())
-                            .courierCharges(orderRequestDto.getCourierCharges())
-                            .paymentType(orderRequestDto.getPaymentType())
-                            .remark(orderRequestDto.getRemark())
-                            .orderAmount(orderRequestDto.getQuantity() * stockDetailsOp.get().getSellPrice()
-                                    + orderRequestDto.getCourierCharges())
-                            .status(OrderStatus.PENDING.toString())
-                            .stockDetails(stockDetailsOp.get())
-                            .customer(customerOp.get())
-                            .stockHeader(stockHeaderOp.get())
-                            .user(user)
-                            .build();
+	public ResponseEntity<OmsResponse> createSalesOrder(OrderRequestDto orderRequestDto) {
+		log.info("Inside create sales oreder service");
+		Optional<CustomerEntity> customerOp = customerService.findCustomerById(orderRequestDto.getCustomerId());
+		if (customerOp.isPresent()) {
+			Optional<StockHeader> stockHeaderOp = stockService
+					.getStockHeaderByStockHeaderId(orderRequestDto.getStockHeaderId());
+			if (stockHeaderOp.isPresent()) {
+				return validateStockDetailsAndcreateOrder(orderRequestDto,
+						stockHeaderOp.get(), customerOp.get());
+			} else {
+				return new ResponseEntity<>(
+						OmsResponse.builder().message("invalid stock data received.")
+								.data(orderRequestDto).build(),
+						HttpStatus.BAD_REQUEST);
+			}
+		} else {
+			return new ResponseEntity<>(OmsResponse.builder().message("invalid customer data received.")
+					.data(orderRequestDto).build(), HttpStatus.BAD_REQUEST);
+		}
 
-                    salesOrderHeaderRepository.save(salesOrderHeader);
+	}
 
-                    SalesOrderDetails salesOrderDetails = SalesOrderDetails.builder()
-                            .orderQty(orderRequestDto.getQuantity())
-                            .sellRate(stockDetailsOp.get().getSellPrice())
-                            .status(OrderStatus.PENDING.type)
-                            .transactionDateTime(LocalDateTime.now())
-                            .salesOrderHeader(salesOrderHeader)
-                            .user(user)
-                            .build();
+	private ResponseEntity<OmsResponse> validateStockDetailsAndcreateOrder(OrderRequestDto orderRequestDto,
+			StockHeader stockHeader, CustomerEntity customer) {
 
-                    salesOderDetailRepository.save(salesOrderDetails);
+		Optional<StockDetails> stockDetailsOp = stockService
+				.findStockDetailsById(orderRequestDto.getStockDetailId());
+		User user = userService.getUserById(orderRequestDto.getUserId());
+		if (stockDetailsOp.isPresent()) {
+			if ((stockHeader.getClosingQty()
+					- orderRequestDto.getQuantity()) >= 0) {
+				SalesOrderHeader salesOrderHeader = SalesOrderHeader.builder()
+						.orderDate(DateUtils.getLocalDateFromDDMMYYYYString(
+								orderRequestDto.getOrderDate()))
+						.sellPrice(stockDetailsOp.get().getSellPrice())
+						.quantity(orderRequestDto.getQuantity())
+						.courierCharges(orderRequestDto.getCourierCharges())
+						.paymentType(orderRequestDto.getPaymentType())
+						.remark(orderRequestDto.getRemark())
+						.orderAmount(orderRequestDto.getQuantity()
+								* stockDetailsOp.get().getSellPrice()
+								+ orderRequestDto.getCourierCharges())
+						.status(OrderStatus.PENDING.toString())
+						.stockDetails(stockDetailsOp.get())
+						.customer(customer)
+						.stockHeader(stockHeader)
+						.user(user)
+						.build();
 
-                    stockService.updateStockHeaderAndStockDetais(stockHeaderOp.get(),
-                            StockType.OUT.type, orderRequestDto.getQuantity(), stockDetailsOp.get().getSellPrice(),
-                            stockDetailsOp.get().getBuyPrice(), user);
+				salesOrderHeaderRepository.save(salesOrderHeader);
 
-                    return new ResponseEntity<>(OmsResponse.builder().message("Sales order created successfully.")
-                            .data(orderRequestDto).build(), HttpStatus.OK);
-                } else {
-                    return new ResponseEntity<>(OmsResponse.builder().message("invalid stock detail data received.")
-                            .data(orderRequestDto).build(), HttpStatus.BAD_REQUEST);
-                }
-            } else {
-                return new ResponseEntity<>(OmsResponse.builder().message("invalid stock data received.")
-                        .data(orderRequestDto).build(), HttpStatus.BAD_REQUEST);
-            }
-        } else {
-            return new ResponseEntity<>(OmsResponse.builder().message("invalid customer data received.")
-                    .data(orderRequestDto).build(), HttpStatus.BAD_REQUEST);
-        }
+				SalesOrderDetails salesOrderDetails = SalesOrderDetails.builder()
+						.orderQty(orderRequestDto.getQuantity())
+						.sellRate(stockDetailsOp.get().getSellPrice())
+						.status(OrderStatus.PENDING.type)
+						.transactionDateTime(LocalDateTime.now())
+						.salesOrderHeader(salesOrderHeader)
+						.user(user)
+						.build();
 
-    }
+				salesOderDetailRepository.save(salesOrderDetails);
+				ResponseEntity<OmsResponse> response = stockService.updateStockHeaderAndStockDetais(stockHeader,
+						StockType.OUT.type,
+						orderRequestDto.getQuantity(), stockDetailsOp.get().getSellPrice(),
+						stockDetailsOp.get().getBuyPrice(), user);
+				OmsResponse omsResponse = response.getBody();
+				if (!ObjectUtils.isEmpty(omsResponse)) {
+					return new ResponseEntity<>(OmsResponse.builder()
+							.message("Sales order created successfully.")
+							.data(omsResponse.getData()).build(), HttpStatus.OK);
+				} else {
+					return new ResponseEntity<>(
+						OmsResponse.builder().message("Invalid order request received.")
+								.data(orderRequestDto).build(),
+						HttpStatus.BAD_REQUEST);
+				}
+
+			} else {
+				return new ResponseEntity<>(
+						OmsResponse.builder().message("Available stock is less than order quantity.")
+								.data(orderRequestDto).build(),
+						HttpStatus.BAD_REQUEST);
+			}
+		} else {
+			return new ResponseEntity<>(
+					OmsResponse.builder().message("invalid stock detail data received.")
+							.data(orderRequestDto).build(),
+					HttpStatus.BAD_REQUEST);
+		}
+
+	}
 }

@@ -91,14 +91,6 @@ public class StockService {
 
         StockHeader stockHeader = null;
         if (stockHeaderOp.isPresent()) {
-            /**
-             * stockHeader = stockHeaderOp.get();
-             * stockHeader.setDetails(stockRequestDto.getDetails());
-             * stockHeader.setInQty(stockHeader.getInQty() + stockRequestDto.getQty());
-             * stockHeader.setClosingQty(stockHeader.getInQty() + stockRequestDto.getQty());
-             * 
-             * stockHeaderRepository.save(stockHeader);
-             */
             return new ResponseEntity<>(
                     OmsResponse.builder().message("Stock data already available click on table row to update data.")
                             .build(),
@@ -126,6 +118,8 @@ public class StockService {
                     stockRequestDto.getSellPrice(), user);
             stockDetails.setInQty(stockRequestDto.getQty());
             stockDetails.setOutQty(0);
+            stockDetails.setStockHeader(stockHeader);
+            stockDetailsRepository.save(stockDetails);
 
             stockHeader.setStockDetailId(stockDetails.getId());
             stockHeader = stockHeaderRepository.save(stockHeader);
@@ -151,7 +145,8 @@ public class StockService {
         if (stockHeaderOp.isPresent()) {
             User user = userService.getUserById(stockRequestDto.getUserId());
             return updateStockHeaderAndStockDetais(stockHeaderOp.get(), stockRequestDto.getStockType(),
-                    stockRequestDto.getQty(), stockRequestDto.getSellPrice(), stockRequestDto.getBuyPrice(), user);
+                    stockRequestDto.getQty(), stockHeaderOp.get().getSellPrice(), stockHeaderOp.get().getBuyPrice(),
+                    user);
         } else {
             return new ResponseEntity<>(OmsResponse.builder().message("Invalid stock header received.").build(),
                     HttpStatus.BAD_REQUEST);
@@ -162,7 +157,7 @@ public class StockService {
             String stockType, int quantity, float sellPrice, float buyPrice, User user) {
         log.info("update stock header by stockHeader id and stockType");
         StockDetails stockDetails = null;
-        switch (StockType.valueOf(stockType)) {
+        switch (StockType.valueOf(stockType.toUpperCase())) {
             case IN: {
                 stockHeader.setInQty(stockHeader.getInQty() + quantity);
                 stockHeader.setClosingQty(stockHeader.getClosingQty() + quantity);
@@ -173,7 +168,7 @@ public class StockService {
                 break;
             }
             case OUT: {
-                stockHeader.setOutQty(stockHeader.getInQty() + quantity);
+                stockHeader.setOutQty(stockHeader.getOutQty() + quantity);
                 stockHeader.setClosingQty(stockHeader.getClosingQty() - quantity);
 
                 stockDetails = createStockDetails(buyPrice, sellPrice, user);
@@ -195,6 +190,7 @@ public class StockService {
     private ResponseEntity<OmsResponse> updateStock(StockHeader stockHeader, StockDetails stockDetails) {
         stockHeader = stockHeaderRepository.save(stockHeader);
 
+        stockDetails.setStockHeader(stockHeader);
         stockDetails = stockDetailsRepository.save(stockDetails);
 
         stockHeader.setStockDetailId(stockDetails.getId());
