@@ -21,7 +21,7 @@
         var items = new Array();
         var stockData = new Array();
         var table;
-        var vendors, customers;
+        var vendors, customers, locations;
         var selectedRowData;
         var selectedCustomer;
         $(document).ready(function () {
@@ -41,7 +41,7 @@
                     { data: "configuration" },
                     { data: "details" },
                     { data: "qty" },
-                    { data: "buyPrice" },
+                    { data: "buyPrice", visible: false },
                     { data: "sellPrice" },
                     { data: "vendor" },
                     { data: "id", visible: false },
@@ -55,7 +55,6 @@
                 ]
             });
             $(":input[type='search']").attr("accesskey", "h");
-
             $('#stockEditModal').on('shown.bs.modal', function () {
                 $('#qtyForEditStock').focus();
             })
@@ -68,6 +67,7 @@
             $('#createCustomerModal').on('hidden.bs.modal', function () {
                 $("#createOrderModal").modal("show");
             })
+            $('#toggleBuyPrice').click(toggleBuyPrice);
 
             $("#addBoxBtn").click(addNewBox);
             $("#addVendorBtn").click(addNewVendor);
@@ -116,12 +116,17 @@
             $("#stockPageBody").css("visibility", "visible");
             $("#onloadSpinner").css("visibility", "hidden");
         });
+        function toggleBuyPrice() {
+            var table = $('#dataTable').DataTable();
+            table.column(6).visible(!table.column(6).visible());
+        }
         function showCreateCustomerModal() {
             selectedCustomer = $("#customer").val();
             $("#createOrderModal").modal("hide");
             $("#createCustomerModal").modal("show");
         }
         function showCreateOrderModal() {
+            initCreateOrderFields();
             $("#stockHeaderId").val(selectedRowData.id);
             $("#stockDetailsId").val(selectedRowData.stockDetailsId);
             $("#itemDetailsForOrder").text(selectedRowData.box
@@ -143,6 +148,8 @@
             $("#detailsForEditStock").val(selectedRowData.details);
             $("#buyPriceForEditStock").val(selectedRowData.buyPrice);
             $("#currentStock").val(selectedRowData.qty);
+            $("#currentSellPrice").val(selectedRowData.sellPrice);
+            $("#sellPriceForEditStock").val(selectedRowData.sellPrice);
             $("#qtyForEditStock").val("0");
             $("#tempTotalStock").val(selectedRowData.qty);
             $("#optionModal").modal("hide");
@@ -236,8 +243,16 @@
                 return false;
             }
 
+            if ($("#sellPriceForEditStock").val() == undefined ||
+                $("#sellPriceForEditStock").val() == "" || $("#sellPriceForEditStock").val() == 0) {
+                $("#sellPriceForEditStock").focus();
+                $("#omsToast").html("Invalid Sell Price");
+                $(".toast").addClass("bg-danger").toast("show");
+                return false;
+            }
+
             if ($("#qtyForEditStock").val() == undefined ||
-                $("#qtyForEditStock").val() == "" || $("#qtyForEditStock").val() == 0) {
+                $("#qtyForEditStock").val() == "" || $("#qtyForEditStock").val() < 0) {
                 $("#qtyForEditStock").focus();
                 $("#omsToast").html("Invalid quantity");
                 $(".toast").addClass("bg-danger").toast("show");
@@ -247,6 +262,7 @@
             var requestData = {
                 "qty": $("#qtyForEditStock").val(),
                 "stockType": "IN",
+                "sellPrice": $("#sellPriceForEditStock").val(),
                 "userId": appUser.userId
             };
 
@@ -259,6 +275,7 @@
                         && d.details == res.data.details && d.vendor == res.data.vendor
                         && d.buyPrice == res.data.buyPrice) {
                         d.qty = res.data.qty;
+                        d.sellPrice = res.data.sellPrice;
                         this.invalidate();
                         rowUpdated = true;
                         $("#stockEditModal").modal("hide");
@@ -324,7 +341,6 @@
             });
 
         }
-
         function createOrderButtonClick() {
 
             if ($("#customer").val() == 0) {
@@ -336,7 +352,7 @@
                 $("#itemQuantity").focus();
                 return false;
             }
-            if ($("#courierCharges").val() == "" || $("#courierCharges").val() == 0) {
+            if ($("#courierCharges").val() == "" || $("#courierCharges").val() < 0) {
                 $("#courierCharges").focus();
                 return false;
             }
@@ -377,16 +393,24 @@
                 if (!rowUpdated) {
                     table.row.add(res.data).draw(false);
                 }
-                // $("#stockEditModal").modal("hide");
+                $("#createOrderModal").modal("hide");
                 $("#omsToast").html(res.message);
                 $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
-                initFields();
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $(".toast").addClass("bg-danger").toast("show");
             });
         }
 
+        function initCreateOrderFields() {
+            $("#customer").val("0");
+            $("#itemQuantity").val("0");
+            $("#courierCharges").val("0");
+            $("#paymentType").val("0");
+            $("#itemAmount").val("0");
+            $("#orderAmount").val("0");
+            $("#orderRemark").val("");
+        }
         function initFields() {
             $("#vendor").val(0);
             $("#model").val(0);
@@ -491,7 +515,7 @@
                 $("#omsToast").html(res.message);
                 $(".toast").removeClass("bg-danger").removeClass("bg-warning").addClass("bg-success").toast("show");
                 $("#createBoxBtn").removeAttr("disabled");
-                initPage();
+                initLocationResponseData(res.data);
             }).fail(function (res) {
                 $("#stockAddBoxModal").modal("hide");
                 $("#omsToast").html(JSON.parse(res.responseText).message);
@@ -698,6 +722,7 @@
         }
         function initLocationData() {
             $.get("/storageLocations", function (res) {
+                locations = res;
                 $("#boxNo").empty();
                 $("#boxNo").append("<option selected='selected' value='0'>Select box</option>");
                 res.forEach(element => {
@@ -735,25 +760,25 @@
             });
         }
 
-        function initLocationResponseData(ele) {
-            $("#model").empty();
-            $("#model").append("<option value='0' selected>Select model</option>");
-            items.forEach(element => {
-                $("#model").append("<option value='" + element.id + "'>" + element.itemName + "</option>");
-            });
-            if (ele) {
-                $("#model").val(ele.id);
+        function initLocationResponseData(location) {
+            if (location) {
+                locations.push(location);
+                $("#boxNo").append("<option value='" + location.id + "'>" + location.locationName + "</option>");
+                $("#boxNo").val(location.id);
             }
         }
-        function initModelResponseData(ele) {
+        function initModelResponseData(model) {
+            if (model) {
+                $("#model").append("<option value='" + model.id + "'>" + model.itemName + "</option>");
+                $("#model").val(model.id);
+                return;
+            }
             $("#model").empty();
             $("#model").append("<option value='0' selected>Select model</option>");
-            items.forEach(element => {
-                $("#model").append("<option value='" + element.id + "'>" + element.itemName + "</option>");
+            items.forEach(item => {
+                $("#model").append("<option value='" + item.id + "'>" + item.itemName + "</option>");
             });
-            if (ele) {
-                $("#model").val(ele.id);
-            }
+
         }
         function initPartResponseData(ele) {
             items.forEach(item => {
@@ -797,7 +822,6 @@
                 $("#vendor").append("<option value='" + vendor.id + "' selected>" + vendor.vendorName + "</option>");
                 $("#vendor").val(vendor.id);
             }
-            return;
         }
         function initCustomerResponseData(customer) {
             if (customer) {
@@ -824,7 +848,7 @@
                 <div class="mb-1 ps-2">
                     <label class="p-1 pb-0" for="boxNo"><span style="text-decoration: underline;">B</span>ox</label>
                     <div class="input-group">
-                        <select class="form-control" id="boxNo" accesskey="b"></select>
+                        <select autofocus class="form-control" id="boxNo" accesskey="b"></select>
                         <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
                             data-bs-placement="top" id="addBoxBtn" title="Add new Box">+</button>
                     </div>
@@ -901,6 +925,13 @@
                 </div>
             </div>
             <div class="col mt-4">
+                <div class="position-relative">
+                    <div class="ps-2 mt-2">
+                        <button type="button" id="toggleBuyPrice"
+                        style="z-index: 5000;"
+                            class="position-absolute top-0 end-0 px-2 btn btn-secondary">Buy Price</button>
+                    </div>
+                </div>
                 <table id="dataTable" style="width: 100%;" class="display">
                     <thead>
                         <tr>
@@ -1094,13 +1125,23 @@
                         <div class="input-group mb-2">
                             <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Buy
                                 Price</span>
-                            <input type="text" disabled="disabled" class="form-control" id="buyPriceForEditStock">
+                            <input type="text" disabled="disabled" class="form-control numberOnly"
+                                id="buyPriceForEditStock">
+                        </div>
+                        <div class="input-group mb-2">
+                            <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Sell
+                                Price</span>
+                            <span class="input-group-text"
+                                style="width: 80px;text-align: right;display: block;">Current</span>
+                            <input type="text" style="max-width: 60px;text-align: center;" disabled="disabled"
+                                class="form-control" id="currentSellPrice">
+                            <input type="text" class="form-control numberOnly" id="sellPriceForEditStock">
                         </div>
                         <div class="input-group mb-3">
                             <span class="input-group-text"
                                 style="width: 120px;text-align: right;display: block;">Quantity</span>
                             <span class="input-group-text"
-                                style="width: 80px;text-align: right;display: block;">Available</span>
+                                style="width: 80px;text-align: center;display: block;">Available</span>
                             <input type="text" style="max-width: 60px;text-align: center;" disabled="disabled"
                                 class="form-control" id="currentStock">
                             <input autofocus type="text" style="max-width: 140px;" class="form-control numberOnly"

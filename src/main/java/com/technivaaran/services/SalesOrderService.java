@@ -120,7 +120,6 @@ public class SalesOrderService {
 								.data(orderRequestDto).build(),
 						HttpStatus.BAD_REQUEST);
 				}
-
 			} else {
 				return new ResponseEntity<>(
 						OmsResponse.builder().message("Available stock is less than order quantity.")

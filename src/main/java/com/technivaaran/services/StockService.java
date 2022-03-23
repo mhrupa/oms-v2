@@ -145,7 +145,7 @@ public class StockService {
         if (stockHeaderOp.isPresent()) {
             User user = userService.getUserById(stockRequestDto.getUserId());
             return updateStockHeaderAndStockDetais(stockHeaderOp.get(), stockRequestDto.getStockType(),
-                    stockRequestDto.getQty(), stockHeaderOp.get().getSellPrice(), stockHeaderOp.get().getBuyPrice(),
+                    stockRequestDto.getQty(), stockRequestDto.getSellPrice(), stockHeaderOp.get().getBuyPrice(),
                     user);
         } else {
             return new ResponseEntity<>(OmsResponse.builder().message("Invalid stock header received.").build(),
@@ -161,7 +161,8 @@ public class StockService {
             case IN: {
                 stockHeader.setInQty(stockHeader.getInQty() + quantity);
                 stockHeader.setClosingQty(stockHeader.getClosingQty() + quantity);
-
+                stockHeader.setSellPrice(sellPrice);
+                
                 stockDetails = createStockDetails(buyPrice, sellPrice, user);
                 stockDetails.setInQty(quantity);
                 stockDetails.setOutQty(0);

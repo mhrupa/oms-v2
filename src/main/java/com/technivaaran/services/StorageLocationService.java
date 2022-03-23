@@ -24,9 +24,9 @@ public class StorageLocationService {
         StorageLocationEntity storageLocationEntity = StorageLocationEntity.builder()
                 .locationName(storageLocation).build();
         try {
-            storageLocationRepository.save(storageLocationEntity);
-            return new ResponseEntity<>(OmsResponse.builder().message("Storage location created successfully.").build(),
-                    HttpStatus.OK);
+            storageLocationEntity = storageLocationRepository.save(storageLocationEntity);
+            return new ResponseEntity<>(OmsResponse.builder().message("Storage location created successfully.")
+                    .data(storageLocationEntity).build(), HttpStatus.OK);
         } catch (DataIntegrityViolationException integrityViolationException) {
             throw new OMSException("Location already exists with name: " + storageLocation);
         }
@@ -37,6 +37,6 @@ public class StorageLocationService {
     }
 
     public Optional<StorageLocationEntity> findById(int locationId) {
-       return storageLocationRepository.findById(locationId);
+        return storageLocationRepository.findById(locationId);
     }
 }
