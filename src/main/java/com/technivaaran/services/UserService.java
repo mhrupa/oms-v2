@@ -48,6 +48,10 @@ public class UserService {
 		}
 	}
 
+	public Optional<User> getUserOptionalByEmailAndPassword(String email, String password) {
+		return userRepository.findUserByEmailAndPassword(email, password);
+	}
+
 	public User getUserByEmailAndPassword(String email, String password) {
 		Optional<User> userOp = userRepository.findUserByEmailAndPassword(email, password);
 
@@ -71,4 +75,5 @@ public class UserService {
 			throw new OMSException("User not found for id : " + userId);
 		}
 	}
+
 }

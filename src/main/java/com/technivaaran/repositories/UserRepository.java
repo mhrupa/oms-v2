@@ -11,4 +11,6 @@ import com.technivaaran.entities.User;
 public interface UserRepository extends JpaRepository<User, Long>{
 
 	public Optional<User> findUserByEmailAndPassword(String email, String password);
+
+    public Optional<User> findByUserNameAndPassword(String userName, String password);
 }

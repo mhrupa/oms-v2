@@ -1,6 +1,14 @@
 package com.technivaaran.controllers;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import com.technivaaran.AppUrlConstants;
+import com.technivaaran.dto.OmsResponse;
+import com.technivaaran.dto.UserDto;
+import com.technivaaran.entities.User;
+import com.technivaaran.services.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,17 +19,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.technivaaran.dto.OmsResponse;
-import com.technivaaran.dto.UserDto;
-import com.technivaaran.entities.User;
-import com.technivaaran.services.UserService;
 
 import lombok.extern.slf4j.Slf4j;
 
-@RestController
 @Slf4j
+@RequestMapping(AppUrlConstants.BASE_URL)
+@RestController
 public class UserController {
 
 	@Autowired
@@ -40,6 +45,21 @@ public class UserController {
 	public List<User> getAllUsers() {
 		log.info("Get all users is called.");
 		return userService.getAllUsers();
+	}
+
+	@PostMapping(value = "/users/validate/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<OmsResponse> validateUserByEmailAndPassword(@PathVariable(name = "email") String email,
+			@RequestBody Map<String, String> dataMap) {
+		log.info("Validate user by user name called.");
+		Optional<User> userOp = userService.getUserOptionalByEmailAndPassword(email, dataMap.get("password"));
+		log.info("User Creation completed.");
+		if (userOp.isPresent()) {
+			return new ResponseEntity<>(OmsResponse.builder().message("User validated successfully")
+					.data(userOp.get()).build(), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(OmsResponse.builder().message("Invalid creadentials provided")
+					.build(), HttpStatus.BAD_REQUEST);
+		}
 	}
 
 	@GetMapping("/users/{userId}")

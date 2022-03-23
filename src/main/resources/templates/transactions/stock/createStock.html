@@ -24,10 +24,11 @@
         var vendors, customers, locations;
         var selectedRowData;
         var selectedCustomer;
+        var isValidUser = false;
         $(document).ready(function () {
             initPage();
             $(".numberOnly").keypress(numberOnly);
-            $("#boxNo").focus();
+
 
             table = $("#dataTable").DataTable({
                 // paging: false,
@@ -67,6 +68,10 @@
             $('#createCustomerModal').on('hidden.bs.modal', function () {
                 $("#createOrderModal").modal("show");
             })
+            $('#validateUserModal').on('shown.bs.modal', function () {
+                $("#userNameForValidation").focus();
+            })
+
             $('#toggleBuyPrice').click(toggleBuyPrice);
 
             $("#addBoxBtn").click(addNewBox);
@@ -90,6 +95,7 @@
             $("#showCustomerModalBtn").click(showCreateCustomerModal);
             $("#createCustomerBtn").click(createCustomerBtnClick);
             $("#createOrderBtn").click(createOrderButtonClick);
+            $("#validatePasswordBtn").click(validateUserBtnClick);
 
             $("#addStockBtn").click(() => {
                 if (validateFields()) {
@@ -105,7 +111,6 @@
                 $("#customer").focus();
             }).val(formatDateAsDDMMYYYY(new Date()));
 
-
             $("#clearFieldsBtn").click(() => {
                 initFields();
             });
@@ -115,11 +120,52 @@
             });
             $("#stockPageBody").css("visibility", "visible");
             $("#onloadSpinner").css("visibility", "hidden");
+            $("#boxNo").focus();
         });
         function toggleBuyPrice() {
             var table = $('#dataTable').DataTable();
-            table.column(6).visible(!table.column(6).visible());
+            if (table.column(6).visible()) {
+                table.column(6).visible(!table.column(6).visible());
+                return;
+            }
+            $("#userName").val("");
+            $("#password").val("")
+            $("#userName").focus();
+            $("#validateUserModal").modal("show");
         }
+        function validateUserBtnClick() {
+            $("#validatePasswordBtn").attr("disabled", "disabled")
+            if ($("#userNameForValidation").val() == "") {
+                $("#userNameForValidation").focus();
+                $("#omsToast").html("Please enter user name");
+                $(".toast").removeClass("bg-danger").removeClass("bg-success").addClass("bg-warning").toast("show");
+                $("#validatePasswordBtn").removeAttr("disabled");
+                return false;
+            }
+            if ($("#password").val() == "") {
+                $("#password").focus();
+                $("#omsToast").html("Please enter password");
+                $(".toast").removeClass("bg-danger").removeClass("bg-success").addClass("bg-warning").toast("show");
+                $("#validatePasswordBtn").removeAttr("disabled");
+                return false;
+            }
+            var requestData = {
+                "password": $("#password").val()
+            };
+            $.post("/users/validate/" + $("#userNameForValidation").val(), JSON.stringify(requestData), function (res) {
+                var table = $('#dataTable').DataTable();
+                table.column(6).visible(!table.column(6).visible());
+                $("#validateUserModal").modal("hide");
+                $("#validatePasswordBtn").removeAttr("disabled");
+                initLocationResponseData(res.data);
+            }).fail(function (res) {
+                $("#validateUserModal").modal("hide");
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+                $("#validatePasswordBtn").removeAttr("disabled");
+            });
+        }
+
         function showCreateCustomerModal() {
             selectedCustomer = $("#customer").val();
             $("#createOrderModal").modal("hide");
@@ -848,7 +894,7 @@
                 <div class="mb-1 ps-2">
                     <label class="p-1 pb-0" for="boxNo"><span style="text-decoration: underline;">B</span>ox</label>
                     <div class="input-group">
-                        <select autofocus class="form-control" id="boxNo" accesskey="b"></select>
+                        <select class="form-control" id="boxNo" accesskey="b"></select>
                         <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
                             data-bs-placement="top" id="addBoxBtn" title="Add new Box">+</button>
                     </div>
@@ -927,9 +973,8 @@
             <div class="col mt-4">
                 <div class="position-relative">
                     <div class="ps-2 mt-2">
-                        <button type="button" id="toggleBuyPrice"
-                        style="z-index: 5000;"
-                            class="position-absolute top-0 end-0 px-2 btn btn-secondary">Buy Price</button>
+                        <button type="button" id="toggleBuyPrice" style="z-index: 5000;"
+                            class="position-absolute top-0 end-0 px-2 btn btn-success">Buy Price</button>
                     </div>
                 </div>
                 <table id="dataTable" style="width: 100%;" class="display">
@@ -957,7 +1002,7 @@
                 </table>
             </div>
         </div>
-        <div class="modal fade" id="addVendorModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        <div class="modal fade" id="addVendorModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
             aria-labelledby="staticBackdropLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -979,7 +1024,7 @@
                 </div>
             </div>
         </div>
-        <div class="modal fade" id="stockAddBoxModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        <div class="modal fade" id="stockAddBoxModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
             aria-labelledby="staticBackdropLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -1144,7 +1189,7 @@
                                 style="width: 80px;text-align: center;display: block;">Available</span>
                             <input type="text" style="max-width: 60px;text-align: center;" disabled="disabled"
                                 class="form-control" id="currentStock">
-                            <input autofocus type="text" style="max-width: 140px;" class="form-control numberOnly"
+                            <input type="text" style="max-width: 140px;" class="form-control numberOnly"
                                 id="qtyForEditStock" placeholder="Quantity" value="0" autocomplete="off">
                             <span class="input-group-text"
                                 style="width: 40px;text-align: right;display: block;">=</span>
@@ -1184,7 +1229,7 @@
                 </div>
             </div>
         </div>
-        <div class="modal fade" id="createOrderModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+        <div class="modal fade" id="createOrderModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="0"
             aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -1281,27 +1326,59 @@
                         <div class="input-group mb-0">
                             <span class="input-group-text"
                                 style="width: 140px;text-align: right;display: block;">Customer Name</span>
-                            <input type="text" class="form-control" id="customerName">
+                            <input autocomplete="off" type="text" class="form-control" id="customerName">
                         </div>
                         <div class="input-group mb-0">
                             <span class="input-group-text"
                                 style="width: 140px;text-align: right;display: block;">Location</span>
-                            <input type="text" class="form-control" id="customerLocation">
+                            <input autocomplete="off" type="text" class="form-control" id="customerLocation">
                         </div>
                         <div class="input-group mb-0">
                             <span class="input-group-text"
                                 style="width: 140px;text-align: right;display: block;">Email</span>
-                            <input type="email" class="form-control" id="email">
+                            <input autocomplete="off" type="email" class="form-control" id="email">
                         </div>
                         <div class="input-group mb-0">
                             <span class="input-group-text"
                                 style="width: 140px;text-align: right;display: block;">Contact</span>
-                            <input type="email" class="form-control" id="contact">
+                            <input autocomplete="off" type="text" class="form-control" id="contact">
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="button" id="createCustomerBtn" class="btn btn-primary">Create Customer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="validateUserModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Validate user</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="min-width: 120px;text-align: right;display: block;">User Name</span>
+                            <input autocomplete="off" type="text" class="form-control" id="userNameForValidation"
+                                placeholder="User Name" aria-label="userNameForValidation"
+                                aria-describedby="userNameForValidation">
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-0">
+                            <span class="input-group-text"
+                                style="min-width: 120px;text-align: right;display: block;">Password</span>
+                            <input autocomplete="off" type="password" class="form-control" id="password"
+                                placeholder="Password" aria-label="password" aria-describedby="password">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" id="validatePasswordBtn" class="btn btn-primary">Validate</button>
                     </div>
                 </div>
             </div>

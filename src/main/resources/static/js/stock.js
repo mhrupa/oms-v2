@@ -1,6 +1,3 @@
-function initPage() {
-
-}
 
 function enableClearFieldButton() {
     $("#clearFieldsBtn").removeAttr("disabled")
