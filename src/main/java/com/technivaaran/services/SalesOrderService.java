@@ -15,7 +15,6 @@ import com.technivaaran.entities.StockDetails;
 import com.technivaaran.entities.StockHeader;
 import com.technivaaran.entities.User;
 import com.technivaaran.enums.OrderStatus;
-import com.technivaaran.enums.PaymentType;
 import com.technivaaran.enums.StockType;
 import com.technivaaran.repositories.SalesOderDetailRepository;
 import com.technivaaran.repositories.SalesOrderHeaderRepository;
@@ -82,16 +81,15 @@ public class SalesOrderService {
 				SalesOrderHeader salesOrderHeader = SalesOrderHeader.builder()
 						.orderDate(DateUtils.getLocalDateFromDDMMYYYYString(
 								orderRequestDto.getOrderDate()))
-						.sellPrice(stockDetailsOp.get().getSellPrice())
+						.sellPrice(orderRequestDto.getSellPrice())
 						.quantity(orderRequestDto.getQuantity())
 						.courierCharges(orderRequestDto.getCourierCharges())
 						.paymentType(orderRequestDto.getPaymentType())
 						.remark(orderRequestDto.getRemark())
 						.orderAmount(orderRequestDto.getQuantity()
-								* stockDetailsOp.get().getSellPrice()
+								* orderRequestDto.getSellPrice()
 								+ orderRequestDto.getCourierCharges())
-						.status(OrderStatus.PENDING.toString())
-						// .status(orderRequestDto.getPaymentType().equals(PaymentType.va) OrderStatus.valueOf(orderRequestDto.getSt).toString())
+						.status(orderRequestDto.getPaymentType())
 						.stockDetails(stockDetailsOp.get())
 						.customer(customer)
 						.stockHeader(stockHeader)
@@ -102,7 +100,7 @@ public class SalesOrderService {
 
 				SalesOrderDetails salesOrderDetails = SalesOrderDetails.builder()
 						.orderQty(orderRequestDto.getQuantity())
-						.sellRate(stockDetailsOp.get().getSellPrice())
+						.sellRate(orderRequestDto.getSellPrice())
 						.status(OrderStatus.PENDING.type)
 						.transactionDateTime(LocalDateTime.now())
 						.salesOrderHeader(salesOrderHeader)
@@ -112,7 +110,7 @@ public class SalesOrderService {
 				salesOderDetailRepository.save(salesOrderDetails);
 				ResponseEntity<OmsResponse> response = stockService.updateStockHeaderAndStockDetais(stockHeader,
 						StockType.OUT.type,
-						orderRequestDto.getQuantity(), stockDetailsOp.get().getSellPrice(),
+						orderRequestDto.getQuantity(), orderRequestDto.getSellPrice(),
 						stockDetailsOp.get().getBuyPrice(), user);
 				OmsResponse omsResponse = response.getBody();
 				if (!ObjectUtils.isEmpty(omsResponse)) {

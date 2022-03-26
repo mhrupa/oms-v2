@@ -159,13 +159,19 @@ public class StockService {
         StockDetails stockDetails = null;
         switch (StockType.valueOf(stockType.toUpperCase())) {
             case IN: {
-                stockHeader.setInQty(stockHeader.getInQty() + quantity);
-                stockHeader.setClosingQty(stockHeader.getClosingQty() + quantity);
-                stockHeader.setSellPrice(sellPrice);
-                
-                stockDetails = createStockDetails(buyPrice, sellPrice, user);
-                stockDetails.setInQty(quantity);
-                stockDetails.setOutQty(0);
+                if ((stockHeader.getClosingQty() + quantity) >= 0) {
+                    stockHeader.setInQty(stockHeader.getInQty() + quantity);
+                    stockHeader.setClosingQty(stockHeader.getClosingQty() + quantity);
+                    stockHeader.setSellPrice(sellPrice);
+
+                    stockDetails = createStockDetails(buyPrice, sellPrice, user);
+                    stockDetails.setInQty(quantity);
+                    stockDetails.setOutQty(0);
+                } else {
+                    return new ResponseEntity<>(
+                            OmsResponse.builder().message("Invalid stock quantitys received.").build(),
+                            HttpStatus.BAD_REQUEST);
+                }
                 break;
             }
             case OUT: {

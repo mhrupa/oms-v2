@@ -4,6 +4,11 @@ function numberOnly(e) {
     return false;
   }
 }
+function numberOnlyWithNegativeValues(e) {
+  if (e.which != 8 && e.which != 0 && e.which != 45 && (e.which < 48 || e.which > 57)) {
+    return false;
+  }
+}
 function formatDateAsDDMMYYYY(date) {
   var month = "" + (date.getMonth() + 1),
     day = "" + date.getDate(),

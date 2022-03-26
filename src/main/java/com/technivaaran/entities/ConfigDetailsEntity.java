@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ConfigDetailsEntity extends BaseEntity<Long> {
 
-    @Column(name = "configuration", unique = true)
+    @Column(name = "configuration")
     private String configuration;
 
     @JsonIgnore
