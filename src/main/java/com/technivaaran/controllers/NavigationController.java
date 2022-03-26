@@ -126,4 +126,10 @@ public class NavigationController {
 	public String getSalesPage() {
 		return "transactions/sale/saleHome";
 	}
+
+	// ****************Pending-Orders-menu*****************//
+	@GetMapping("/pendingHome")
+	public String getPendingOrdersPage() {
+		return "transactions/pendingOrders/pendingOrders";
+	}
 }

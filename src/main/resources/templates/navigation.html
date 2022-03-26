@@ -7,7 +7,6 @@
 		.dropdown-toggle::after {
 			display: none;
 		}
-
 		.navbar {
 			padding-top: 0px;
 			padding-bottom: 0px;
@@ -33,38 +32,10 @@
 			</button>
 			<div class="collapse navbar-collapse" id="navbarSupportedContent">
 				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
-					<!-- <li class="nav-item"><a class="nav-link active" aria-current="page" href="#">Home</a></li> -->
-					<!-- <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
-							role="button" data-bs-toggle="dropdown" aria-expanded="false">
-							Masters </a>
-						<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-							<li><a class="dropdown-item" href="#" onclick='menunav("/branchHome")'>Branch</a></li>
-							<li><a class="dropdown-item" href="#" onclick='menunav("/unitHome")'>Unit</a></li>
-							<li><a class="dropdown-item" href="#" onclick='menunav("/itemHome")'>Item</a></li>
-							<li><a class="dropdown-item" href="#" onclick='menunav("/userHome")'>User</a></li>
-							<li><a class="dropdown-item" href="#" onclick='menunav("/customerHome")'>Customer</a></li>
-							<li><a class="dropdown-item" href="#" onclick='menunav("/stockHome")'>Stock</a></li>
-						</ul>
-					</li>
-					<li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
-							role="button" data-bs-toggle="dropdown" aria-expanded="false">
-							Transactions </a>
-						<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-							<li><a class="dropdown-item" href="#">Sales Order</a></li>
-						</ul>
-					</li> -->
-					<!-- <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
-							role="button" data-bs-toggle="dropdown" aria-expanded="false">
-							Reports </a>
-						<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-							<li><a class="dropdown-item" href="#">Test Report</a></li>
-						</ul>
-					</li> -->
 					<li class="nav-item"><a class="nav-link active" aria-current="page" href="#"
 							onclick='menunav("/stockHome")'>Inventory</a></li>
-					<li class="nav-item"><a class="nav-link active" aria-current="page" href="#">Orders</a></li>
 					<li class="nav-item"><a class="nav-link active" aria-current="page" href="#"
-						onclick='menunav("/salesHome")'>Sales</a></li>
+							onclick='menunav("/pendingHome")'>Pending Orders</a></li>
 				</ul>
 				<div id="appUserDetails" style="color: white;"></div>
 			</div>

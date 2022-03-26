@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PartEntity extends BaseEntity<Long> {
 
-    @Column(name = "part_no", unique = true)
+    @Column(name = "part_no")
     private String partNo;
 
     @JsonIgnore

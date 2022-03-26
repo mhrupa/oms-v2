@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script type="text/javascript">
+        var table, pendingOrderData;
+        $(document).ready(
+            function () {
+                initData();
+
+                table = $("#dataTable").DataTable({
+                    // paging: false,
+                    // scrollY: 420,
+                    // info: false
+                    data: pendingOrderData,
+                    "columns": [
+                        { data: "challanNo" },
+                        { data: "customerName" },
+                        { data: "model" },
+                        { data: "part" },
+                        { data: "config" },
+                        { data: "details" },
+                        { data: "qty" },
+                        { data: "sellPrice", visible: false },
+                        { data: "courierCharges" },
+                        { data: "orderAmount" },
+                        { data: "salesOrderId", visible: false },
+                        { data: "stockHeaderId", visible: false },
+                        { data: "customerId", visible: false }
+                    ]
+                });
+            });
+
+        function initData() {
+            $.get("/salesOrders", function (res) {
+                pendingOrderData = res.data;
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <div>
+        <table id="dataTable" style="width: 100%;" class="display">
+            <thead>
+                <tr>
+                    <th class="th-sm">Challan No</th>
+                    <th class="th-sm">Customer Name</th>
+                    <th class="th-sm">Model</th>
+                    <th class="th-sm">Part No</th>
+                    <th class="th-sm">Configuration</th>
+                    <th class="th-sm">Details</th>
+                    <th class="th-sm">Quantity</th>
+                    <th class="th-sm">Sell Price</th>
+                    <th class="th-sm">Courier Charges</th>
+                    <th class="th-sm">Order Amount</th>
+                    <th class="th-sm">SalesOrderId</th>
+                    <th class="th-sm">StockHeaderId</th>
+                    <th class="th-sm">CustomerId</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</body>
+
+</html>

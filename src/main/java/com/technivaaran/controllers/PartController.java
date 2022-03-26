@@ -27,7 +27,7 @@ public class PartController {
     private PartService partService;
 
     @PostMapping("/parts")
-    public ResponseEntity<OmsResponse> saveItemMaster(@RequestBody ItemMasterDto itemMasterDto) {
+    public ResponseEntity<OmsResponse> savePart(@RequestBody ItemMasterDto itemMasterDto) {
         log.info("creating part started");
 
         return partService.createPartNo(itemMasterDto);

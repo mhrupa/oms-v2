@@ -56,21 +56,37 @@
                 ]
             });
             $(":input[type='search']").attr("accesskey", "h");
+            
+            $('#stockAddBoxModal').on('shown.bs.modal', function () {
+                $('#boxName').focus();
+            });
+            $('#addVendorModal').on('shown.bs.modal', function () {
+                $('#vendorName').focus();
+            });
             $('#stockEditModal').on('shown.bs.modal', function () {
                 $('#qtyForEditStock').focus();
-            })
+            });
+            $('#stockAddModelModal').on('shown.bs.modal', function () {
+                $('#modelName').focus();
+            });
+            $('#stockAddPartModal').on('shown.bs.modal', function () {
+                $('#partName').focus();
+            });
+            $("#stockAddConfigModal").on('shown.bs.modal', function () {
+                $('#configName').focus();
+            });
             $('#createOrderModal').on('shown.bs.modal', function () {
                 $('#customer').focus();
-            })
+            });
             $('#createCustomerModal').on('shown.bs.modal', function () {
                 $('#customerName').focus();
-            })
+            });
             $('#createCustomerModal').on('hidden.bs.modal', function () {
                 $("#createOrderModal").modal("show");
-            })
+            });
             $('#validateUserModal').on('shown.bs.modal', function () {
                 $("#userNameForValidation").focus();
-            })
+            });
 
             $('#toggleBuyPrice').click(toggleBuyPrice);
 
@@ -656,7 +672,7 @@
                 $("#vendorName").focus();
                 $("#omsToast").html("Please enter Vendor Name");
                 $(".toast").removeClass("bg-danger").removeClass("bg-success").addClass("bg-warning").toast("show");
-                $("#createConfigBtn").removeAttr("disabled");
+                $("#createVendorBtn").removeAttr("disabled");
                 return false;
             }
             var requestData = {
@@ -666,14 +682,14 @@
                 $("#addVendorModal").modal("hide");
                 $("#omsToast").html(res.message);
                 $(".toast").removeClass("bg-danger").removeClass("bg-warning").addClass("bg-success").toast("show");
-                $("#createConfigBtn").removeAttr("disabled");
+                $("#createVendorBtn").removeAttr("disabled");
                 initVendorResponseData(res.data);
                 $("#model").focus();
             }).fail(function (res) {
                 $("#addVendorModal").modal("hide");
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $(".toast").addClass("bg-danger").toast("show");
-                $("#createConfigBtn").removeAttr("disabled");
+                $("#createVendorBtn").removeAttr("disabled");
             });
         }
         function createCustomerBtnClick() {
@@ -720,23 +736,19 @@
         function addNewBox() {
             $("#stockAddBoxModal").modal("show");
             $("#boxName").val("");
-            $("#boxName").focus();
         }
         function addNewVendor() {
             $("#addVendorModal").modal("show");
             $("#vendorName").val("");
-            $("#vendorName").focus();
         }
         function addNewModel() {
             $("#stockAddModelModal").modal("show");
             $("#modelName").val("");
-            $("#modelName").focus();
         }
         function addNewPart() {
             if ($("#model").val() != "0") {
                 $("#stockAddPartModal").modal("show");
                 $("#modelForPart").val($("#model option:selected").text());
-                $("#modelForPart").focus();
             } else {
                 $("#omsToast").html("Please select model.");
                 $(".toast").addClass("bg-warning").toast("show");
@@ -746,7 +758,7 @@
             if (null != $("#partNo").val() && $("#partNo").val() != "0") {
                 $("#stockAddConfigModal").modal("show");
                 $("#partForConfiguration").val($("#partNo  option:selected").text());
-                $("#partForConfiguration").focus();
+                $("#configName").val("")
             } else {
                 $("#omsToast").html("Please select Part No.");
                 $(".toast").addClass("bg-warning").toast("show");
@@ -1035,7 +1047,7 @@
                     <div class="modal-body">
                         <div class="input-group mb-3">
                             <span class="input-group-text">Box Name</span>
-                            <input type="text" class="form-control" id="boxName" placeholder="Box Name"
+                            <input autocomplete="off" type="text" class="form-control" id="boxName" placeholder="Box Name"
                                 aria-label="boxName" aria-describedby="boxName">
                         </div>
                     </div>
@@ -1300,7 +1312,7 @@
                                 <option value="0">Select Payment Type</option>
                                 <option value="cash">Cash</option>
                                 <option value="bank">Bank</option>
-                                <option value="pending">pending</option>
+                                <option value="pending">Pending</option>
                             </select>
                             <span class="input-group-text"
                                 style="width: 130px;text-align: right;display: block;">Remark</span>

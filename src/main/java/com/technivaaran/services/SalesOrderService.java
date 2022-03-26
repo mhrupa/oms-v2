@@ -1,10 +1,13 @@
 package com.technivaaran.services;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.dto.request.OrderRequestDto;
+import com.technivaaran.dto.response.SalesOrderResponseDto;
 import com.technivaaran.entities.CustomerEntity;
 import com.technivaaran.entities.SalesOrderDetails;
 import com.technivaaran.entities.SalesOrderHeader;
@@ -12,6 +15,7 @@ import com.technivaaran.entities.StockDetails;
 import com.technivaaran.entities.StockHeader;
 import com.technivaaran.entities.User;
 import com.technivaaran.enums.OrderStatus;
+import com.technivaaran.enums.PaymentType;
 import com.technivaaran.enums.StockType;
 import com.technivaaran.repositories.SalesOderDetailRepository;
 import com.technivaaran.repositories.SalesOrderHeaderRepository;
@@ -87,6 +91,7 @@ public class SalesOrderService {
 								* stockDetailsOp.get().getSellPrice()
 								+ orderRequestDto.getCourierCharges())
 						.status(OrderStatus.PENDING.toString())
+						// .status(orderRequestDto.getPaymentType().equals(PaymentType.va) OrderStatus.valueOf(orderRequestDto.getSt).toString())
 						.stockDetails(stockDetailsOp.get())
 						.customer(customer)
 						.stockHeader(stockHeader)
@@ -116,9 +121,9 @@ public class SalesOrderService {
 							.data(omsResponse.getData()).build(), HttpStatus.OK);
 				} else {
 					return new ResponseEntity<>(
-						OmsResponse.builder().message("Invalid order request received.")
-								.data(orderRequestDto).build(),
-						HttpStatus.BAD_REQUEST);
+							OmsResponse.builder().message("Invalid order request received.")
+									.data(orderRequestDto).build(),
+							HttpStatus.BAD_REQUEST);
 				}
 			} else {
 				return new ResponseEntity<>(
@@ -133,5 +138,33 @@ public class SalesOrderService {
 					HttpStatus.BAD_REQUEST);
 		}
 
+	}
+
+	public ResponseEntity<OmsResponse> getPendingOrders() {
+		List<SalesOrderHeader> orderHeaderList = salesOrderHeaderRepository
+				.findByStatus(OrderStatus.PENDING.toString());
+		List<SalesOrderResponseDto> orderResponseDtos = new ArrayList<>();
+		orderHeaderList.forEach(orderHeader -> {
+			SalesOrderResponseDto salesOrderResponseDto = SalesOrderResponseDto.builder()
+					.challanNo(orderHeader.getId())
+					.customerName(orderHeader.getCustomer().getCustomerName())
+					.part(orderHeader.getStockHeader().getPartEntity().getPartNo())
+					.model(orderHeader.getStockHeader().getItemMaster().getItemName())
+					.config(orderHeader.getStockHeader().getConfigDetailsEntity().getConfiguration())
+					.details(orderHeader.getStockHeader().getDetails())
+					.qty(orderHeader.getQuantity())
+					.sellPrice(orderHeader.getSellPrice())
+					.courierCharges(orderHeader.getCourierCharges())
+					.orderAmount(orderHeader.getOrderAmount())
+					.salesOrderId(orderHeader.getId())
+					.stockHeaderId(orderHeader.getStockHeader().getId())
+					.customerId(orderHeader.getCustomer().getId())
+					.build();
+			orderResponseDtos.add(salesOrderResponseDto);
+		});
+		return new ResponseEntity<>(
+				OmsResponse.builder().message("Order data received.")
+						.data(orderResponseDtos).build(),
+				HttpStatus.OK);
 	}
 }

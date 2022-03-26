@@ -7,6 +7,7 @@ import com.technivaaran.services.SalesOrderService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,8 +24,14 @@ public class SalesOrderController {
     SalesOrderService salesOrderService;
 
     @PostMapping("/salesOrders")
-    public ResponseEntity<OmsResponse>  createSaleOrer(@RequestBody OrderRequestDto orderRequestDto) {
+    public ResponseEntity<OmsResponse> createSalesOrder(@RequestBody OrderRequestDto orderRequestDto) {
         log.info("create sales oreder started");
         return salesOrderService.createSalesOrder(orderRequestDto);
+    }
+
+    @GetMapping("/salesOrders")
+    public ResponseEntity<OmsResponse> getPendingSalesOrders() {
+        log.info("get pending sales oreder started");
+        return salesOrderService.getPendingOrders();
     }
 }
