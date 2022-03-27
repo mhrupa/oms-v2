@@ -90,7 +90,7 @@
             $('#addAccountNameForPaymentModal').on('shown.bs.modal', function () {
                 $("#accountName").focus();
             });
-            
+
             $('#toggleBuyPrice').click(toggleBuyPrice);
 
             $("#addBoxBtn").click(addNewBox);
@@ -106,9 +106,9 @@
             $("#updateStockBtn").click(updateStock);
             $("#model").change(modelOnChange);
             $("#partNo").change(partNoOnChange);
-            $("#qtyForEditStock").keyup(calculateTempTotal);
-            $("#itemQuantity").keyup(calculateOrderAmount);
-            $("#courierCharges").keyup(calculateOrderTotalAmount);
+            $("#qtyForEditStock").on('input', calculateTempTotal);
+            $("#itemQuantity").on('input', calculateOrderAmount);
+            $("#courierCharges").on('input', calculateOrderTotalAmount);
             $("#updateStockModalBtn").click(showUpdateStockModal);
             $("#createOrderModalBtn").click(showCreateOrderModal);
             $("#showCustomerModalBtn").click(showCreateCustomerModal);
@@ -149,7 +149,7 @@
             $("#addAccountNameForPaymentModal").modal("show");
         }
         function createAccountForPayment() {
-            if($("#accountName").val()=="") {
+            if ($("#accountName").val() == "") {
                 $("#accountName").focus();
                 return false;
             }
@@ -871,7 +871,7 @@
                 $(".toast").addClass("bg-danger").toast("show");
             });
         }
-        function initPaymentAccountData(){
+        function initPaymentAccountData() {
             $.get("/paymentAccounts", function (res) {
                 paymentAccounts = res;
                 $("#orderRemark").empty();
