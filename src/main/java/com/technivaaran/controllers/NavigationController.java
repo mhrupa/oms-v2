@@ -130,6 +130,6 @@ public class NavigationController {
 	// ****************Pending-Orders-menu*****************//
 	@GetMapping("/pendingHome")
 	public String getPendingOrdersPage() {
-		return "transactions/pendingOrders/pendingOrders";
+		return "transactions/paymentOutstanding/paymentOutstanding";
 	}
 }

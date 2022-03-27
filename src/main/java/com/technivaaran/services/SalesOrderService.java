@@ -145,6 +145,7 @@ public class SalesOrderService {
 		orderHeaderList.forEach(orderHeader -> {
 			SalesOrderResponseDto salesOrderResponseDto = SalesOrderResponseDto.builder()
 					.challanNo(orderHeader.getId())
+					.orderDate(orderHeader.getOrderDate())
 					.customerName(orderHeader.getCustomer().getCustomerName())
 					.part(orderHeader.getStockHeader().getPartEntity().getPartNo())
 					.model(orderHeader.getStockHeader().getItemMaster().getItemName())
