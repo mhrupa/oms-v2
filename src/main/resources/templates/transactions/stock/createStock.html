@@ -113,6 +113,8 @@
             $("#createOrderBtn").click(createOrderButtonClick);
             $("#validatePasswordBtn").click(validateUserBtnClick);
             $("#paymentType").change(paymentTypeChangeHandler);
+            $("#showAccountForPaymentModalBtn").click(showAccountForPaymentBtnClick);
+            $("#createAccountBtn").click(createAccountForPayment)
 
             $("#addStockBtn").click(() => {
                 if (validateFields()) {
@@ -139,6 +141,36 @@
             $("#onloadSpinner").css("visibility", "hidden");
             $("#boxNo").focus();
         });
+        function showAccountForPaymentBtnClick() {
+            $("#accountName").val();
+            $("#addAccountNameForPaymentModal").modal("show");
+        }
+
+        function createAccountForPayment() {
+            if($("#accountName").val()=="") {
+                $("#accountName").focus();
+                return false;
+            }
+
+            var requestData = {
+                "accountName": $("#accountName").val(),
+                "userId": appUser.userId
+            };
+
+            $.post("/paymentAccounts", JSON.stringify(requestData), function (res) {
+
+                $("#addAccountNameForPaymentModal").modal("hide");
+                $("#omsToast").html(res.message);
+                $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
+            }).fail(function (res) {
+                $("#addAccountNameForPaymentModal").modal("hide");
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
+
+            
+        }
+
         function paymentTypeChangeHandler() {
             if ($("#paymentType").val() == "bank") {
                 $("#orderRemark").removeAttr("disabled");
@@ -1338,17 +1370,17 @@
                             <select class="form-control" id="paymentType" style="max-width: 160px;">
                                 <option value="0">Select Payment Type</option>
                                 <option value="cash">Cash</option>
+                                <option value="paytm">Paytm</option>
                                 <option value="bank">Bank</option>
                                 <option value="pending">Pending</option>
                             </select>
                             <span class="input-group-text"
                                 style="width: 130px;text-align: right;display: block;">Account Name</span>
                             <select class="form-control" id="orderRemark" disabled>
-                                <option value="0">Select Account</option>
-                                <option value="Arvind">Arvind</option>
-                                <option value="Arvind Mother">Arvind Mother</option>
-                                <option value="Arvind Wife">Arvind Wife</option>
                             </select>
+                            <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                                data-bs-placement="top" id="showAccountForPaymentModalBtn"
+                                title="Add Account">+</button>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -1423,6 +1455,28 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="button" id="validatePasswordBtn" class="btn btn-primary">Validate</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="addAccountNameForPaymentModal" data-bs-backdrop="static" data-bs-keyboard="true"
+            tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Create Account</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">Account Name</span>
+                            <input autocomplete="off" type="text" class="form-control" id="accountName"
+                                placeholder="Account Name" aria-label="accountName" aria-describedby="accountName">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" id="createAccountBtn" class="btn btn-primary">Save</button>
                     </div>
                 </div>
             </div>
