@@ -21,7 +21,7 @@
         var items = new Array();
         var stockData = new Array();
         var table;
-        var vendors, customers, locations;
+        var vendors, customers, locations, paymentAccounts;
         var selectedRowData;
         var selectedCustomer;
         var isValidUser = false;
@@ -87,7 +87,10 @@
             $('#validateUserModal').on('shown.bs.modal', function () {
                 $("#userNameForValidation").focus();
             });
-
+            $('#addAccountNameForPaymentModal').on('shown.bs.modal', function () {
+                $("#accountName").focus();
+            });
+            
             $('#toggleBuyPrice').click(toggleBuyPrice);
 
             $("#addBoxBtn").click(addNewBox);
@@ -142,23 +145,20 @@
             $("#boxNo").focus();
         });
         function showAccountForPaymentBtnClick() {
-            $("#accountName").val();
+            $("#accountName").val("");
             $("#addAccountNameForPaymentModal").modal("show");
         }
-
         function createAccountForPayment() {
             if($("#accountName").val()=="") {
                 $("#accountName").focus();
                 return false;
             }
-
             var requestData = {
-                "accountName": $("#accountName").val(),
+                "paymentAccountName": $("#accountName").val(),
                 "userId": appUser.userId
             };
-
             $.post("/paymentAccounts", JSON.stringify(requestData), function (res) {
-
+                initPaymentAccountResponseData(res.data);
                 $("#addAccountNameForPaymentModal").modal("hide");
                 $("#omsToast").html(res.message);
                 $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
@@ -167,14 +167,13 @@
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $(".toast").addClass("bg-danger").toast("show");
             });
-
-            
         }
 
         function paymentTypeChangeHandler() {
             if ($("#paymentType").val() == "bank") {
                 $("#orderRemark").removeAttr("disabled");
             } else {
+                $("#orderRemark").val("0");
                 $("#orderRemark").attr("disabled", "disabled")
             }
         }
@@ -293,6 +292,7 @@
             initModelData();
             initStockData();
             initCustomerData();
+            initPaymentAccountData();
         }
 
         function updateStock() {
@@ -871,6 +871,19 @@
                 $(".toast").addClass("bg-danger").toast("show");
             });
         }
+        function initPaymentAccountData(){
+            $.get("/paymentAccounts", function (res) {
+                paymentAccounts = res;
+                $("#orderRemark").empty();
+                $("#orderRemark").append("<option selected='selected' value='0'>Select payment account</option>");
+                res.forEach(paymentAccount => {
+                    $("#orderRemark").append("<option value='" + paymentAccount.id + "'>" + paymentAccount.accountName + "</option>");
+                });
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
+        }
 
         function initLocationResponseData(location) {
             if (location) {
@@ -949,7 +962,13 @@
             }
             return;
         }
-
+        function initPaymentAccountResponseData(paymentAccount) {
+            if (paymentAccount) {
+                paymentAccounts.push(paymentAccount);
+                $("#orderRemark").append("<option value='" + paymentAccount.id + "'>" + paymentAccount.accountName + "</option>");
+                $("#orderRemark").val(paymentAccount.id);
+            }
+        }
     </script>
 </head>
 

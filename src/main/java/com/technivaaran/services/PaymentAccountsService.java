@@ -26,11 +26,11 @@ public class PaymentAccountsService {
                     .accountName(paymentAccountName)
                     .build();
             paymentAccountsRepository.save(accountsEntity);
-            return new ResponseEntity<>(OmsResponse.builder().message("Part created successfully.")
+            return new ResponseEntity<>(OmsResponse.builder().message("Payment Account created successfully.")
                     .data(accountsEntity).build(), HttpStatus.CREATED);
         } else {
             return new ResponseEntity<>(OmsResponse.builder().message("Payment Account already exists.")
-                    .build(), HttpStatus.CREATED);
+                    .build(), HttpStatus.BAD_REQUEST);
         }
     }
 

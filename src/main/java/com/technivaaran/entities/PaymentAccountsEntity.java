@@ -1,5 +1,6 @@
 package com.technivaaran.entities;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
@@ -16,7 +17,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class PaymentAccountsEntity extends BaseEntity<Long>{
-    
+public class PaymentAccountsEntity extends BaseEntity<Long> {
+    @Column(nullable = false, unique = true)
     private String accountName;
 }
