@@ -74,7 +74,7 @@ public class StockService {
             return new ResponseEntity<>(OmsResponse.builder().message("Invalid configuration received.").build(),
                     HttpStatus.BAD_REQUEST);
         }
-        Optional<StorageLocationEntity> storageLocationOp = storageLocationService.findById(stockRequestDto.getBoxId());
+        Optional<StorageLocationEntity> storageLocationOp = storageLocationService.findByLocationName(stockRequestDto.getBoxName());
         if (storageLocationOp.isEmpty()) {
             return new ResponseEntity<>(OmsResponse.builder().message("Invalid box no received.").build(),
                     HttpStatus.BAD_REQUEST);

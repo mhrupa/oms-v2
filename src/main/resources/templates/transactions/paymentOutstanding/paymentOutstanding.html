@@ -11,11 +11,41 @@
                 initData();
 
                 table = $("#dataTable").DataTable({
+                    dom: 'Bfrtip',
                     // paging: false,
                     // scrollY: 420,
                     // info: false
+                    buttons: [
+                        {
+                            text: 'Select all',
+                            action: function () {
+                                table.rows().select();
+                                // console.log(table.rows().columns()[0].type);
+
+                                // console.log(table.columns(0).data()[0]);
+                            }
+                        },
+                        {
+                            text: 'Select none',
+                            action: function () {
+                                table.rows().deselect();
+                            }
+                        }
+                    ],
                     data: pendingOrderData,
                     "columns": [
+                        {
+                            data: "rowStatus",
+                            "orderable": false,
+                            "searchable": false,
+                            render: function (data, type, row) {
+                                if (type === 'display') {
+                                    return '<input type="checkbox" class="editor-active">';
+                                }
+                                return data;
+                            },
+                            className: "dt-body-center"
+                        },
                         { data: "challanNo" },
                         { data: "orderDate" },
                         { data: "customerName" },
@@ -31,6 +61,10 @@
                         { data: "stockHeaderId", visible: false },
                         { data: "customerId", visible: false }
                     ]
+                });
+
+                $('#dataTable input[type="checkbox"]').click(function (e) {
+                    console.log($(this));
                 });
             });
 
@@ -50,6 +84,7 @@
         <table id="dataTable" style="width: 100%;" class="display">
             <thead>
                 <tr>
+                    <th class="th-sm"></th>
                     <th class="th-sm">Challan No</th>
                     <th class="th-sm">Order Date</th>
                     <th class="th-sm">Customer Name</th>

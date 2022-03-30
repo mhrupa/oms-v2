@@ -104,7 +104,7 @@
             $("#createVendorBtn").click(createVendorBtnClick);
             $("#createConfigBtn").click(createConfigBtnClick);
             $("#updateStockBtn").click(updateStock);
-            $("#model").change(modelOnChange);
+            $("#modelData").change(modelOnChange);
             $("#partNo").change(partNoOnChange);
             $("#qtyForEditStock").on('input', calculateTempTotal);
             $("#itemQuantity").on('input', calculateOrderAmount);
@@ -409,8 +409,8 @@
         }
         function savaData() {
             var requestData = {
-                "boxId": $("#boxNo").val(),
-                "modelId": $("#model").val(),
+                "boxName": $("#boxNo").val(),
+                "modelName": $("#modelData").val(),
                 "partId": $("#partNo").val(),
                 "configId": $("#config").val(),
                 "details": $("#details").val(),
@@ -420,7 +420,6 @@
                 "userId": appUser.userId,
                 "vendorId": $("#vendor").val()
             };
-
             $.post("/stock", JSON.stringify(requestData), function (res) {
                 var rowUpdated = false;
                 table.rows().every(function (rowIdx, tableLoop, rowLoop) {
@@ -529,17 +528,17 @@
         }
         function initFields() {
             $("#vendor").val(0);
-            $("#model").val(0);
+            $("#modelData").val("");
             $("#partNo").val(0);
             $("#config").val(0);
             $("#details").val("GM");
             $("#qty").val("");
             $("#buyPrice").val("");
             $("#sellPrice").val("");
-            $("#boxNo").val(0).focus();
+            $("#boxNo").val("").focus();
         }
         function validateFields() {
-            if ($("#boxNo").val() == "0") {
+            if ($("#boxNo").val() == "") {
                 $("#boxNo").focus();
                 return false;
             }
@@ -547,8 +546,8 @@
                 $("#vendor").focus();
                 return false;
             }
-            if ($("#model").val() == "0") {
-                $("#model").focus();
+            if ($("#modelData").val() == "") {
+                $("#modelData").focus();
                 return false;
             }
             if ($("#partNo").val() == "0") {
@@ -575,27 +574,27 @@
         }
 
         function modelOnChange() {
-            if ($("#model").val() != "0") {
+            if ($("#modelData").val() != "0") {
                 items.forEach(item => {
-                    if (item.id == $("#model").val()) {
+                    if (item.itemName == $("#modelData").val()) {
                         $("#partNo").empty();
                         $("#partNo").append("<option value='0' selected>Select Part</option>");
-                        item.parts.forEach(element => {
-                            $("#partNo").append("<option value='" + element.id + "'>"
-                                + element.partNo + "</option>");
+                        item.parts.forEach(part => {
+                            $("#partNo").append("<option value='" + part.id + "'>"
+                                + part.partNo + "</option>");
                         });
                         return;
                     }
                 });
             } else {
-                $("#model").focus();
+                $("#modelData").focus();
                 $("#partNo").empty();
             }
         }
         function partNoOnChange() {
             if ($("#partNo").val() != "0") {
                 items.forEach(item => {
-                    if (item.id == $("#model").val()) {
+                    if (item.itemName == $("#modelData").val()) {
                         item.parts.forEach(part => {
                             if (part.id == $("#partNo").val()) {
                                 $("#config").empty();
@@ -835,10 +834,10 @@
         function initLocationData() {
             $.get("/storageLocations", function (res) {
                 locations = res;
-                $("#boxNo").empty();
-                $("#boxNo").append("<option selected='selected' value='0'>Select box</option>");
-                res.forEach(element => {
-                    $("#boxNo").append("<option value='" + element.id + "'>" + element.locationName + "</option>");
+                $("#boxData").empty();
+                res.forEach(location => {
+                    $("#boxData").append("<option value='" + location.locationName
+                        + "' itemid='" + location.id + "'></option>");
                 });
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
@@ -888,20 +887,21 @@
         function initLocationResponseData(location) {
             if (location) {
                 locations.push(location);
-                $("#boxNo").append("<option value='" + location.id + "'>" + location.locationName + "</option>");
-                $("#boxNo").val(location.id);
+                $("#boxData").append("<option value='" + location.locationName + "' itemid ='" + location.id + "'></option>");
+                $("#boxNo").val(location.locationName);
+                $("#boxNo").focus();
             }
         }
         function initModelResponseData(model) {
             if (model) {
-                $("#model").append("<option value='" + model.id + "'>" + model.itemName + "</option>");
-                $("#model").val(model.id);
+                $("#model").append("<option value='" + model.itemName + "' itemid='" + model.id + "'></option>");
+                $("#modelData").val(model.itemName);
+                $("#modelData").focus();
                 return;
             }
             $("#model").empty();
-            $("#model").append("<option value='0' selected>Select model</option>");
             items.forEach(item => {
-                $("#model").append("<option value='" + item.id + "'>" + item.itemName + "</option>");
+                $("#model").append("<option value='" + item.itemName + "' itemid='" + item.id + "'></option>");
             });
 
         }
@@ -979,7 +979,9 @@
                 <div class="mb-1 ps-2">
                     <label class="p-1 pb-0" for="boxNo"><span style="text-decoration: underline;">B</span>ox</label>
                     <div class="input-group">
-                        <select class="form-control" id="boxNo" accesskey="b"></select>
+                        <input class="form-control" list="boxData" accesskey="b" id="boxNo" placeholder="Search Box...">
+                        <datalist id="boxData">
+                        </datalist>
                         <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
                             data-bs-placement="top" id="addBoxBtn" title="Add new Box">+</button>
                     </div>
@@ -995,7 +997,9 @@
                 <div class="ps-2">
                     <label for="model" class="p-1 pb-0">Motherboard Model</label>
                     <div class="input-group">
-                        <select class="form-control" id="model"></select>
+                        <input class="form-control" list="model" id="modelData" placeholder="Search Model...">
+                        <datalist id="model">
+                        </datalist>
                         <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
                             data-bs-placement="top" id="addModelBtn" title="Add new Model">+</button>
                     </div>

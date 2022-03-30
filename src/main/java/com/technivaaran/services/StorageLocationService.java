@@ -39,4 +39,8 @@ public class StorageLocationService {
     public Optional<StorageLocationEntity> findById(int locationId) {
         return storageLocationRepository.findById(locationId);
     }
+
+    public Optional<StorageLocationEntity> findByLocationName(String boxName) {
+        return storageLocationRepository.findByLocationName(boxName);
+    }
 }

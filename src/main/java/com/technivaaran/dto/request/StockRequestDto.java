@@ -12,8 +12,8 @@ import lombok.Data;
 public class StockRequestDto {
     private long stockHeaderId;
     private String stockType;
-    private int boxId;
-    private long modelId;
+    private String boxName;
+    private String modelName;
     private long partId;
     private long configId;
     private String details;
