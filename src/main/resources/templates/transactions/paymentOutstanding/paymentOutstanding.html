@@ -13,6 +13,7 @@
                 $("#paymentType").change(paymentTypeChangeHandler);
                 $("#showAccountForPaymentModalBtn").click(showAccountForPaymentBtnClick);
                 $("#createAccountBtn").click(createAccountForPayment)
+                $("#updatePaymentBtn").click(updatePayment)
                 paymentTable = $("#dataTable").DataTable({
                     dom: 'Bfrtip',
                     //select: true,
@@ -37,7 +38,7 @@
                         {
                             text: 'Update Payment',
                             className: 'btn btn-success',
-                            action: updatePayment
+                            action: showUpdatePaymentModal
                         }
                     ],
                     data: pendingOrderData,
@@ -100,7 +101,8 @@
                 $("#orderRemark").attr("disabled", "disabled")
             }
         }
-        function createAccountForPayment() {alert();
+        function createAccountForPayment() {
+            alert();
             if ($("#accountName").val() == "") {
                 $("#accountName").focus();
                 return false;
@@ -121,7 +123,7 @@
             });
         }
 
-        function updatePayment() {
+        function showUpdatePaymentModal() {
             var rowProcessed = false;
             var challanNoList = new Array();
             var totalAmountCalculated = 0;
@@ -143,6 +145,17 @@
                 $(".toast").addClass("bg-danger").toast("show");
             }
 
+        }
+        function updatePayment() {
+            if ($("#paymentType").val() == 0) {
+                $("#paymentType").focus();
+                return false;
+            }
+            if ($("#paymentType").val() == 'bank' && $("#orderRemark").val() == 0) {
+                $("#orderRemark").focus();
+                return false;
+            }
+            alert();
         }
 
         function initData() {
@@ -226,7 +239,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="createAccountBtn" class="btn btn-primary">Save</button>
+                    <button type="button" id="updatePaymentBtn" class="btn btn-primary">Save</button>
                 </div>
             </div>
         </div>

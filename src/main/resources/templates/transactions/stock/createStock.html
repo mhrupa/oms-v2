@@ -470,8 +470,6 @@
                 $("#paymentType").focus();
                 return false;
             }
-            console.log("payment type:" + $("#paymentType").val());
-            console.log("orderRemark" + $("#orderRemark").val());
             if ($("#paymentType").val() == 'bank' && $("#orderRemark").val() == 0) {
                 $("#orderRemark").focus();
                 return false;
