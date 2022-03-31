@@ -26,7 +26,7 @@ public class PartService {
 
     public ResponseEntity<OmsResponse> createPartNo(ItemMasterDto itemMasterDto) {
         log.info("Creating part no in service for {}", itemMasterDto.getPartNo());
-        Optional<ItemMaster> itemMasterOp = itemMasterService.getItemById(itemMasterDto.getItemId());
+        Optional<ItemMaster> itemMasterOp = itemMasterService.findByItemName(itemMasterDto.getItemName());
         if (itemMasterOp.isPresent()) {
             Optional<PartEntity> partOp = partRepository.findByPartNoAndItemMaster(itemMasterDto.getPartNo(),
                     itemMasterOp.get());

@@ -674,7 +674,7 @@
                 return false;
             }
             var requestData = {
-                "itemId": $("#model").val(),
+                "itemName": $("#modelData").val(),
                 "partNo": $("#partName").val()
             };
             $.post("/parts", JSON.stringify(requestData), function (res) {
@@ -907,7 +907,7 @@
         }
         function initPartResponseData(ele) {
             items.forEach(item => {
-                if ($("#model").val() == item.id) {
+                if ($("#modelData").val() == item.itemName) {
                     item.parts.push(ele);
                     $("#partNo").empty();
                     $("#partNo").append("<option value='0' selected>Select Part No</option>");
@@ -923,7 +923,7 @@
         }
         function initConfigResponseData(ele) {
             items.forEach(item => {
-                if ($("#model").val() == item.id) {
+                if ($("#modelData").val() == item.itemName) {
                     item.parts.forEach(part => {
                         if ($("#partNo").val() == part.id) {
                             part.configurations.push(ele);
