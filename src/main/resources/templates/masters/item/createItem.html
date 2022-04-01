@@ -3,7 +3,6 @@
 <head>
 <script type="text/javascript">
 	$(document).ready(function() {
-		$("#statusMsg").html("");
 		
 		initCategories();
 		initUnits();
@@ -18,30 +17,25 @@
 			const category=JSON.parse($("#category").val());
 
 			if (undefined == itemNameVal || itemNameVal == "") {
-				$("#statusMsg").html("Enter valid Item Name");
 				$("#itemName").focus();
 				$("#createItemBtn").prop("disabled", false);
 				return;
 			}
 			if (undefined == status || status === "0") {
-				$("#statusMsg").html("Select valid Status");
 				$("#status").focus();
 				$("#createItemBtn").prop("disabled", false);
 				return;
 			}
 			if(undefined==JSON.stringify(category.id)){
-				$("#statusMsg").html("Select valid Category");
 				$("#category").focus();
 				$("#createItemBtn").prop("disabled", false);
 				return;
 			}
 			if(undefined==JSON.stringify(unit.id)){
-				$("#statusMsg").html("Select valid Unit");
 				$("#unit").focus();
 				$("#updateUnitBtn").prop("disabled", false);
 				return false;
 			}
-			$("#statusMsg").html("");
 			const reqObj = {"itemName" : itemNameVal, "partNo" : partNoVal, "status" : status,
 					"itemUnitId" : unit.id, "itemCategoryId" : category.id}
 

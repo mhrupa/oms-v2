@@ -3,7 +3,6 @@
 <head>
 <script type="text/javascript">
 	$(document).ready(function() {
-		$("#statusMsg").html("");
 		initUsers();
 		initBranches();
 		initRoles();
@@ -36,48 +35,40 @@
 			const role=JSON.parse($("#role").val());
 
 			if (undefined == username || username == "") {
-				$("#statusMsg").html("Enter valid User Name");
 				$("#username").focus();
 				$("#updateUserBtn").prop("disabled", false);
 				return;
 			}
 			if (undefined == email || email == "") {
-				$("#statusMsg").html("Enter valid Email");
 				$("#email").focus();
 				$("#updateUserBtn").prop("disabled", false);
 				return;
 			}
 			if (undefined == pass || pass == "") {
-				$("#statusMsg").html("Enter valid Password");
 				$("#pass").focus();
 				$("#updateUserBtn").prop("disabled", false);
 				return;
 			}
 			if (undefined == email || pass != cpass) {
-				$("#statusMsg").html("Password and Confirm password not matching");
 				$("#cpass").focus();
 				$("#updateUserBtn").prop("disabled", false);
 				return;
 			}
 			if (undefined == status || status === "0") {
-				$("#statusMsg").html("Select valid Status");
 				$("#status").focus();
 				$("#updateUserBtn").prop("disabled", false);
 				return;
 			}
 			if(undefined==JSON.stringify(branch.id)){
-				$("#statusMsg").html("Select valid Branch");
 				$("#branch").focus();
 				$("#updateUserBtn").prop("disabled", false);
 				return;
 			}
 			if(undefined==JSON.stringify(role.id)){
-				$("#statusMsg").html("Select valid Role");
 				$("#role").focus();
 				$("#updateUserBtn").prop("disabled", false);
 				return false;
 			}
-			$("#statusMsg").html("");
 			const reqObj = {"userName" : username, "email" : email, "password" : pass,
 					"status" : status, "branchId" : branch.id, "roleId" : role.id}
 

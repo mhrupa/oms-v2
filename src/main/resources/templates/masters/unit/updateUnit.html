@@ -3,7 +3,6 @@
 <head>
 <script type="text/javascript">
 	$(document).ready(function() {
-		$("#statusMsg").html("");
 		
 		initUnitdata();
 		
@@ -17,7 +16,6 @@
 			const unit=JSON.parse($("#unitCodeSelect").val());
 			
 			if(undefined==JSON.stringify(unit.id)){
-				$("#statusMsg").html("Select valid Unit");
 				$("#unitCodeSelect").focus();
 				$("#updateUnitBtn").prop("disabled", false);
 				return false;
@@ -26,13 +24,11 @@
 			const unitNameVal = $("#unitName").val();
 
 			if (undefined == unitNameVal || unitNameVal == "") {
-				$("#statusMsg").html("Enter valid Unit Name");
 				$("#unitName").focus();
 				$("#updateunitBtn").prop("disabled", false);
 				return;
 			}
 			
-			$("#statusMsg").html("");
 			const reqObj = {"unitName" : unitNameVal, "unitCode" : unit.unitCode}
 
 			$.ajax({

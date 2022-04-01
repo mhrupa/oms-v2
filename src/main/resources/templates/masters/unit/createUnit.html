@@ -3,7 +3,6 @@
 <head>
 <script type="text/javascript">
 	$(document).ready(function() {
-		$("#statusMsg").html("");
 		$("#createUnitBtn").click(function() {
 			$("#createUnitBtn").prop("disabled", true);
 			
@@ -11,19 +10,16 @@
 			const unitNameVal = $("#unitName").val();
 
 			if (undefined == unitNameVal || unitNameVal == "") {
-				$("#statusMsg").html("Enter valid Unit Name");
 				$("#unitName").focus();
 				$("#createUnitBtn").prop("disabled", false);
 				return;
 			}
 			
 			if (undefined == unitCodeVal || unitCodeVal == "") {
-				$("#statusMsg").html("Enter valid Unit Code");
 				$("#unitCode").focus();
 				$("#createUnitBtn").prop("disabled", false);
 				return;
 			}
-			$("#statusMsg").html("");
 			const reqObj = {"unitName" : unitNameVal, "unitCode" : unitCodeVal}
 
 			$.post("/units", JSON.stringify(reqObj), function(res) {

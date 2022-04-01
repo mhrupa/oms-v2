@@ -3,7 +3,6 @@
 <head>
 <script type="text/javascript">
 	$(document).ready(function() {
-		$("#statusMsg").html("");
 		$("#createCustomerBtn").click(function() {
 			$("#createCustomerBtn").prop("disabled", true);
 			
@@ -19,49 +18,41 @@
 			const pincode = $("#pincode").val();
 
 			if (undefined == fName || fName == "") {
-				$("#statusMsg").html("Enter valid First Name");
 				$("#fName").focus();
 				$("#createCustomerBtn").prop("disabled", false);
 				return;
 			}
 			
 			if (undefined == email || email == "") {
-				$("#statusMsg").html("Enter valid Email");
 				$("#email").focus();
 				$("#createCustomerBtn").prop("disabled", false);
 				return;
 			}
 			if (undefined == contact1 || contact1 == "") {
-				$("#statusMsg").html("Enter valid Primary Contact");
 				$("#contact1").focus();
 				$("#createCustomerBtn").prop("disabled", false);
 				return;
 			}
 			if (undefined == add1 || add1 == "") {
-				$("#statusMsg").html("Enter valid Primary Address");
 				$("#add1").focus();
 				$("#createCustomerBtn").prop("disabled", false);
 				return;
 			}
 			if (undefined == city || city == "") {
-				$("#statusMsg").html("Enter valid City");
 				$("#city").focus();
 				$("#createCustomerBtn").prop("disabled", false);
 				return;
 			}
 			if (undefined == state || state == "") {
-				$("#statusMsg").html("Enter valid State");
 				$("#state").focus();
 				$("#createCustomerBtn").prop("disabled", false);
 				return;
 			}
 			if (undefined == pincode || pincode == "") {
-				$("#statusMsg").html("Enter valid Pincode");
 				$("#pincode").focus();
 				$("#createCustomerBtn").prop("disabled", false);
 				return;
 			}
-			$("#statusMsg").html("");
 			const reqObj = {"firstName" : fName, "lastName" : lName, "email" : email,
 					"contact" : contact1, "contact1" : contact2, "add1" : add1,
 					"add2" : add2, "city" : city, "state" : state, "pincode" : pincode,"userId":1

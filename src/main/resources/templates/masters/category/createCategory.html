@@ -3,7 +3,6 @@
 <head>
 <script type="text/javascript">
 	$(document).ready(function() {
-		$("#statusMsg").html("");
 		$("#createCategoryBtn").click(function() {
 			$("#createCategoryBtn").prop("disabled", true);
 			
@@ -11,19 +10,16 @@
 			const categoryNameVal = $("#categoryName").val();
 
 			if (undefined == categoryNameVal || categoryNameVal == "") {
-				$("#statusMsg").html("Enter valid Category Name");
 				$("#categoryName").focus();
 				$("#createCategoryBtn").prop("disabled", false);
 				return;
 			}
 			
 			if (undefined == categoryCodeVal || categoryCodeVal == "") {
-				$("#statusMsg").html("Enter valid Category Code");
 				$("#categoryCode").focus();
 				$("#createCategoryBtn").prop("disabled", false);
 				return;
 			}
-			$("#statusMsg").html("");
 			const reqObj = {"categoryName" : categoryNameVal, "categoryCode" : categoryCodeVal}
 
 			$.post("/categories", JSON.stringify(reqObj), function(res) {

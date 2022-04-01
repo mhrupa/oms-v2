@@ -3,7 +3,6 @@
 <head>
 <script type="text/javascript">
 	$(document).ready(function() {
-		$("#statusMsg").html("");
 		
 		initCategorydata();
 		
@@ -17,7 +16,6 @@
 			const category=JSON.parse($("#categoryCodeSelect").val());
 			
 			if(undefined==JSON.stringify(category.id)){
-				$("#statusMsg").html("Select valid Category");
 				$("#categoryCodeSelect").focus();
 				$("#updateCategoryBtn").prop("disabled", false);
 				return false;
@@ -26,13 +24,11 @@
 			const categoryNameVal = $("#categoryName").val();
 
 			if (undefined == categoryNameVal || categoryNameVal == "") {
-				$("#statusMsg").html("Enter valid Category Name");
 				$("#categoryName").focus();
 				$("#updateCategoryBtn").prop("disabled", false);
 				return;
 			}
 			
-			$("#statusMsg").html("");
 			const reqObj = {"categoryName" : categoryNameVal, "categoryCode" : category.categoryCode}
 
 			$.ajax({

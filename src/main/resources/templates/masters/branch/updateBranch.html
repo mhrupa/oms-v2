@@ -3,7 +3,6 @@
 <head>
 <script type="text/javascript">
 	$(document).ready(function() {
-		$("#statusMsg").html("");
 		
 		initBranchData();
 		
@@ -19,7 +18,6 @@
 			const branch=JSON.parse($("#branchCodeSelect").val());
 			
 			if(undefined==JSON.stringify(branch.id)){
-				$("#statusMsg").html("Select valid Branch");
 				$("#branchCodeSelect").focus();
 				$("#updateBranchBtn").prop("disabled", false);
 				return false;
@@ -30,13 +28,11 @@
 			
 
 			if (undefined == branchNameVal || branchNameVal == "") {
-				$("#statusMsg").html("Enter valid Branch Name");
 				$("#branchName").focus();
 				$("#updateBranchBtn").prop("disabled", false);
 				return;
 			}
 			
-			$("#statusMsg").html("");
 			const reqObj = {"branchName" : branchNameVal, "branchCode" : branch.branchCode,
 					"branchAdd" : branchAddVal, "homeBranch" : $("#homeBranch").prop('checked')}
 

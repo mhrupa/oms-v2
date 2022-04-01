@@ -3,7 +3,6 @@
 <head>
 <script type="text/javascript">
 	$(document).ready(function() {
-		$("#statusMsg").html("");
 		$("#createBranchBtn").click(function() {
 			$("#createBranchBtn").prop("disabled", true);
 			
@@ -13,19 +12,16 @@
 			
 
 			if (undefined == branchNameVal || branchNameVal == "") {
-				$("#statusMsg").html("Enter valid Branch Name");
 				$("#branchName").focus();
 				$("#createBranchBtn").prop("disabled", false);
 				return;
 			}
 			
 			if (undefined == branchCodeVal || branchCodeVal == "") {
-				$("#statusMsg").html("Enter valid Branch Code");
 				$("#branchCode").focus();
 				$("#createBranchBtn").prop("disabled", false);
 				return;
 			}
-			$("#statusMsg").html("");
 			const reqObj = {"branchName" : branchNameVal, "branchCode" : branchCodeVal,
 					"branchAdd" : branchAddVal, "homeBranch" : $("#homeBranch").prop('checked')}
 
