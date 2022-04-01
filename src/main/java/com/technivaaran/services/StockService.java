@@ -62,7 +62,7 @@ public class StockService {
 
     public List<StockResponseDto> getStockHeader() {
         List<StockResponseDto> stockResponseDtos = new ArrayList<>();
-        stockHeaderRepository.findAll().forEach(
+        stockHeaderRepository.findByClosingQtyGreaterThan(0).forEach(
                 stockHeader -> stockResponseDtos.add(stockHeaderResponseMapper.convertToDto(stockHeader)));
         return stockResponseDtos;
     }

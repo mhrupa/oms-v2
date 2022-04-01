@@ -1,5 +1,6 @@
 package com.technivaaran.repositories;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.technivaaran.entities.ConfigDetailsEntity;
@@ -18,5 +19,7 @@ public interface StockHeaderRepository extends JpaRepository<StockHeader, Long> 
     Optional<StockHeader> findByStorageLocationAndItemMasterAndPartEntityAndConfigDetailsEntityAndVendorAndBuyPrice(
             StorageLocationEntity storageLocationEntity, ItemMaster itemMaster, PartEntity partEntity,
             ConfigDetailsEntity configDetailsEntity, VendorEntity vendor, float buyPrice);
+
+    List<StockHeader> findByClosingQtyGreaterThan(float i);
 
 }

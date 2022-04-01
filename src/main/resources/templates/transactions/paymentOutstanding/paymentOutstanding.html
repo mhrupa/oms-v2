@@ -125,6 +125,7 @@
 
         function showUpdatePaymentModal() {
             var rowProcessed = false;
+            var challanNoLabelList = new Array();
             var challanNoList = new Array();
             var totalAmountCalculated = 0;
             paymentTable.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
@@ -132,11 +133,13 @@
                 var d = this.data();
                 // console.log(JSON.stringify(d));
                 challanNoList.push(d.challanNo);
+                challanNoLabelList.push(" " + d.challanNo + "(" + d.orderAmount + ")");
                 totalAmountCalculated += d.orderAmount;
                 $("#customer").val(d.customerName);
             });
             if (rowProcessed) {
                 $("#challanNos").val(challanNoList);
+                $("#challanNoslabel").val(challanNoLabelList);
                 $("#totalAmount").val(totalAmountCalculated);
                 $("#updatePaymentModal").modal("show");
 
@@ -208,10 +211,14 @@
                             aria-describedby="customer">
                     </div>
                     <div class="input-group mb-0">
+                        <input hidden disabled type="text" class="form-control" id="challanNos"
+                            aria-label="challanNos" aria-describedby="challanNos">
+                    </div>
+                    <div class="input-group mb-0">
                         <span class="input-group-text"
                             style="width: 140px;text-align: right;display: block;">Challan</span>
-                        <input disabled type="text" class="form-control" id="challanNos" aria-label="challanNos"
-                            aria-describedby="challanNos">
+                        <input disabled type="text" class="form-control" id="challanNoslabel"
+                            aria-label="challanNoslabel" aria-describedby="challanNoslabel">
                     </div>
                     <div class="input-group mb-0">
                         <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Total

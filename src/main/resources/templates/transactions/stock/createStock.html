@@ -377,14 +377,21 @@
 
             $.post("/stock/" + $("#stockHeaderId").val(), JSON.stringify(requestData), function (res) {
                 var rowUpdated = false;
+                var rowTodelete;
+                var rowTodeleteFlag = false;
                 table.rows().every(function (rowIdx, tableLoop, rowLoop) {
                     var d = this.data();
                     if (d.box == res.data.box && d.model == res.data.model
                         && d.part == res.data.part && d.configuration == res.data.configuration
                         && d.details == res.data.details && d.vendor == res.data.vendor
                         && d.buyPrice == res.data.buyPrice) {
-                        d.qty = res.data.qty;
-                        d.sellPrice = res.data.sellPrice;
+                        if (res.data.qty != 0) {
+                            d.qty = res.data.qty;
+                            d.sellPrice = res.data.sellPrice;
+                        } else {
+                            rowTodeleteFlag = true;
+                            rowTodelete = this;
+                        }
                         this.invalidate();
                         rowUpdated = true;
                         $("#stockEditModal").modal("hide");
@@ -393,8 +400,10 @@
                         return false;
                     }
                 });
+                if(rowTodeleteFlag) {
+                    rowTodelete.remove().draw(false);
+                }
                 table.draw();
-
                 if (!rowUpdated) {
                     table.row.add(res.data).draw(false);
                     $("#stockEditModal").modal("hide");
