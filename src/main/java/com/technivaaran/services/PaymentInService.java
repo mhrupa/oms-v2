@@ -64,8 +64,7 @@ public class PaymentInService {
                     HttpStatus.BAD_REQUEST);
         }
         List<Long> challanNoList = Arrays.asList(paymentInRequestDto.getChallanNos().split(","))
-                .stream()
-                .map(Long::parseLong).collect(Collectors.toList());
+                .stream().map(Long::parseLong).collect(Collectors.toList());
         List<SalesOrderHeader> salesOrderHeaders = salesOrderHeaderRepository.findByIdIn(challanNoList);
 
         List<Long> invalidChallanList = validateChallanNo(challanNoList, salesOrderHeaders);

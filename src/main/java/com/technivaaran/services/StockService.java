@@ -153,6 +153,7 @@ public class StockService {
         }
     }
 
+    @Transactional
     public ResponseEntity<OmsResponse> updateStockHeaderAndStockDetais(StockHeader stockHeader,
             String stockType, int quantity, float sellPrice, float buyPrice, User user) {
         log.info("update stock header by stockHeader id and stockType");
