@@ -108,7 +108,7 @@ public class SalesOrderService {
                 .orderAmount(orderRequestDto.getQuantity()
                         * orderRequestDto.getSellPrice()
                         + orderRequestDto.getCourierCharges())
-                .status(orderRequestDto.getPaymentType().equals(PaymentType.BANK.type)
+                .status(orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
                         ? OrderStatus.PENDING.type
                         : OrderStatus.COMPLETE.type)
                 .stockDetails(stockDetailsOp.get())
@@ -127,22 +127,23 @@ public class SalesOrderService {
                 .user(user)
                 .build();
         salesOderDetailRepository.save(salesOrderDetails);
-
-        PaymentInRequestDto paymentInRequestDto = PaymentInRequestDto.builder()
-                .challanNos(salesOrderHeader.getId().toString())
-                .customerId(customer.getId())
-                .paymentType(orderRequestDto.getPaymentType())
-                .paymentAccount(orderRequestDto.getRemark())
-                .amount(salesOrderHeader.getOrderAmount())
-                .userId(user.getId())
-                .build();
-        ResponseEntity<OmsResponse> response = paymentInService.savePaymentIn(paymentInRequestDto);
-
-        if (response.getStatusCode() != HttpStatus.CREATED) {
-            OmsResponse omsResponse = response.getBody();
-            throw new OMSException(
-                    omsResponse != null ? omsResponse.getMessage()
-                            : "Exception occured while saving payment details.");
+        ResponseEntity<OmsResponse> response;
+        if (!orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)) {
+            PaymentInRequestDto paymentInRequestDto = PaymentInRequestDto.builder()
+                    .challanNos(salesOrderHeader.getId().toString())
+                    .customerId(customer.getId())
+                    .paymentType(orderRequestDto.getPaymentType())
+                    .paymentAccount(orderRequestDto.getRemark())
+                    .amount(salesOrderHeader.getOrderAmount())
+                    .userId(user.getId())
+                    .build();
+            response = paymentInService.savePaymentIn(paymentInRequestDto);
+            if (response.getStatusCode() != HttpStatus.CREATED) {
+                OmsResponse omsResponse = response.getBody();
+                throw new OMSException(
+                        omsResponse != null ? omsResponse.getMessage()
+                                : "Exception occured while saving payment details.");
+            }
         }
 
         response = stockService.updateStockHeaderAndStockDetais(stockHeader,

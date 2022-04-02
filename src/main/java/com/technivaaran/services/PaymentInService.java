@@ -96,7 +96,14 @@ public class PaymentInService {
                     .paymentInHeader(paymentInHeader)
                     .build();
             paymentInDetailsRepository.save(paymentInDetails);
-            salesOrderHeader.setStatus(OrderStatus.COMPLETE.type);
+            salesOrderHeader.setStatus(paymentInRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
+                    ? OrderStatus.PENDING.type
+                    : OrderStatus.COMPLETE.type);
+            salesOrderHeader.setPaymentType(paymentInRequestDto.getPaymentType());
+            if (paymentInRequestDto.getPaymentType()
+                    .equalsIgnoreCase(PaymentType.BANK.type)) {
+                salesOrderHeader.setRemark(paymentInRequestDto.getPaymentAccount());
+            }
             salesOrderHeaderRepository.save(salesOrderHeader);
         }
 
