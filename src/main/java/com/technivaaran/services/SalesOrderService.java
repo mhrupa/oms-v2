@@ -20,6 +20,7 @@ import com.technivaaran.entities.User;
 import com.technivaaran.enums.OrderStatus;
 import com.technivaaran.enums.PaymentType;
 import com.technivaaran.enums.StockType;
+import com.technivaaran.exceptions.OMSException;
 import com.technivaaran.repositories.SalesOderDetailRepository;
 import com.technivaaran.repositories.SalesOrderHeaderRepository;
 import com.technivaaran.utils.DateUtils;
@@ -51,8 +52,8 @@ public class SalesOrderService {
     @Autowired
     private SalesOderDetailRepository salesOderDetailRepository;
 
-    // @Autowired
-    // private OrderAndPaymentService orderAndPaymentService;
+    @Autowired
+    private PaymentInService paymentInService;
 
     public ResponseEntity<OmsResponse> createSalesOrder(OrderRequestDto orderRequestDto) {
         log.info("Inside create sales oreder service");
@@ -83,81 +84,81 @@ public class SalesOrderService {
         Optional<StockDetails> stockDetailsOp = stockService
                 .findStockDetailsById(orderRequestDto.getStockDetailId());
         User user = userService.getUserById(orderRequestDto.getUserId());
-        if (stockDetailsOp.isPresent()) {
-            if ((stockHeader.getClosingQty()
-                    - orderRequestDto.getQuantity()) >= 0) {
-                SalesOrderHeader salesOrderHeader = SalesOrderHeader.builder()
-                        .orderDate(DateUtils.getLocalDateFromDDMMYYYYString(
-                                orderRequestDto.getOrderDate()))
-                        .sellPrice(orderRequestDto.getSellPrice())
-                        .quantity(orderRequestDto.getQuantity())
-                        .courierCharges(orderRequestDto.getCourierCharges())
-                        .paymentType(orderRequestDto.getPaymentType())
-                        .remark(orderRequestDto.getRemark())
-                        .orderAmount(orderRequestDto.getQuantity()
-                                * orderRequestDto.getSellPrice()
-                                + orderRequestDto.getCourierCharges())
-                        .status(orderRequestDto.getPaymentType().equals(PaymentType.BANK.type)
-                                ? OrderStatus.PENDING.type
-                                : OrderStatus.COMPLETE.type)
-                        .stockDetails(stockDetailsOp.get())
-                        .customer(customer)
-                        .stockHeader(stockHeader)
-                        .user(user)
-                        .build();
-
-                salesOrderHeader = salesOrderHeaderRepository.save(salesOrderHeader);
-
-                SalesOrderDetails salesOrderDetails = SalesOrderDetails.builder()
-                        .orderQty(orderRequestDto.getQuantity())
-                        .sellRate(orderRequestDto.getSellPrice())
-                        .status(OrderStatus.PENDING.type)
-                        .transactionDateTime(LocalDateTime.now())
-                        .salesOrderHeader(salesOrderHeader)
-                        .user(user)
-                        .build();
-
-                salesOderDetailRepository.save(salesOrderDetails);
-
-                PaymentInRequestDto paymentInRequestDto = PaymentInRequestDto.builder()
-                        .challanNos(salesOrderHeader.getId().toString())
-                        .customerId(customer.getId())
-                        .paymentType(orderRequestDto.getPaymentType())
-                        .paymentAccount(orderRequestDto.getRemark())
-                        .amount(salesOrderHeader.getOrderAmount())
-                        .userId(user.getId())
-                        .build();
-
-                // orderAndPaymentService.savePaymentInForOrder(paymentInRequestDto);
-
-                ResponseEntity<OmsResponse> response = stockService.updateStockHeaderAndStockDetais(stockHeader,
-                        StockType.OUT.type,
-                        orderRequestDto.getQuantity(), orderRequestDto.getSellPrice(),
-                        stockDetailsOp.get().getBuyPrice(), user);
-                OmsResponse omsResponse = response.getBody();
-                if (!ObjectUtils.isEmpty(omsResponse)) {
-                    return new ResponseEntity<>(OmsResponse.builder()
-                            .message("Sales order created successfully.")
-                            .data(omsResponse.getData()).build(), HttpStatus.OK);
-                } else {
-                    return new ResponseEntity<>(
-                            OmsResponse.builder().message("Invalid order request received.")
-                                    .data(orderRequestDto).build(),
-                            HttpStatus.BAD_REQUEST);
-                }
-            } else {
-                return new ResponseEntity<>(
-                        OmsResponse.builder().message("Available stock is less than order quantity.")
-                                .data(orderRequestDto).build(),
-                        HttpStatus.BAD_REQUEST);
-            }
-        } else {
+        if (stockDetailsOp.isEmpty()) {
             return new ResponseEntity<>(
-                    OmsResponse.builder().message("invalid stock detail data received.")
+                    OmsResponse.builder().message("Invalid stock detail data received.")
                             .data(orderRequestDto).build(),
                     HttpStatus.BAD_REQUEST);
         }
+        if ((stockHeader.getClosingQty()
+                - orderRequestDto.getQuantity()) < 0) {
+            return new ResponseEntity<>(
+                    OmsResponse.builder().message("Available stock is less than order quantity.")
+                            .data(orderRequestDto).build(),
+                    HttpStatus.BAD_REQUEST);
+        }
+        SalesOrderHeader salesOrderHeader = SalesOrderHeader.builder()
+                .orderDate(DateUtils.getLocalDateFromDDMMYYYYString(
+                        orderRequestDto.getOrderDate()))
+                .sellPrice(orderRequestDto.getSellPrice())
+                .quantity(orderRequestDto.getQuantity())
+                .courierCharges(orderRequestDto.getCourierCharges())
+                .paymentType(orderRequestDto.getPaymentType())
+                .remark(orderRequestDto.getRemark())
+                .orderAmount(orderRequestDto.getQuantity()
+                        * orderRequestDto.getSellPrice()
+                        + orderRequestDto.getCourierCharges())
+                .status(orderRequestDto.getPaymentType().equals(PaymentType.BANK.type)
+                        ? OrderStatus.PENDING.type
+                        : OrderStatus.COMPLETE.type)
+                .stockDetails(stockDetailsOp.get())
+                .customer(customer)
+                .stockHeader(stockHeader)
+                .user(user)
+                .build();
+        salesOrderHeader = salesOrderHeaderRepository.save(salesOrderHeader);
 
+        SalesOrderDetails salesOrderDetails = SalesOrderDetails.builder()
+                .orderQty(orderRequestDto.getQuantity())
+                .sellRate(orderRequestDto.getSellPrice())
+                .status(OrderStatus.PENDING.type)
+                .transactionDateTime(LocalDateTime.now())
+                .salesOrderHeader(salesOrderHeader)
+                .user(user)
+                .build();
+        salesOderDetailRepository.save(salesOrderDetails);
+
+        PaymentInRequestDto paymentInRequestDto = PaymentInRequestDto.builder()
+                .challanNos(salesOrderHeader.getId().toString())
+                .customerId(customer.getId())
+                .paymentType(orderRequestDto.getPaymentType())
+                .paymentAccount(orderRequestDto.getRemark())
+                .amount(salesOrderHeader.getOrderAmount())
+                .userId(user.getId())
+                .build();
+        ResponseEntity<OmsResponse> response = paymentInService.savePaymentIn(paymentInRequestDto);
+
+        if (response.getStatusCode() != HttpStatus.CREATED) {
+            OmsResponse omsResponse = response.getBody();
+            throw new OMSException(
+                    omsResponse != null ? omsResponse.getMessage()
+                            : "Exception occured while saving payment details.");
+        }
+
+        response = stockService.updateStockHeaderAndStockDetais(stockHeader,
+                StockType.OUT.type, orderRequestDto.getQuantity(), orderRequestDto.getSellPrice(),
+                stockDetailsOp.get().getBuyPrice(), user);
+        OmsResponse omsResponse = response.getBody();
+        if (!ObjectUtils.isEmpty(omsResponse)) {
+            return new ResponseEntity<>(OmsResponse.builder()
+                    .message("Sales order created successfully.")
+                    .data(omsResponse.getData()).build(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(
+                    OmsResponse.builder().message("Invalid order request received.")
+                            .data(orderRequestDto).build(),
+                    HttpStatus.BAD_REQUEST);
+        }
     }
 
     public ResponseEntity<OmsResponse> getPendingOrders() {

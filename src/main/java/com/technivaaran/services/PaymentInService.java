@@ -19,6 +19,7 @@ import com.technivaaran.enums.OrderStatus;
 import com.technivaaran.enums.PaymentType;
 import com.technivaaran.repositories.PaymentInDetailsRepository;
 import com.technivaaran.repositories.PaymentInHeaderRepository;
+import com.technivaaran.repositories.SalesOrderHeaderRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -42,10 +43,10 @@ public class PaymentInService {
     private CustomerService customerService;
 
     @Autowired
-    private SalesOrderService orderService;
+    private UserService userService;
 
     @Autowired
-    private UserService userService;
+    private SalesOrderHeaderRepository salesOrderHeaderRepository;
 
     @Transactional
     public ResponseEntity<OmsResponse> savePaymentIn(PaymentInRequestDto paymentInRequestDto) {
@@ -57,56 +58,52 @@ public class PaymentInService {
         }
         Optional<CustomerEntity> customerOp = customerService
                 .findCustomerById(paymentInRequestDto.getCustomerId());
-        if (customerOp.isPresent()) {
-            List<Long> challanNoList = Arrays.asList(paymentInRequestDto.getChallanNos().split(","))
-                    .stream()
-                    .map(Long::parseLong).collect(Collectors.toList());
-            List<SalesOrderHeader> salesOrderHeaders = orderService.findByIdIn(challanNoList);
-
-            List<Long> invalidChallanList = validateChallanNo(challanNoList, salesOrderHeaders);
-            if (!invalidChallanList.isEmpty()) {
-                return new ResponseEntity<>(OmsResponse.builder()
-                        .message("Invalid challan no received." + invalidChallanList)
-                        .build(), HttpStatus.BAD_REQUEST);
-            }
-
-            PaymentInHeader paymentInHeader = PaymentInHeader.builder()
-                    .paymentInDate(LocalDate.now())
-                    .amount(paymentInRequestDto.getAmount())
-                    .paymentType(paymentInRequestDto.getPaymentType())
-                    .paymentAccountName(
-                            paymentInRequestDto.getPaymentType()
-                                    .equalsIgnoreCase(PaymentType.BANK.type)
-                                            ? paymentInRequestDto.getPaymentAccount()
-                                            : "NA")
-                    .customer(customerOp.get())
-                    .user(user)
-                    .build();
-
-            // PaymentInDetails
-
-            paymentInHeader = paymentInHeaderRepository.save(paymentInHeader);
-
-            for (SalesOrderHeader salesOrderHeader : salesOrderHeaders) {
-                PaymentInDetails paymentInDetails = PaymentInDetails.builder()
-                        .challanNo(salesOrderHeader.getId())
-                        .orderAmount(salesOrderHeader.getOrderAmount())
-                        .transactionDate(LocalDate.now())
-                        .paymentInHeader(paymentInHeader)
-                        .build();
-                paymentInDetailsRepository.save(paymentInDetails);
-                salesOrderHeader.setStatus(OrderStatus.COMPLETE.type);
-                orderService.updateOrder(salesOrderHeader);
-            }
-
-            return new ResponseEntity<>(
-                    OmsResponse.builder().message("Payment record created successfully.").build(),
-                    HttpStatus.CREATED);
-        } else {
+        if (customerOp.isEmpty()) {
             return new ResponseEntity<>(
                     OmsResponse.builder().message("Invalid customer received.").build(),
                     HttpStatus.BAD_REQUEST);
         }
+        List<Long> challanNoList = Arrays.asList(paymentInRequestDto.getChallanNos().split(","))
+                .stream()
+                .map(Long::parseLong).collect(Collectors.toList());
+        List<SalesOrderHeader> salesOrderHeaders = salesOrderHeaderRepository.findByIdIn(challanNoList);
+
+        List<Long> invalidChallanList = validateChallanNo(challanNoList, salesOrderHeaders);
+        if (!invalidChallanList.isEmpty()) {
+            return new ResponseEntity<>(OmsResponse.builder()
+                    .message("Invalid challan no received." + invalidChallanList)
+                    .build(), HttpStatus.BAD_REQUEST);
+        }
+
+        PaymentInHeader paymentInHeader = PaymentInHeader.builder()
+                .paymentInDate(LocalDate.now())
+                .amount(paymentInRequestDto.getAmount())
+                .paymentType(paymentInRequestDto.getPaymentType())
+                .paymentAccountName(
+                        paymentInRequestDto.getPaymentType()
+                                .equalsIgnoreCase(PaymentType.BANK.type)
+                                        ? paymentInRequestDto.getPaymentAccount()
+                                        : "NA")
+                .customer(customerOp.get())
+                .user(user)
+                .build();
+        paymentInHeader = paymentInHeaderRepository.save(paymentInHeader);
+
+        for (SalesOrderHeader salesOrderHeader : salesOrderHeaders) {
+            PaymentInDetails paymentInDetails = PaymentInDetails.builder()
+                    .challanNo(salesOrderHeader.getId())
+                    .orderAmount(salesOrderHeader.getOrderAmount())
+                    .transactionDate(LocalDate.now())
+                    .paymentInHeader(paymentInHeader)
+                    .build();
+            paymentInDetailsRepository.save(paymentInDetails);
+            salesOrderHeader.setStatus(OrderStatus.COMPLETE.type);
+            salesOrderHeaderRepository.save(salesOrderHeader);
+        }
+
+        return new ResponseEntity<>(
+                OmsResponse.builder().message("Payment record created successfully.").build(),
+                HttpStatus.CREATED);
     }
 
     private List<Long> validateChallanNo(List<Long> challanNoList, List<SalesOrderHeader> salesOrderHeaders) {
