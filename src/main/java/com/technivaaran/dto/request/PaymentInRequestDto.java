@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
 public class PaymentInRequestDto {
@@ -14,4 +16,6 @@ public class PaymentInRequestDto {
     private long customerId;
     private String paymentType;
     private String paymentAccount;
+    private double amount;
+    private long userId;
 }

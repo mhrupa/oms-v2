@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SalesOrderController {
 
     @Autowired
-    SalesOrderService salesOrderService;
+    private SalesOrderService salesOrderService;
 
     @PostMapping("/salesOrders")
     public ResponseEntity<OmsResponse> createSalesOrder(@RequestBody OrderRequestDto orderRequestDto) {

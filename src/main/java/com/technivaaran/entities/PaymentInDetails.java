@@ -23,7 +23,7 @@ public class PaymentInDetails extends BaseEntity<Long> {
 
     private long challanNo;
 
-    private float orderAmount;
+    private double orderAmount;
 
     private LocalDate transactionDate;
 
