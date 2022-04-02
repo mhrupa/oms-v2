@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.transaction.Transactional;
+
 import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.dto.request.OrderRequestDto;
 import com.technivaaran.dto.request.PaymentInRequestDto;
@@ -49,8 +51,8 @@ public class SalesOrderService {
     @Autowired
     private SalesOderDetailRepository salesOderDetailRepository;
 
-    @Autowired
-    private PaymentInService paymentInService;
+    // @Autowired
+    // private OrderAndPaymentService orderAndPaymentService;
 
     public ResponseEntity<OmsResponse> createSalesOrder(OrderRequestDto orderRequestDto) {
         log.info("Inside create sales oreder service");
@@ -74,6 +76,7 @@ public class SalesOrderService {
 
     }
 
+    @Transactional
     private ResponseEntity<OmsResponse> validateStockDetailsAndcreateOrder(OrderRequestDto orderRequestDto,
             StockHeader stockHeader, CustomerEntity customer) {
 
@@ -103,7 +106,7 @@ public class SalesOrderService {
                         .user(user)
                         .build();
 
-                salesOrderHeaderRepository.save(salesOrderHeader);
+                salesOrderHeader = salesOrderHeaderRepository.save(salesOrderHeader);
 
                 SalesOrderDetails salesOrderDetails = SalesOrderDetails.builder()
                         .orderQty(orderRequestDto.getQuantity())
@@ -117,9 +120,15 @@ public class SalesOrderService {
                 salesOderDetailRepository.save(salesOrderDetails);
 
                 PaymentInRequestDto paymentInRequestDto = PaymentInRequestDto.builder()
+                        .challanNos(salesOrderHeader.getId().toString())
+                        .customerId(customer.getId())
+                        .paymentType(orderRequestDto.getPaymentType())
+                        .paymentAccount(orderRequestDto.getRemark())
+                        .amount(salesOrderHeader.getOrderAmount())
+                        .userId(user.getId())
+                        .build();
 
-
-                .build();
+                // orderAndPaymentService.savePaymentInForOrder(paymentInRequestDto);
 
                 ResponseEntity<OmsResponse> response = stockService.updateStockHeaderAndStockDetais(stockHeader,
                         StockType.OUT.type,

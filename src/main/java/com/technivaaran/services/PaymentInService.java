@@ -77,8 +77,7 @@ public class PaymentInService {
                     .paymentAccountName(
                             paymentInRequestDto.getPaymentType()
                                     .equalsIgnoreCase(PaymentType.BANK.type)
-                                            ? paymentInRequestDto
-                                                    .getPaymentAccount()
+                                            ? paymentInRequestDto.getPaymentAccount()
                                             : "NA")
                     .customer(customerOp.get())
                     .user(user)

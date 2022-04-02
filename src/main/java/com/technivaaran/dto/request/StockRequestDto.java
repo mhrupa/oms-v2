@@ -22,4 +22,5 @@ public class StockRequestDto {
     private float buyPrice;
     private float sellPrice;
     private long userId;
+    private String remarkText;
 }

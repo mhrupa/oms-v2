@@ -31,6 +31,7 @@ public class StockHeaderResponseMapper {
                 .buyPrice(stockHeaderEntity.getBuyPrice())
                 .sellPrice(stockHeaderEntity.getSellPrice())
                 .stockDetailsId(stockHeaderEntity.getStockDetailId())
+                .remarkText(stockHeaderEntity.getRemark())
                 .build();
     }
 }

@@ -31,4 +31,5 @@ public class StockResponseDto {
     private String vendor;
     private long vendorId;
     private long stockDetailsId;
+    private String remarkText;
 }

@@ -38,6 +38,7 @@
                 "columns": [
                     { data: "box" },
                     { data: "model" },
+                    { data: "remarkText" },
                     { data: "part" },
                     { data: "configuration" },
                     { data: "details" },
@@ -179,8 +180,8 @@
         }
         function toggleBuyPrice() {
             var table = $('#dataTable').DataTable();
-            if (table.column(6).visible()) {
-                table.column(6).visible(!table.column(6).visible());
+            if (table.column(7).visible()) {
+                table.column(7).visible(!table.column(7).visible());
                 return;
             }
             $("#userName").val("");
@@ -209,7 +210,7 @@
             };
             $.post("/users/validate/" + $("#userNameForValidation").val(), JSON.stringify(requestData), function (res) {
                 var table = $('#dataTable').DataTable();
-                table.column(6).visible(!table.column(6).visible());
+                table.column(7).visible(!table.column(7).visible());
                 $("#validateUserModal").modal("hide");
                 $("#validatePasswordBtn").removeAttr("disabled");
                 initLocationResponseData(res.data);
@@ -427,7 +428,8 @@
                 "buyPrice": $("#buyPrice").val(),
                 "sellPrice": $("#sellPrice").val(),
                 "userId": appUser.userId,
-                "vendorId": $("#vendor").val()
+                "vendorId": $("#vendor").val(),
+                "remarkText": $("#remarkText").val()
             };
             $.post("/stock", JSON.stringify(requestData), function (res) {
                 var rowUpdated = false;
@@ -1058,6 +1060,13 @@
                             id="sellPrice">
                     </div>
                 </div>
+                <div class="row mb-1" style="padding-left: 12px;">
+                    <div class="col ps-2">
+                        <label for="qty" class="p-1 pb-0">Remark</label>
+                        <input min="0" autocomplete="off" type="text" class="form-control" aria-label="remarkText"
+                            id="remarkText">
+                    </div>
+                </div>
                 <div class="ps-2 mt-3">
                     <button type="button" style="width: 100%;" id="addStockBtn" class="btn btn-primary">Add</button>
                 </div>
@@ -1078,6 +1087,7 @@
                         <tr>
                             <th class="th-sm" style="max-width: 30px;">Box</th>
                             <th class="th-sm">Model</th>
+                            <th class="th-sm">Remark</th>
                             <th class="th-sm">Part</th>
                             <th class="th-sm">Config</th>
                             <th class="th-sm" style="max-width: 50px;">Details</th>

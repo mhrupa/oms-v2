@@ -93,14 +93,14 @@ public class StockService {
         if (stockHeaderOp.isPresent()) {
             return new ResponseEntity<>(
                     OmsResponse.builder().message("Stock data already available click on table row to update data.")
-                            .build(),
-                    HttpStatus.BAD_REQUEST);
+                            .build(), HttpStatus.BAD_REQUEST);
         } else {
             stockHeader = StockHeader.builder()
                     .openingQty(0)
                     .inQty(stockRequestDto.getQty())
                     .openingQty(0)
                     .outQty(0)
+                    .remark(stockRequestDto.getRemarkText())
                     .closingQty(stockRequestDto.getQty())
                     .storageLocation(storageLocationOp.get())
                     .itemMaster(configEntity.getPartEntity().getItemMaster())

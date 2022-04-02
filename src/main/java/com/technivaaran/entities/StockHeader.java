@@ -46,6 +46,7 @@ public class StockHeader extends BaseEntity<Long> {
     private float buyPrice;
     private float sellPrice;
     private String details;
+    private String remark;
 
     private long stockDetailId;
     
