@@ -39,6 +39,11 @@ public class StockDetails extends BaseEntity<Long> {
     private float buyPrice;
     private float sellPrice;
 
+    private String type;
+
+    @Column(columnDefinition = "long default 0")
+    private long refStockHeaderId;
+
     @ManyToOne
     private StockHeader stockHeader;
 

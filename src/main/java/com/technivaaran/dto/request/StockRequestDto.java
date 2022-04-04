@@ -23,4 +23,12 @@ public class StockRequestDto {
     private float sellPrice;
     private long userId;
     private String remarkText;
+
+    private String updatedBoxName;
+    private String updatedModelName;
+    private long updatedPartId;
+    private long updatedConfigId;
+    private String updatedDetails;
+    private long updatedVendorId;
+    private float updatedBuyPrice;
 }

@@ -25,8 +25,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StockHeader extends BaseEntity<Long> {
 
-    
-
     @Column(name = "stock_date")
 	@JsonIgnore
 	private LocalDate stockDate;
