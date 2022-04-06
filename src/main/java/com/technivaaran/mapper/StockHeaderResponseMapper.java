@@ -2,6 +2,7 @@ package com.technivaaran.mapper;
 
 import com.technivaaran.dto.response.StockResponseDto;
 import com.technivaaran.entities.StockHeader;
+import com.technivaaran.enums.StockTransactionType;
 
 import org.springframework.stereotype.Component;
 
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class StockHeaderResponseMapper {
 
-    public StockResponseDto convertToDto(StockHeader stockHeaderEntity) {
+    public StockResponseDto convertToDto(StockHeader stockHeaderEntity, StockTransactionType stockTransactionType) {
         return StockResponseDto.builder()
                 .id(stockHeaderEntity.getId())
                 .box(stockHeaderEntity.getStorageLocation().getLocationName())
@@ -32,6 +33,7 @@ public class StockHeaderResponseMapper {
                 .sellPrice(stockHeaderEntity.getSellPrice())
                 .stockDetailsId(stockHeaderEntity.getStockDetailId())
                 .remarkText(stockHeaderEntity.getRemark())
+                .stockTransactionType(stockTransactionType.type)
                 .build();
     }
 }

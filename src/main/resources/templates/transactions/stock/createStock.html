@@ -28,7 +28,7 @@
         var stockData = new Array();
         var table;
         var vendors, customers, locations, paymentAccounts;
-        var selectedRowData;
+        var selectedRowData, selectedRow;
         var selectedCustomer;
         var isValidUser = false;
         $(document).ready(function () {
@@ -147,6 +147,7 @@
                 initFields();
             });
             $("#dataTable tbody").css("cursor", "pointer").on("click", "tr", function () {
+                selectedRow = table.row(this);
                 selectedRowData = table.row(this).data();
                 $("#optionModal").modal("show");
             });
@@ -399,8 +400,8 @@
                 "qty": $("#tempTotalStock").val(),
                 "stockType": "IN",
                 "sellPrice": $("#sellPriceForEditStock").val(),
-                
-                "updatedBoxName": $("#boxForEditStock").val(),
+
+                "updatedBoxName": $("#boxChangeForEditStock").val(),
                 "updatedModelName": $("#modelDataForEditStock").val(),
                 "updatedPartId": $("#partForStockChange").val(),
                 "updatedConfigId": $("#configForStockChange").val(),
@@ -415,6 +416,7 @@
                 var rowUpdated = false;
                 var rowTodelete;
                 var rowTodeleteFlag = false;
+
                 table.rows().every(function (rowIdx, tableLoop, rowLoop) {
                     var d = this.data();
                     if (d.box == res.data.box && d.model == res.data.model
@@ -439,6 +441,10 @@
                 if (rowTodeleteFlag) {
                     rowTodelete.remove().draw(false);
                 }
+                if (res.data.stockTransactionType == 'Convert') {
+                    selectedRow.remove().draw();
+                }
+
                 table.draw();
                 if (!rowUpdated) {
                     table.row.add(res.data).draw(false);
@@ -447,7 +453,7 @@
                     $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
                 }
                 initFields();
-            }).fail(function (res) {
+                            }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $(".toast").addClass("bg-danger").toast("show");
             });
@@ -1401,8 +1407,7 @@
                         <div class="input-group mb-2">
                             <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Sell
                                 Price</span>
-                            <input type="text" disabled="disabled"
-                                class="form-control" id="currentSellPrice">
+                            <input type="text" disabled="disabled" class="form-control" id="currentSellPrice">
                             <input type="text" class="form-control numberOnly" id="sellPriceForEditStock">
                         </div>
                         <div class="input-group mb-3">
@@ -1410,8 +1415,7 @@
                                 style="width: 120px;text-align: right;display: block;">Quantity</span>
                             <input type="text" style="max-width: 60px;text-align: center;" disabled="disabled"
                                 class="form-control" id="currentStock">
-                            <input type="number" 
-                                class="form-control numberOnlyWithNegativeValues" id="qtyForEditStock"
+                            <input type="number" class="form-control numberOnlyWithNegativeValues" id="qtyForEditStock"
                                 placeholder="Quantity" value="0" autocomplete="off">
                             <span class="input-group-text"
                                 style="width: 40px;text-align: right;display: block;">=</span>

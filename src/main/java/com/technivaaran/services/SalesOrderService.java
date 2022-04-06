@@ -19,6 +19,7 @@ import com.technivaaran.entities.StockHeader;
 import com.technivaaran.entities.User;
 import com.technivaaran.enums.OrderStatus;
 import com.technivaaran.enums.PaymentType;
+import com.technivaaran.enums.StockTransactionType;
 import com.technivaaran.enums.StockType;
 import com.technivaaran.exceptions.OMSException;
 import com.technivaaran.repositories.SalesOderDetailRepository;
@@ -148,7 +149,7 @@ public class SalesOrderService {
 
         response = stockService.updateStockHeaderAndStockDetais(stockHeader,
                 StockType.OUT.type, orderRequestDto.getQuantity(), orderRequestDto.getSellPrice(),
-                stockDetailsOp.get().getBuyPrice(), user);
+                stockDetailsOp.get().getBuyPrice(), user, StockTransactionType.NORMAL);
         OmsResponse omsResponse = response.getBody();
         if (!ObjectUtils.isEmpty(omsResponse)) {
             return new ResponseEntity<>(OmsResponse.builder()

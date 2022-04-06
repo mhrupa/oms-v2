@@ -41,7 +41,7 @@ public class StockDetails extends BaseEntity<Long> {
 
     private String type;
 
-    @Column(columnDefinition = "long default 0")
+    @Column(columnDefinition = "BIGINT(20) DEFAULT 0")
     private long refStockHeaderId;
 
     @ManyToOne
