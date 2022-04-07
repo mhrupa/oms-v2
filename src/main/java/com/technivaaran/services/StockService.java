@@ -142,55 +142,67 @@ public class StockService {
     public ResponseEntity<OmsResponse> updateStockHeaderAndStockDetaisById(long id, StockRequestDto stockRequestDto) {
         Optional<StockHeader> stockHeaderOp = stockHeaderRepository.findById(id);
 
-        Optional<ConfigDetailsEntity> configOp = configDetailsService.findById(stockRequestDto.getUpdatedConfigId());
-        if (configOp.isEmpty()) {
-            return new ResponseEntity<>(OmsResponse.builder().message("Invalid configuration received.").build(),
-                    HttpStatus.BAD_REQUEST);
-        }
-        Optional<StorageLocationEntity> storageLocationOp = storageLocationService
-                .findByLocationName(stockRequestDto.getUpdatedBoxName());
-        if (storageLocationOp.isEmpty()) {
-            return new ResponseEntity<>(OmsResponse.builder().message("Invalid box no received.").build(),
-                    HttpStatus.BAD_REQUEST);
-        }
-        Optional<VendorEntity> vendorOp = vendorService.findById(stockRequestDto.getUpdatedVendorId());
-        if (vendorOp.isEmpty()) {
-            return new ResponseEntity<>(OmsResponse.builder().message("Invalid Vendor name received.").build(),
-                    HttpStatus.BAD_REQUEST);
-        }
-        ConfigDetailsEntity configEntity = configOp.get();
-        Optional<StockHeader> updateStockHeaderOp = findStockHeaderByLocationAndModelAndPartAndConfigAndVendorAndBuyPrice(
-                storageLocationOp.get(), configEntity, vendorOp.get(), stockRequestDto.getUpdatedBuyPrice());
         if (stockHeaderOp.isPresent()) {
+            StockHeader stockHeader = stockHeaderOp.get();
+            Optional<ConfigDetailsEntity> configOp = configDetailsService
+                    .findById(stockRequestDto.getUpdatedConfigId());
+            if (configOp.isEmpty()) {
+                return new ResponseEntity<>(OmsResponse.builder().message("Invalid configuration received.").build(),
+                        HttpStatus.BAD_REQUEST);
+            }
+            Optional<StorageLocationEntity> storageLocationOp = storageLocationService
+                    .findByLocationName(stockRequestDto.getUpdatedBoxName());
+            if (storageLocationOp.isEmpty()) {
+                return new ResponseEntity<>(OmsResponse.builder().message("Invalid box no received.").build(),
+                        HttpStatus.BAD_REQUEST);
+            }
+            Optional<VendorEntity> vendorOp = vendorService.findById(stockRequestDto.getUpdatedVendorId());
+            if (vendorOp.isEmpty()) {
+                return new ResponseEntity<>(OmsResponse.builder().message("Invalid Vendor name received.").build(),
+                        HttpStatus.BAD_REQUEST);
+            }
+            ConfigDetailsEntity configEntity = configOp.get();
+            Optional<StockHeader> updateStockHeaderOp = findStockHeaderByLocationAndModelAndPartAndConfigAndVendorAndBuyPrice(
+                    storageLocationOp.get(), configEntity, vendorOp.get(), stockRequestDto.getUpdatedBuyPrice());
+
             User user = userService.getUserById(stockRequestDto.getUserId());
             if (updateStockHeaderOp.isPresent()) {
-                if (updateStockHeaderOp.get().getId().equals(stockHeaderOp.get().getId())) {
-                    return updateStockHeaderAndStockDetais(stockHeaderOp.get(), stockRequestDto.getStockType(),
-                            stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
-                            stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.NORMAL);
-                } else {
-                    StockHeader stockHeaderOrg = stockHeaderOp.get();
-                    stockHeaderOrg.setOutQty(stockHeaderOrg.getClosingQty());
-                    stockHeaderOrg.setClosingQty(0);
+                if (updateStockHeaderOp.get().getId().equals(stockHeader.getId())) {
+                    if (stockRequestDto.getUpdatedDetails().equalsIgnoreCase(stockHeader.getDetails())) {
+                        return updateStockHeaderAndStockDetais(stockHeader, stockRequestDto.getStockType(),
+                                stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
+                                stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.NORMAL);
+                    } else {
+                        stockHeader.setDetails(stockRequestDto.getUpdatedDetails());
+                        return updateStockHeaderAndStockDetais(stockHeader, stockRequestDto.getStockType(),
+                                stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
+                                stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.CONVERT);
+                    }
 
-                    StockDetails stockDetails = createStockDetails(0, 0, user, 0, stockHeaderOrg.getClosingQty());
+                } else {
+                    ResponseEntity<OmsResponse> response = updateStockHeaderAndStockDetais(updateStockHeaderOp.get(), stockRequestDto.getStockType(),
+                    stockHeader.getClosingQty() + stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
+                    stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.CONVERT);
+
+                    stockHeader.setOutQty(stockHeader.getClosingQty());
+                    stockHeader.setClosingQty(0);
+
+                    StockDetails stockDetails = createStockDetails(0, 0, user, 0, stockHeader.getClosingQty());
                     stockDetails.setType(StockType.CONVERT.type);
                     stockDetails.setRefStockHeaderId(updateStockHeaderOp.get().getId());
 
-                    updateStock(stockHeaderOrg, stockDetails, StockTransactionType.CONVERT);
+                    updateStock(stockHeader, stockDetails, StockTransactionType.CONVERT);
 
-                    return updateStockHeaderAndStockDetais(updateStockHeaderOp.get(), stockRequestDto.getStockType(),
-                            stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
-                            stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.CONVERT);
+                    return response;
                 }
             } else {
-                StockHeader stockHeader = StockHeader.builder()
+                StockHeader stockHeaderNew = StockHeader.builder()
                         .openingQty(0)
-                        .inQty(stockRequestDto.getQty())
+                        .inQty(stockHeader.getClosingQty() + stockRequestDto.getQty())
                         .openingQty(0)
                         .outQty(0)
-                        .remark(stockHeaderOp.get().getRemark())
-                        .closingQty(stockRequestDto.getQty())
+                        .remark(stockHeader.getRemark())
+                        .closingQty(stockHeader.getClosingQty() + stockRequestDto.getQty())
                         .storageLocation(storageLocationOp.get())
                         .itemMaster(configEntity.getPartEntity().getItemMaster())
                         .partEntity(configEntity.getPartEntity()).configDetailsEntity(configEntity)
@@ -201,26 +213,25 @@ public class StockService {
                         .build();
 
                 StockDetails stockDetails = createStockDetails(stockRequestDto.getUpdatedBuyPrice(),
-                        stockRequestDto.getSellPrice(), user, stockRequestDto.getQty(), 0);
-                stockDetails.setStockHeader(stockHeader);
+                        stockRequestDto.getSellPrice(), user,
+                        stockHeader.getClosingQty() + stockRequestDto.getQty(), 0);
                 stockDetails.setType(StockType.IN.type);
 
-                updateStock(stockHeader, stockDetails, StockTransactionType.CONVERT);
+                updateStock(stockHeaderNew, stockDetails, StockTransactionType.CONVERT);
 
                 /** Update old stock row */
-                StockHeader stockHeaderOrg = stockHeaderOp.get();
-                stockHeaderOrg.setOutQty(stockHeaderOrg.getClosingQty());
-                stockHeaderOrg.setClosingQty(0);
+                stockHeader.setOutQty(stockHeader.getClosingQty());
+                stockHeader.setClosingQty(0);
 
                 /** Create row for old stock */
-                StockDetails stockDetailsOrg = createStockDetails(0, 0, user, 0, stockHeaderOrg.getClosingQty());
+                StockDetails stockDetailsOrg = createStockDetails(0, 0, user, 0, stockHeader.getClosingQty());
                 stockDetailsOrg.setType(StockType.CONVERT.type);
-                stockDetailsOrg.setRefStockHeaderId(stockHeader.getId());
+                stockDetailsOrg.setRefStockHeaderId(stockHeaderNew.getId());
 
-                updateStock(stockHeaderOrg, stockDetailsOrg, StockTransactionType.CONVERT);
+                updateStock(stockHeader, stockDetailsOrg, StockTransactionType.CONVERT);
 
                 return new ResponseEntity<>(OmsResponse.builder().message(STOCK_UPDATE_SUCCESS)
-                        .data(stockHeaderResponseMapper.convertToDto(stockHeader, StockTransactionType.CONVERT))
+                        .data(stockHeaderResponseMapper.convertToDto(stockHeaderNew, StockTransactionType.CONVERT))
                         .build(), HttpStatus.OK);
             }
         } else {
@@ -231,7 +242,7 @@ public class StockService {
     }
 
     public ResponseEntity<OmsResponse> updateStockHeaderAndStockDetais(StockHeader stockHeader,
-            String stockType, int quantity, float sellPrice, float buyPrice, User user,
+            String stockType, float quantity, float sellPrice, float buyPrice, User user,
             StockTransactionType stockTransactionType) {
         log.info("update stock header by stockHeader id and stockType");
         StockDetails stockDetails = null;

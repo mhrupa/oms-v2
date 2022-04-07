@@ -397,7 +397,7 @@
             }
 
             var requestData = {
-                "qty": $("#tempTotalStock").val(),
+                "qty": $("#qtyForEditStock").val(),
                 "stockType": "IN",
                 "sellPrice": $("#sellPriceForEditStock").val(),
 
@@ -1096,7 +1096,7 @@
                 <div class="mb-1 ps-2">
                     <label class="p-1 pb-0" for="boxNo"><span style="text-decoration: underline;">B</span>ox</label>
                     <div class="input-group">
-                        <input class="form-control" list="boxData" accesskey="b" id="boxNo" placeholder="Search Box...">
+                        <input class="form-control" autocomplete="off" list="boxData" accesskey="b" id="boxNo" placeholder="Search Box...">
                         <datalist id="boxData">
                         </datalist>
                         <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
@@ -1114,7 +1114,7 @@
                 <div class="ps-2">
                     <label for="model" class="p-1 pb-0">Motherboard Model</label>
                     <div class="input-group">
-                        <input class="form-control" list="model" id="modelData" placeholder="Search Model...">
+                        <input class="form-control" autocomplete="off" list="model" id="modelData" placeholder="Search Model...">
                         <datalist id="model">
                         </datalist>
                         <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
@@ -1355,7 +1355,7 @@
                             <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Box
                                 No</span>
                             <input type="text" disabled="disabled" class="form-control" id="boxForEditStock">
-                            <input class="form-control" list="boxNoForEditStockList" accesskey="b"
+                            <input autocomplete="off" class="form-control" list="boxNoForEditStockList" accesskey="b"
                                 id="boxChangeForEditStock" placeholder="Search Box...">
                             <datalist id="boxNoForEditStockList">
                             </datalist>
@@ -1370,7 +1370,7 @@
                             <span class="input-group-text"
                                 style="width: 120px;text-align: right;display: block;">Model</span>
                             <input type="text" disabled="disabled" class="form-control" id="modelForEditStock">
-                            <input class="form-control" list="modelDataForEditStockList" id="modelDataForEditStock"
+                            <input autocomplete="off" class="form-control" list="modelDataForEditStockList" id="modelDataForEditStock"
                                 placeholder="Search Model...">
                             <datalist id="modelDataForEditStockList">
                             </datalist>
