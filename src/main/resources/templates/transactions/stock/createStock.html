@@ -977,7 +977,7 @@
             $.get("/remarks", function (res) {
                 remarks = res;
                 $("#remarkText").empty();
-                $("#remarkText").append("<option selected='selected' value='0'>Select Vendor</option>");
+                $("#remarkText").append("<option selected='selected' value='0'>Select Remark</option>");
                 remarks.forEach(remark => {
                     $("#remarkText").append("<option value='" + remark.id + "'>" + remark.remarkText + "</option>");
                 });
