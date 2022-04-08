@@ -31,7 +31,7 @@
         var items = new Array();
         var stockData = new Array();
         var table;
-        var vendors, customers, locations, paymentAccounts;
+        var vendors, customers, locations, paymentAccounts, remarks;
         var selectedRowData, selectedRow;
         var selectedCustomer;
         var isValidUser, isUserSignedIn, isStockRequest = false;
@@ -167,10 +167,26 @@
 
         function showRemarkModal() {
             $("remarkTextField").val("");
-            $("#addRemarkModal").modal("show");   
+            $("#addRemarkModal").modal("show");
         }
         function addNewRemark() {
-
+            if ($("remarkTextField").val() == "") {
+                $("remarkTextField").focus();
+                return false;
+            }
+            var requestData = {
+                "remark": $("#remarkTextField").val()
+            };
+            $.post("/remarks", JSON.stringify(requestData), function (res) {
+                initRemarkResponseData(res.data);
+                $("#addRemarkModal").modal("hide");
+                $("#omsToast").html(res.message);
+                $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
+            }).fail(function (res) {
+                $("#addRemarkModal").modal("hide");
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
         }
 
         function printChallanClick() {
@@ -345,6 +361,7 @@
             initStockData();
             initCustomerData();
             initPaymentAccountData();
+            initRemarkData();
         }
 
         function updateStock() {
@@ -956,6 +973,19 @@
             }
         }
 
+        function initRemarkData() {
+            $.get("/remarks", function (res) {
+                remarks = res;
+                $("#remarkText").empty();
+                $("#remarkText").append("<option selected='selected' value='0'>Select Vendor</option>");
+                remarks.forEach(remark => {
+                    $("#remarkText").append("<option value='" + remark.id + "'>" + remark.remarkText + "</option>");
+                });
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
+        }
         function initVendorData() {
             $.get("/vendors", function (res) {
                 vendors = res;
@@ -1118,6 +1148,14 @@
                 $("#orderRemark").val(paymentAccount.id);
             }
         }
+        function initRemarkResponseData(remark) {
+            if (remark) {
+                remarks.push(remark);
+                $("#remarkText").append("<option value='" + remark.id + "'>" + remark.remarkText + "</option>");
+                $("#remarkText").val(remark.id);
+                $("#remarkText").focus();
+            }
+        }
     </script>
 </head>
 
@@ -1206,8 +1244,7 @@
                     <div class="col ps-2">
                         <label for="qty" class="p-1 pb-0">Remark</label>
                         <div class="input-group">
-                            <input min="0" autocomplete="off" type="text" class="form-control" aria-label="remarkText"
-                                id="remarkText">
+                            <select class="form-control" id="remarkText"></select>
                             <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
                                 data-bs-placement="top" id="addRemarkBtn" title="Add New Remark">+</button>
                         </div>
