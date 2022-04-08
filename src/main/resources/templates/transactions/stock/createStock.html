@@ -17,6 +17,10 @@
             cursor: pointer;
         }
 
+        .dataTables_filter input {
+            min-width: 350px;
+        }
+
         @media print {
             @page {
                 size: 150mm 50mm;
@@ -30,7 +34,7 @@
         var vendors, customers, locations, paymentAccounts;
         var selectedRowData, selectedRow;
         var selectedCustomer;
-        var isValidUser = false;
+        var isValidUser, isUserSignedIn, isStockRequest = false;
         $(document).ready(function () {
             initPage();
             $(".numberOnly").keypress(numberOnly);
@@ -97,6 +101,9 @@
             $('#addAccountNameForPaymentModal').on('shown.bs.modal', function () {
                 $("#accountName").focus();
             });
+            $('#addRemarkModal').on('shown.bs.modal', function () {
+                $("#remarkTextField").focus();
+            });
 
             $('#toggleBuyPrice').click(toggleBuyPrice);
 
@@ -128,6 +135,8 @@
             $("#showAccountForPaymentModalBtn").click(showAccountForPaymentBtnClick);
             $("#createAccountBtn").click(createAccountForPayment)
             $("#printChallan").click(printChallanClick);
+            $("#addRemarkBtn").click(showRemarkModal);
+            $("#createRemarkBtn").click(addNewRemark);
 
             $("#addStockBtn").click(() => {
                 if (validateFields()) {
@@ -155,6 +164,15 @@
             $("#onloadSpinner").css("visibility", "hidden");
             $("#boxNo").focus();
         });
+
+        function showRemarkModal() {
+            $("remarkTextField").val("");
+            $("#addRemarkModal").modal("show");   
+        }
+        function addNewRemark() {
+
+        }
+
         function printChallanClick() {
             $("#printOptionModal").modal("hide");
             var divToPrint = document.getElementById("printArea");
@@ -227,11 +245,17 @@
                 "password": $("#password").val()
             };
             $.post("/users/validate/" + $("#userNameForValidation").val(), JSON.stringify(requestData), function (res) {
-                var table = $('#dataTable').DataTable();
-                table.column(7).visible(!table.column(7).visible());
                 $("#validateUserModal").modal("hide");
                 $("#validatePasswordBtn").removeAttr("disabled");
-                initLocationResponseData(res.data);
+                if (isStockRequest) {
+                    isUserSignedIn = true;
+                    isStockRequest = false;
+                    savaData();
+                } else {
+                    var table = $('#dataTable').DataTable();
+                    table.column(7).visible(!table.column(7).visible());
+                }
+                // initLocationResponseData(res.data);
             }).fail(function (res) {
                 $("#validateUserModal").modal("hide");
                 $("#omsToast").html(JSON.parse(res.responseText).message);
@@ -453,12 +477,20 @@
                     $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
                 }
                 initFields();
-                            }).fail(function (res) {
+            }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $(".toast").addClass("bg-danger").toast("show");
             });
         }
         function savaData() {
+            if (!isUserSignedIn) {
+                $("#userName").val("");
+                $("#password").val("")
+                $("#userName").focus();
+                isStockRequest = true;
+                $("#validateUserModal").modal("show");
+                return false;
+            }
             var requestData = {
                 "boxName": $("#boxNo").val(),
                 "modelName": $("#modelData").val(),
@@ -1096,7 +1128,8 @@
                 <div class="mb-1 ps-2">
                     <label class="p-1 pb-0" for="boxNo"><span style="text-decoration: underline;">B</span>ox</label>
                     <div class="input-group">
-                        <input class="form-control" autocomplete="off" list="boxData" accesskey="b" id="boxNo" placeholder="Search Box...">
+                        <input class="form-control" autocomplete="off" list="boxData" accesskey="b" id="boxNo"
+                            placeholder="Search Box...">
                         <datalist id="boxData">
                         </datalist>
                         <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
@@ -1114,7 +1147,8 @@
                 <div class="ps-2">
                     <label for="model" class="p-1 pb-0">Motherboard Model</label>
                     <div class="input-group">
-                        <input class="form-control" autocomplete="off" list="model" id="modelData" placeholder="Search Model...">
+                        <input class="form-control" autocomplete="off" list="model" id="modelData"
+                            placeholder="Search Model...">
                         <datalist id="model">
                         </datalist>
                         <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
@@ -1171,8 +1205,12 @@
                 <div class="row mb-1" style="padding-left: 12px;">
                     <div class="col ps-2">
                         <label for="qty" class="p-1 pb-0">Remark</label>
-                        <input min="0" autocomplete="off" type="text" class="form-control" aria-label="remarkText"
-                            id="remarkText">
+                        <div class="input-group">
+                            <input min="0" autocomplete="off" type="text" class="form-control" aria-label="remarkText"
+                                id="remarkText">
+                            <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                                data-bs-placement="top" id="addRemarkBtn" title="Add New Remark">+</button>
+                        </div>
                     </div>
                 </div>
                 <div class="ps-2 mt-3">
@@ -1338,6 +1376,28 @@
                 </div>
             </div>
         </div>
+        <div class="modal fade" id="addRemarkModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+            aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Create Remark</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">Remark</span>
+                            <input autocomplete="off" type="text" class="form-control" id="remarkTextField"
+                                placeholder="Remark" aria-label="remarkTextField" aria-describedby="remarkTextField">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" id="createRemarkBtn" class="btn btn-primary">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="modal fade" id="stockEditModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
             aria-hidden="true">
             <div class="modal-dialog">
@@ -1370,8 +1430,8 @@
                             <span class="input-group-text"
                                 style="width: 120px;text-align: right;display: block;">Model</span>
                             <input type="text" disabled="disabled" class="form-control" id="modelForEditStock">
-                            <input autocomplete="off" class="form-control" list="modelDataForEditStockList" id="modelDataForEditStock"
-                                placeholder="Search Model...">
+                            <input autocomplete="off" class="form-control" list="modelDataForEditStockList"
+                                id="modelDataForEditStock" placeholder="Search Model...">
                             <datalist id="modelDataForEditStockList">
                             </datalist>
                         </div>
@@ -1446,11 +1506,9 @@
                         <div class="input-group mb-2">
                             <button type="button" class="btn btn-primary pe-2 me-2" id="createOrderModalBtn">Create
                                 Order</button>
-                            <button type="button" id="updateStockModalBtn" class="btn btn-success">Update Stock</button>
+                            <button type="button" id="updateStockModalBtn" class="btn btn-secondary">Update
+                                Stock</button>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
