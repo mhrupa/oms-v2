@@ -1,0 +1,14 @@
+INSERT INTO `OMS`.`branch_master` (`version`, `branch_add`, `branch_code`, `branch_name`, `home_branch`) VALUES ('1', 'Ghansoli', '001', 'Ghansoli', '1');
+
+INSERT INTO `OMS`.`roles` (`version`, `role_code`) VALUES ('1', '001');
+
+INSERT INTO `OMS`.`users` (`version`, `email`, `first_login`, `last_login_on`, `password`, `status`, `user_name`, `user_branch_id`, `user_role_id`) VALUES ('1', 'mhrupa@gmail.com', '0', '2022-03-22', 'r', 'Active', 'Rupesh', '1', '1');
+
+
+
+delete from payment_in_details;
+delete from payment_in_header;
+delete from sales_order_details;
+delete from sales_order_header;
+delete from stock_details;
+delete from stock_header;

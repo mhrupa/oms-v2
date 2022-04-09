@@ -91,17 +91,40 @@ public class StockService {
         ConfigDetailsEntity configEntity = configOp.get();
         Optional<StockHeader> stockHeaderOp = findStockHeaderByLocationAndModelAndPartAndConfigAndVendorAndBuyPrice(
                 storageLocationOp.get(), configEntity, vendorOp.get(), stockRequestDto.getBuyPrice());
+        StockHeader stockHeader = null;
+        User user = userService.getUserById(stockRequestDto.getUserId());
+        if (stockHeaderOp.isPresent()) {
+            stockHeader = stockHeaderOp.get();
+            if (stockHeader.getClosingQty() > 0) {
+                return new ResponseEntity<>(
+                        OmsResponse.builder().message("Stock data already available click on table row to update data.")
+                                .build(),
+                        HttpStatus.BAD_REQUEST);
+            } else {
+                stockHeader.setInQty(stockRequestDto.getQty());
+                stockHeader.setRemark(stockRequestDto.getRemarkText());
+                stockHeader.setClosingQty(stockRequestDto.getQty());
+                stockHeader.setStorageLocation(storageLocationOp.get());
+                stockHeader.setItemMaster(configEntity.getPartEntity().getItemMaster());
+                stockHeader.setPartEntity(configEntity.getPartEntity());
+                stockHeader.setConfigDetailsEntity(configEntity);
+                stockHeader.setDetails(stockRequestDto.getDetails());
+                stockHeader.setBuyPrice(stockRequestDto.getBuyPrice());
+                stockHeader.setSellPrice(stockRequestDto.getSellPrice());
+                stockHeader.setVendor(vendorOp.get());
 
-        if (stockHeaderOp.isPresent() && stockHeaderOp.get().getClosingQty() > 0) {
-            return new ResponseEntity<>(
-                    OmsResponse.builder().message("Stock data already available click on table row to update data.")
-                            .build(),
-                    HttpStatus.BAD_REQUEST);
+                StockDetails stockDetails = createStockDetails(stockRequestDto.getBuyPrice(),
+                        stockRequestDto.getSellPrice(), user, stockRequestDto.getQty(), 0);
+                stockDetails.setStockHeader(stockHeader);
+                stockDetails.setType(StockType.IN.type);
+
+                return updateStock(stockHeader, stockDetails, StockTransactionType.NORMAL);
+            }
         }
-        StockHeader stockHeader = StockHeader.builder()
+
+        stockHeader = StockHeader.builder()
                 .openingQty(0)
                 .inQty(stockRequestDto.getQty())
-                .openingQty(0)
                 .outQty(0)
                 .remark(stockRequestDto.getRemarkText())
                 .closingQty(stockRequestDto.getQty())
@@ -113,8 +136,6 @@ public class StockService {
                 .sellPrice(stockRequestDto.getSellPrice())
                 .vendor(vendorOp.get())
                 .build();
-
-        User user = userService.getUserById(stockRequestDto.getUserId());
 
         StockDetails stockDetails = createStockDetails(stockRequestDto.getBuyPrice(),
                 stockRequestDto.getSellPrice(), user, stockRequestDto.getQty(), 0);
@@ -317,7 +338,7 @@ public class StockService {
     }
 
     public Optional<StockDetails> findLatestStockDetailsByStockHeader(long stockHeaderId) {
-        
+
         return stockDetailsRepository.findLatestStockDetailsByStockHeader(stockHeaderId);
     }
 }
