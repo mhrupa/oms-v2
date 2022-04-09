@@ -180,9 +180,10 @@ public class StockService {
                     }
 
                 } else {
-                    ResponseEntity<OmsResponse> response = updateStockHeaderAndStockDetais(updateStockHeaderOp.get(), stockRequestDto.getStockType(),
-                    stockHeader.getClosingQty() + stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
-                    stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.CONVERT);
+                    ResponseEntity<OmsResponse> response = updateStockHeaderAndStockDetais(updateStockHeaderOp.get(),
+                            stockRequestDto.getStockType(),
+                            stockHeader.getClosingQty() + stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
+                            stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.CONVERT);
 
                     stockHeader.setOutQty(stockHeader.getClosingQty());
                     stockHeader.setClosingQty(0);
@@ -284,15 +285,11 @@ public class StockService {
     @Transactional
     private ResponseEntity<OmsResponse> updateStock(StockHeader stockHeader, StockDetails stockDetails,
             StockTransactionType stockTransactionType) {
-        stockHeader = stockHeaderRepository.save(stockHeader);
-
-        stockDetails.setStockHeader(stockHeader);
-        stockDetails = stockDetailsRepository.save(stockDetails);
-
-        stockHeader.setStockDetailId(stockDetails.getId());
         stockHeader.setStockDate(LocalDate.now());
         stockHeader = stockHeaderRepository.save(stockHeader);
 
+        stockDetails.setStockHeader(stockHeader);
+        stockDetailsRepository.save(stockDetails);
         return new ResponseEntity<>(OmsResponse.builder().message(STOCK_UPDATE_SUCCESS)
                 .data(stockHeaderResponseMapper.convertToDto(stockHeader, stockTransactionType)).build(),
                 HttpStatus.OK);
@@ -317,5 +314,10 @@ public class StockService {
 
     public Optional<StockDetails> findStockDetailsById(long stockDetailId) {
         return stockDetailsRepository.findById(stockDetailId);
+    }
+
+    public Optional<StockDetails> findLatestStockDetailsByStockHeader(long stockHeaderId) {
+        
+        return stockDetailsRepository.findLatestStockDetailsByStockHeader(stockHeaderId);
     }
 }

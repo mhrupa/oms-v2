@@ -20,6 +20,7 @@ import com.technivaaran.enums.PaymentType;
 import com.technivaaran.repositories.PaymentInDetailsRepository;
 import com.technivaaran.repositories.PaymentInHeaderRepository;
 import com.technivaaran.repositories.SalesOrderHeaderRepository;
+import com.technivaaran.utils.DateUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -75,7 +76,7 @@ public class PaymentInService {
         }
 
         PaymentInHeader paymentInHeader = PaymentInHeader.builder()
-                .paymentInDate(LocalDate.now())
+                .paymentInDate(DateUtils.getLocalDateFromDDMMYYYYString(paymentInRequestDto.getPaymentDate()))
                 .amount(paymentInRequestDto.getAmount())
                 .paymentType(paymentInRequestDto.getPaymentType())
                 .paymentAccountName(

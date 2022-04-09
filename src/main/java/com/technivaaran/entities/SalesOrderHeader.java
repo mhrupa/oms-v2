@@ -28,7 +28,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SalesOrderHeader extends BaseEntity<Long> {
 
-	@CreationTimestamp
 	@NonNull
 	@Column(name = "order_date")
 	private LocalDate orderDate;

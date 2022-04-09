@@ -2,6 +2,7 @@ package com.technivaaran.repositories;
 
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.Optional;
 
 import com.technivaaran.entities.StockDetails;
 
@@ -17,5 +18,10 @@ public interface StockDetailsRepository extends JpaRepository<StockDetails, Long
             + " WHERE stock_header_id = :headerId AND transaction_date = :transactionDate", nativeQuery = true)
     Map<String, String> getByStockHeaderAndTransactionDate(@Param(value = "headerId") Long headerId,
             @Param(value = "transactionDate") LocalDate transactionDate);
+
+    @Query(value = "SELECT * FROM stock_details WHERE stock_header_id = :stockHeaderId"
+     + " AND id = (SELECT MAX(id) FROM stock_details WHERE stock_header_id = :stockHeaderId"
+     + " AND type = 'In')", nativeQuery = true)        
+    Optional<StockDetails> findLatestStockDetailsByStockHeader(@Param(value = "stockHeaderId") long stockHeaderId);
 
 }

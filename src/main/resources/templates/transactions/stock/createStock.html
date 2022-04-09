@@ -147,11 +147,12 @@
             $("#datepicker").datepicker({
                 format: "dd/mm/yyyy",
                 autoclose: true,
-                todayHighlight: true
+                todayHighlight: true,
+                // enableOnReadonly: true
             }).on("changeDate", function (e) {
                 $("#customer").focus();
-            }).val(formatDateAsDDMMYYYY(new Date()));
-
+            });
+            $('#datepicker').datepicker('update', formatDateAsDDMMYYYY(new Date()));
             $("#clearFieldsBtn").click(() => {
                 initFields();
             });
@@ -295,7 +296,7 @@
                 + " | " + selectedRowData.vendor);
             $("#itemSellRate").val(selectedRowData.sellPrice);
             $("#newItemSellRate").val(selectedRowData.sellPrice);
-
+            $('#datepicker').datepicker('update', formatDateAsDDMMYYYY(new Date()));
             $("#optionModal").modal("hide");
             $("#createOrderModal").modal("show");
         }
@@ -519,7 +520,7 @@
                 "sellPrice": $("#sellPrice").val(),
                 "userId": appUser.userId,
                 "vendorId": $("#vendor").val(),
-                "remarkText": $("#remarkText").val()
+                "remarkText": $("#remarkText option:selected").text()
             };
             $.post("/stock", JSON.stringify(requestData), function (res) {
                 var rowUpdated = false;
@@ -645,7 +646,7 @@
             $("#qty").val("");
             $("#buyPrice").val("");
             $("#sellPrice").val("");
-            $("#remarkText").val("");
+            $("#remarkText").val(0);
             $("#boxNo").val("").focus();
         }
         function validateFields() {
@@ -977,7 +978,7 @@
             $.get("/remarks", function (res) {
                 remarks = res;
                 $("#remarkText").empty();
-                $("#remarkText").append("<option selected='selected' value='0'>Select Remark</option>");
+                $("#remarkText").append("<option selected='selected' value='0'></option>");
                 remarks.forEach(remark => {
                     $("#remarkText").append("<option value='" + remark.id + "'>" + remark.remarkText + "</option>");
                 });
@@ -1562,7 +1563,7 @@
                         <div class="input-group mb-0">
                             <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Order
                                 Date</span>
-                            <input type="text" class="form-control" id="datepicker">
+                            <input type="text" readonly class="form-control" id="datepicker">
                         </div>
                         <div class="input-group mb-0" style="display: none;">
                             <span class="input-group-text">stockHeaderId</span>

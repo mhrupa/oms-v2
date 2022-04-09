@@ -67,8 +67,7 @@ public class SalesOrderService {
                         stockHeaderOp.get(), customerOp.get());
             } else {
                 return new ResponseEntity<>(
-                        OmsResponse.builder().message("invalid stock data received.")
-                                .data(orderRequestDto).build(),
+                        OmsResponse.builder().message("invalid stock data received.").build(),
                         HttpStatus.BAD_REQUEST);
             }
         } else {
@@ -83,7 +82,7 @@ public class SalesOrderService {
             StockHeader stockHeader, CustomerEntity customer) {
 
         Optional<StockDetails> stockDetailsOp = stockService
-                .findStockDetailsById(orderRequestDto.getStockDetailId());
+                .findLatestStockDetailsByStockHeader(orderRequestDto.getStockHeaderId());
         User user = userService.getUserById(orderRequestDto.getUserId());
         if (stockDetailsOp.isEmpty()) {
             return new ResponseEntity<>(
@@ -132,6 +131,7 @@ public class SalesOrderService {
         if (!orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)) {
             PaymentInRequestDto paymentInRequestDto = PaymentInRequestDto.builder()
                     .challanNos(salesOrderHeader.getId().toString())
+                    .paymentDate(orderRequestDto.getOrderDate())
                     .customerId(customer.getId())
                     .paymentType(orderRequestDto.getPaymentType())
                     .paymentAccount(orderRequestDto.getRemark())

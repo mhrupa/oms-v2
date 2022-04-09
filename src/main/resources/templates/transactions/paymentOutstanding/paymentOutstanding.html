@@ -4,6 +4,33 @@
 <head>
     <title></title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+        .dataTables_wrapper .dataTables_filter {
+            float: left;
+            margin-top: 5px;
+            /* padding-bottom: 5px; */
+        }
+
+        .dataTables_length {
+            display: none;
+            cursor: pointer;
+        }
+
+        .dataTables_filter input {
+            min-width: 350px;
+        }
+
+        .allBtnCss {
+            margin-left: 54px;
+            width: 100px;
+        }
+        .noneBtnCss {
+            width: 100px;
+        }
+        .updateBtnCss{
+            width: 100px;
+        }
+    </style>
     <script type="text/javascript">
         var paymentTable, pendingOrderData;
         $(document).ready(
@@ -22,22 +49,22 @@
                     // info: false
                     buttons: [
                         {
-                            text: 'Select All',
-                            className: 'btn btn-primary',
+                            text: 'All',
+                            className: 'btn btn-secondary allBtnCss',
                             action: function () {
                                 paymentTable.rows().select();
                             }
                         },
                         {
-                            text: 'Select None',
-                            className: 'btn btn-primary',
+                            text: 'None',
+                            className: 'btn btn-secondary noneBtnCss',
                             action: function () {
                                 paymentTable.rows().deselect();
                             }
                         },
                         {
-                            text: 'Update Payment',
-                            className: 'btn btn-success',
+                            text: 'Update',
+                            className: 'btn btn-primary updateBtnCss',
                             action: showUpdatePaymentModal
                         }
                     ],
@@ -71,6 +98,14 @@
                         { data: "customerId", visible: false }
                     ]
                 });
+                $("#paymentDate").datepicker({
+                    format: "dd/mm/yyyy",
+                    autoclose: true,
+                    todayHighlight: true,
+                }).on("changeDate", function (e) {
+                    $("#paymentType").focus();
+                });
+                $('#paymentDate').datepicker('update', formatDateAsDDMMYYYY(new Date()));
                 $('#dataTable tbody').on('click', 'tr', function () {
                     $(this).toggleClass('selected');
                 });
@@ -102,7 +137,6 @@
             }
         }
         function createAccountForPayment() {
-            alert();
             if ($("#accountName").val() == "") {
                 $("#accountName").focus();
                 return false;
@@ -142,6 +176,7 @@
                 $("#challanNos").val(challanNoList);
                 $("#challanNoslabel").val(challanNoLabelList);
                 $("#totalAmount").val(totalAmountCalculated);
+                $('#paymentDate').datepicker('update', formatDateAsDDMMYYYY(new Date()));
                 $("#updatePaymentModal").modal("show");
 
             } else {
@@ -161,6 +196,7 @@
             }
 
             var requestData = {
+                "paymentDate": $("#paymentDate").val(),
                 "challanNos": $("#challanNos").val(),
                 "customerId": $("#customerId").val(),
                 "paymentType": $("#paymentType").val(),
@@ -191,7 +227,7 @@
 </head>
 
 <body>
-    <div>
+    <div class="mt-1 px-1">
         <table id="dataTable" style="width: 100%;" class="display">
             <thead>
                 <tr>
@@ -222,6 +258,11 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="input-group mb-0">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Payment
+                            Date</span>
+                        <input type="text" readonly class="form-control" id="paymentDate">
+                    </div>
                     <div class="input-group mb-0">
                         <span class="input-group-text"
                             style="width: 140px;text-align: right;display: block;">Customer</span>
