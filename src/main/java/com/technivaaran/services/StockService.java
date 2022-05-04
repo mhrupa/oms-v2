@@ -12,6 +12,7 @@ import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.dto.request.StockRequestDto;
 import com.technivaaran.dto.response.StockResponseDto;
 import com.technivaaran.entities.ConfigDetailsEntity;
+import com.technivaaran.entities.RemarkEntity;
 import com.technivaaran.entities.StockDetails;
 import com.technivaaran.entities.StockHeader;
 import com.technivaaran.entities.StorageLocationEntity;
@@ -54,6 +55,9 @@ public class StockService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private RemarkService remarkService;
 
     private static final String STOCK_UPDATE_SUCCESS = "Stock updated successfully.";
 
@@ -192,19 +196,22 @@ public class StockService {
                     if (stockRequestDto.getUpdatedDetails().equalsIgnoreCase(stockHeader.getDetails())) {
                         return updateStockHeaderAndStockDetais(stockHeader, stockRequestDto.getStockType(),
                                 stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
-                                stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.NORMAL);
+                                stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.NORMAL,
+                                stockRequestDto.getUpdatedRemark());
                     } else {
                         stockHeader.setDetails(stockRequestDto.getUpdatedDetails());
                         return updateStockHeaderAndStockDetais(stockHeader, stockRequestDto.getStockType(),
                                 stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
-                                stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.CONVERT);
+                                stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.CONVERT,
+                                stockRequestDto.getUpdatedRemark());
                     }
 
                 } else {
                     ResponseEntity<OmsResponse> response = updateStockHeaderAndStockDetais(updateStockHeaderOp.get(),
                             stockRequestDto.getStockType(),
                             stockHeader.getClosingQty() + stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
-                            stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.CONVERT);
+                            stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.CONVERT,
+                            stockRequestDto.getUpdatedRemark());
 
                     stockHeader.setOutQty(stockHeader.getClosingQty());
                     stockHeader.setClosingQty(0);
@@ -265,7 +272,7 @@ public class StockService {
 
     public ResponseEntity<OmsResponse> updateStockHeaderAndStockDetais(StockHeader stockHeader,
             String stockType, float quantity, float sellPrice, float buyPrice, User user,
-            StockTransactionType stockTransactionType) {
+            StockTransactionType stockTransactionType, String remark) {
         log.info("update stock header by stockHeader id and stockType");
         StockDetails stockDetails = null;
         switch (StockType.valueOf(stockType.toUpperCase())) {
@@ -274,7 +281,12 @@ public class StockService {
                     stockHeader.setInQty(stockHeader.getInQty() + quantity);
                     stockHeader.setClosingQty(stockHeader.getClosingQty() + quantity);
                     stockHeader.setSellPrice(sellPrice);
-
+                    if(remark != null && !remark.isEmpty()) {
+                        Optional<RemarkEntity> remarkOp = remarkService.findRemarkById(Long.valueOf(remark));
+                        if(remarkOp.isPresent()) {
+                            stockHeader.setRemark(remarkOp.get().getRemarkText());
+                        }
+                    }
                     stockDetails = createStockDetails(buyPrice, sellPrice, user, quantity, 0);
                     stockDetails.setType(StockType.IN.type);
                 } else {

@@ -4,13 +4,13 @@ import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.lang.NonNull;
 
 import lombok.AllArgsConstructor;
@@ -51,7 +51,7 @@ public class SalesOrderHeader extends BaseEntity<Long> {
 	@ManyToOne
 	private CustomerEntity customer;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.EAGER)
 	private StockHeader stockHeader;
 
 	@ManyToOne

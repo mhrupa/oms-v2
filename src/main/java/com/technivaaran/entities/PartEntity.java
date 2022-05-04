@@ -26,7 +26,7 @@ public class PartEntity extends BaseEntity<Long> {
     private String partNo;
 
     @JsonIgnore
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private ItemMaster itemMaster;
 
     // @JsonIgnore

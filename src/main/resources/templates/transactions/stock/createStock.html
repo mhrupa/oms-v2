@@ -44,6 +44,7 @@
                 // paging: false,
                 // scrollY: 420,
                 // info: false
+                compact: true,
                 data: stockData,
                 "columns": [
                     { data: "box" },
@@ -63,7 +64,8 @@
                     { data: "partId", visible: false },
                     { data: "detailsId", visible: false },
                     { data: "configurationId", visible: false },
-                    { data: "stockDetailsId", visible: false }
+                    { data: "stockDetailsId", visible: false },
+                    { data: "remarkId", visible: false }
                 ]
             });
             $(":input[type='search']").attr("accesskey", "h");
@@ -322,6 +324,8 @@
             $("#currentSellPrice").val(selectedRowData.sellPrice);
             $("#sellPriceForEditStock").val(selectedRowData.sellPrice);
             $("#qtyForEditStock").val("0");
+            $("#currentRemark").val(selectedRowData.remarkText);
+            $("#remarkForEditStock").val(selectedRowData.remarkId);
             $("#tempTotalStock").val(selectedRowData.qty);
             $("#optionModal").modal("hide");
             $("#stockEditModal").modal("show");
@@ -370,49 +374,46 @@
                 $("#stockHeaderId").val() == "" || $("#stockHeaderId").val() == 0) {
                 $("#omsToast").html("Invalid stockId");
                 $(".toast").addClass("bg-danger").toast("show");
-                $("#stockEditModal").modal("hide");
                 return false;
             }
             if ($("#boxForEditStock").val() == undefined ||
                 $("#boxForEditStock").val() == "" || $("#boxForEditStock").val() == 0) {
                 $("#omsToast").html("Invalid box");
                 $(".toast").addClass("bg-danger").toast("show");
-                $("#stockEditModal").modal("hide");
                 return false;
             }
             if ($("#vendorForEditStock").val() == undefined ||
                 $("#vendorForEditStock").val() == "" || $("#vendorForEditStock").val() == 0) {
                 $("#omsToast").html("Invalid Vendor");
                 $(".toast").addClass("bg-danger").toast("show");
-                $("#stockEditModal").modal("hide");
                 return false;
             }
             if ($("#modelForEditStock").val() == undefined ||
                 $("#modelForEditStock").val() == "" || $("#modelForEditStock").val() == 0) {
                 $("#omsToast").html("Invalid Model");
                 $(".toast").addClass("bg-danger").toast("show");
-                $("#stockEditModal").modal("hide");
                 return false;
             }
-            if ($("#partForEditStock").val() == undefined ||
-                $("#partForEditStock").val() == "" || $("#partForEditStock").val() == 0) {
+            if ($("#partForStockChange").val() == undefined ||
+                $("#partForStockChange").val() == "" || $("#partForStockChange").val() == 0) {
+                $("#partForStockChange").focus();
                 $("#omsToast").html("Invalid Part");
                 $(".toast").addClass("bg-danger").toast("show");
-                $("#stockEditModal").modal("hide");
                 return false;
             }
-            if ($("#configForEditStock").val() == undefined ||
-                $("#configForEditStock").val() == "" || $("#configForEditStock").val() == 0) {
+            console.log($("#configForStockChange").val());
+            if ($("#configForStockChange").val() == undefined ||
+                $("#configForStockChange").val() == "" || $("#configForStockChange").val() == 0) {
+                
+                $("#configForStockChange").focus();    
                 $("#omsToast").html("Invalid Configuration");
                 $(".toast").addClass("bg-danger").toast("show");
-                $("#stockEditModal").modal("hide");
                 return false;
             }
             if ($("#detailsForEditStock").val() == undefined ||
                 $("#detailsForEditStock").val() == "" || $("#detailsForEditStock").val() == 0) {
                 $("#omsToast").html("Invalid Details");
                 $(".toast").addClass("bg-danger").toast("show");
-                $("#stockEditModal").modal("hide");
                 return false;
             }
 
@@ -442,7 +443,6 @@
                 "qty": $("#qtyForEditStock").val(),
                 "stockType": "IN",
                 "sellPrice": $("#sellPriceForEditStock").val(),
-
                 "updatedBoxName": $("#boxChangeForEditStock").val(),
                 "updatedModelName": $("#modelDataForEditStock").val(),
                 "updatedPartId": $("#partForStockChange").val(),
@@ -450,7 +450,7 @@
                 "updatedDetails": $("#detailsForStockChange").val(),
                 "updatedVendorId": $("#vendorChangeForEditStock").val(),
                 "updatedBuyPrice": $("#buyPriceForStockChange").val(),
-
+                "updatedRemark": $("#remarkForEditStock").val(),
                 "userId": appUser.userId
             };
 
@@ -468,6 +468,10 @@
                         if (res.data.qty != 0) {
                             d.qty = res.data.qty;
                             d.sellPrice = res.data.sellPrice;
+                            if($("#currentRemark").val() != $("#remarkForEditStock option:selected").text()) {
+                                d.remarkText = $("#remarkForEditStock option:selected").text();
+                                d.remarkId = $("#remarkForEditStock option:selected").val();
+                            }
                         } else {
                             rowTodeleteFlag = true;
                             rowTodelete = this;
@@ -978,9 +982,12 @@
             $.get("/remarks", function (res) {
                 remarks = res;
                 $("#remarkText").empty();
+                $("#remarkForEditStock").empty();
                 $("#remarkText").append("<option selected='selected' value='0'></option>");
+                $("#remarkForEditStock").append("<option selected='selected' value='0'></option>");
                 remarks.forEach(remark => {
                     $("#remarkText").append("<option value='" + remark.id + "'>" + remark.remarkText + "</option>");
+                    $("#remarkForEditStock").append("<option value='" + remark.id + "'>" + remark.remarkText + "</option>");
                 });
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
@@ -1153,6 +1160,7 @@
             if (remark) {
                 remarks.push(remark);
                 $("#remarkText").append("<option value='" + remark.id + "'>" + remark.remarkText + "</option>");
+                $("#remarkForEditStock").append("<option value='" + remark.id + "'>" + remark.remarkText + "</option>");
                 $("#remarkText").val(remark.id);
                 $("#remarkText").focus();
             }
@@ -1266,16 +1274,16 @@
                             class="position-absolute top-0 end-0 px-2 btn btn-success">Buy Price</button>
                     </div>
                 </div>
-                <table id="dataTable" style="width: 100%;" class="display cell-border">
+                <table id="dataTable" style="width: 100%;font-size: 10px;" class="display cell-border">
                     <thead>
                         <tr>
-                            <th class="th-sm" style="max-width: 30px;">Box</th>
+                            <th class="th-sm" style="max-width: 40px;">Box</th>
                             <th class="th-sm">Model</th>
                             <th class="th-sm">Remark</th>
                             <th class="th-sm">Part</th>
-                            <th class="th-sm">Config</th>
-                            <th class="th-sm" style="max-width: 50px;">Details</th>
-                            <th class="th-sm" style="max-width: 30px;">Qty</th>
+                            <th class="th-sm" style="max-width: 60px;">Config</th>
+                            <th class="th-sm" style="max-width: 20px;">Det.</th>
+                            <th class="th-sm" style="max-width: 20px;">Qty</th>
                             <th class="th-sm" style="max-width: 40px;">Buy P.</th>
                             <th class="th-sm" style="max-width: 40px;">Sell P.</th>
                             <th class="th-sm">Vendor</th>
@@ -1287,6 +1295,7 @@
                             <th class="th-sm">DetailsId</th>
                             <th class="th-sm">ConfigId</th>
                             <th class="th-sm">StockDetailsId</th>
+                            <th class="th-sm">remarkId</th>
                         </tr>
                     </thead>
                 </table>
@@ -1507,6 +1516,11 @@
                                 Price</span>
                             <input type="text" disabled="disabled" class="form-control" id="currentSellPrice">
                             <input type="text" class="form-control numberOnly" id="sellPriceForEditStock">
+                        </div>
+                        <div class="input-group mb-2">
+                            <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Remark</span>
+                            <input type="text" disabled="disabled" class="form-control" id="currentRemark">
+                            <select class="form-control" id="remarkForEditStock"></select>
                         </div>
                         <div class="input-group mb-3">
                             <span class="input-group-text"

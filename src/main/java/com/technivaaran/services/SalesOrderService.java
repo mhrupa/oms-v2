@@ -56,6 +56,9 @@ public class SalesOrderService {
     @Autowired
     private PaymentInService paymentInService;
 
+    @Autowired
+    private ChallanNoService challanNoService;
+
     public ResponseEntity<OmsResponse> createSalesOrder(OrderRequestDto orderRequestDto) {
         log.info("Inside create sales oreder service");
         Optional<CustomerEntity> customerOp = customerService.findCustomerById(orderRequestDto.getCustomerId());
@@ -112,6 +115,7 @@ public class SalesOrderService {
                         ? OrderStatus.PENDING.type
                         : OrderStatus.COMPLETE.type)
                 .stockDetails(stockDetailsOp.get())
+                .challanNo(challanNoService.getMaxChallanNo())
                 .customer(customer)
                 .stockHeader(stockHeader)
                 .user(user)
@@ -130,7 +134,7 @@ public class SalesOrderService {
         ResponseEntity<OmsResponse> response;
         if (!orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)) {
             PaymentInRequestDto paymentInRequestDto = PaymentInRequestDto.builder()
-                    .challanNos(salesOrderHeader.getId().toString())
+                    .challanNos(salesOrderHeader.getChallanNo()+"")
                     .paymentDate(orderRequestDto.getOrderDate())
                     .customerId(customer.getId())
                     .paymentType(orderRequestDto.getPaymentType())
@@ -149,7 +153,7 @@ public class SalesOrderService {
 
         response = stockService.updateStockHeaderAndStockDetais(stockHeader,
                 StockType.OUT.type, orderRequestDto.getQuantity(), orderRequestDto.getSellPrice(),
-                stockDetailsOp.get().getBuyPrice(), user, StockTransactionType.NORMAL);
+                stockDetailsOp.get().getBuyPrice(), user, StockTransactionType.NORMAL, "");
         OmsResponse omsResponse = response.getBody();
         if (!ObjectUtils.isEmpty(omsResponse)) {
             return new ResponseEntity<>(OmsResponse.builder()

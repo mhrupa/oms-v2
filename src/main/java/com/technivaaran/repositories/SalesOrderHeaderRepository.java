@@ -14,4 +14,6 @@ public interface SalesOrderHeaderRepository extends JpaRepository<SalesOrderHead
 
     List<SalesOrderHeader> findByIdIn(List<Long> challanNoList);
 
+    List<SalesOrderHeader> findByChallanNoIn(List<Long> challanNoList);
+
 }

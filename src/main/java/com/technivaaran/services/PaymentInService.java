@@ -66,7 +66,7 @@ public class PaymentInService {
         }
         List<Long> challanNoList = Arrays.asList(paymentInRequestDto.getChallanNos().split(","))
                 .stream().map(Long::parseLong).collect(Collectors.toList());
-        List<SalesOrderHeader> salesOrderHeaders = salesOrderHeaderRepository.findByIdIn(challanNoList);
+        List<SalesOrderHeader> salesOrderHeaders = salesOrderHeaderRepository.findByChallanNoIn(challanNoList);
 
         List<Long> invalidChallanList = validateChallanNo(challanNoList, salesOrderHeaders);
         if (!invalidChallanList.isEmpty()) {

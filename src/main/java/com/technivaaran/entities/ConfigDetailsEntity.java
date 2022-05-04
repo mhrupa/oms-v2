@@ -2,6 +2,7 @@ package com.technivaaran.entities;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -27,7 +28,7 @@ public class ConfigDetailsEntity extends BaseEntity<Long> {
     private String configuration;
 
     @JsonIgnore
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "part_id")
     private PartEntity partEntity;
 }

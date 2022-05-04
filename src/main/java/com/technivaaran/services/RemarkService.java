@@ -1,6 +1,7 @@
 package com.technivaaran.services;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.entities.RemarkEntity;
@@ -36,6 +37,12 @@ public class RemarkService {
     public List<RemarkEntity> findAllRemarks() {
         log.info("find all remark method called in service");
         return remarkRepository.findAll();
+
+    }
+
+    public Optional<RemarkEntity> findRemarkById(long remarkId) {
+        log.info("find remark by id method called in service");
+        return remarkRepository.findById(remarkId);
 
     }
 

@@ -31,4 +31,5 @@ public class StockRequestDto {
     private String updatedDetails;
     private long updatedVendorId;
     private float updatedBuyPrice;
+    private String updatedRemark;
 }
