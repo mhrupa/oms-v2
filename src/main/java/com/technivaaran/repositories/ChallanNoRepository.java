@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ChallanNoRepository extends JpaRepository<ChallanNoEntity, Long> {
 
-    @Query("SELECT * FROM ChallanNo")
+    @Query("SELECT c FROM ChallanNoEntity c")
     ChallanNoEntity getChallanNo();
-    
 }
