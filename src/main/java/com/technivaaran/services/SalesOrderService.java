@@ -1,6 +1,8 @@
 package com.technivaaran.services;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -170,6 +172,37 @@ public class SalesOrderService {
     public ResponseEntity<OmsResponse> getPendingOrders() {
         List<SalesOrderHeader> orderHeaderList = salesOrderHeaderRepository
                 .findByStatus(OrderStatus.PENDING.toString());
+        List<SalesOrderResponseDto> orderResponseDtos = new ArrayList<>();
+        orderHeaderList.forEach(orderHeader -> {
+            SalesOrderResponseDto salesOrderResponseDto = SalesOrderResponseDto.builder()
+                    .challanNo(orderHeader.getId())
+                    .orderDate(orderHeader.getOrderDate())
+                    .customerName(orderHeader.getCustomer().getCustomerName())
+                    .part(orderHeader.getStockHeader().getPartEntity().getPartNo())
+                    .model(orderHeader.getStockHeader().getItemMaster().getItemName())
+                    .config(orderHeader.getStockHeader().getConfigDetailsEntity().getConfiguration())
+                    .details(orderHeader.getStockHeader().getDetails())
+                    .qty(orderHeader.getQuantity())
+                    .sellPrice(orderHeader.getSellPrice())
+                    .courierCharges(orderHeader.getCourierCharges())
+                    .orderAmount(orderHeader.getOrderAmount())
+                    .salesOrderId(orderHeader.getId())
+                    .stockHeaderId(orderHeader.getStockHeader().getId())
+                    .customerId(orderHeader.getCustomer().getId())
+                    .build();
+            orderResponseDtos.add(salesOrderResponseDto);
+        });
+        return new ResponseEntity<>(
+                OmsResponse.builder().message("Order data received.")
+                        .data(orderResponseDtos).build(),
+                HttpStatus.OK);
+    }
+
+    public ResponseEntity<OmsResponse> getAllOrders(String fromDate, String toDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        List<SalesOrderHeader> orderHeaderList = salesOrderHeaderRepository
+                .findByOrderDateBetween(LocalDate.parse(fromDate, formatter), LocalDate.parse(toDate, formatter));
         List<SalesOrderResponseDto> orderResponseDtos = new ArrayList<>();
         orderHeaderList.forEach(orderHeader -> {
             SalesOrderResponseDto salesOrderResponseDto = SalesOrderResponseDto.builder()

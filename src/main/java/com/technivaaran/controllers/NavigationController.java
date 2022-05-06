@@ -122,9 +122,9 @@ public class NavigationController {
 	}
 
 	// ****************Sales-menu*****************//
-	@GetMapping("/salesHome")
+	@GetMapping("/salesOrderHome")
 	public String getSalesPage() {
-		return "transactions/sale/saleHome";
+		return "transactions/sale/saleOrderHome";
 	}
 
 	// ****************Pending-Orders-menu*****************//

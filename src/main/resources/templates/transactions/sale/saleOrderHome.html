@@ -1,0 +1,330 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+        .dataTables_wrapper .dataTables_filter {
+            float: left;
+            margin-top: 5px;
+            /* padding-bottom: 5px; */
+        }
+
+        .dataTables_length {
+            display: none;
+            cursor: pointer;
+        }
+
+        .dataTables_filter input {
+            min-width: 350px;
+        }
+
+        .allBtnCss {
+            margin-left: 54px;
+            width: 100px;
+        }
+
+        .noneBtnCss {
+            width: 100px;
+        }
+
+        .updateBtnCss {
+            width: 100px;
+        }
+    </style>
+    <script type="text/javascript">
+        var paymentTable, pendingOrderData;
+        $(document).ready(
+            function () {
+                $("#fromDate").datepicker({
+                    format: "dd/mm/yyyy",
+                    autoclose: true,
+                    todayHighlight: true,
+                }).on("changeDate", function (e) {
+                    //$("#paymentType").focus();
+                });
+                $("#toDate").datepicker({
+                    format: "dd/mm/yyyy",
+                    autoclose: true,
+                    todayHighlight: true,
+                }).on("changeDate", function (e) {
+                    //$("#paymentType").focus();
+                });
+                $('#fromDate').datepicker('update', formatDateAsDDMMYYYY(new Date()));
+                $('#toDate').datepicker('update', formatDateAsDDMMYYYY(new Date()));
+                
+                initData();
+                initPaymentAccountData();
+                $("#paymentType").change(paymentTypeChangeHandler);
+                $("#showAccountForPaymentModalBtn").click(showAccountForPaymentBtnClick);
+                $("#createAccountBtn").click(createAccountForPayment)
+                $("#updatePaymentBtn").click(updatePayment)
+                paymentTable = $("#dataTable").DataTable({
+                    dom: 'Bfrtip',
+                    data: pendingOrderData,
+                    "columns": [
+                        { data: "challanNo" },
+                        { data: "orderDate" },
+                        { data: "customerName" },
+                        { data: "model" },
+                        { data: "part" },
+                        { data: "config" },
+                        { data: "details" },
+                        { data: "qty" },
+                        { data: "sellPrice", visible: false },
+                        { data: "courierCharges" },
+                        { data: "orderAmount" },
+                        { data: "salesOrderId", visible: false },
+                        { data: "stockHeaderId", visible: false },
+                        { data: "customerId", visible: false }
+                    ]
+                });
+                $("#paymentDate").datepicker({
+                    format: "dd/mm/yyyy",
+                    autoclose: true,
+                    todayHighlight: true,
+                }).on("changeDate", function (e) {
+                    $("#paymentType").focus();
+                });
+                $('#paymentDate').datepicker('update', formatDateAsDDMMYYYY(new Date()));
+                $('#dataTable tbody').on('click', 'tr', function () {
+                    //$(this).toggleClass('selected');
+                });
+            });
+
+        function initPaymentAccountData() {
+            $.get("/paymentAccounts", function (res) {
+                paymentAccounts = res;
+                $("#orderRemark").empty();
+                $("#orderRemark").append("<option selected='selected' value='0'>Select payment account</option>");
+                res.forEach(paymentAccount => {
+                    $("#orderRemark").append("<option value='" + paymentAccount.id + "'>" + paymentAccount.accountName + "</option>");
+                });
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
+        }
+        function showAccountForPaymentBtnClick() {
+            $("#accountName").val("");
+            $("#addAccountNameForPaymentModal").modal("show");
+        }
+        function paymentTypeChangeHandler() {
+            if ($("#paymentType").val() == "bank") {
+                $("#orderRemark").removeAttr("disabled");
+            } else {
+                $("#orderRemark").val("0");
+                $("#orderRemark").attr("disabled", "disabled")
+            }
+        }
+        function createAccountForPayment() {
+            if ($("#accountName").val() == "") {
+                $("#accountName").focus();
+                return false;
+            }
+            var requestData = {
+                "paymentAccountName": $("#accountName").val(),
+                "userId": appUser.userId
+            };
+            $.post("/paymentAccounts", JSON.stringify(requestData), function (res) {
+                initPaymentAccountResponseData(res.data);
+                $("#addAccountNameForPaymentModal").modal("hide");
+                $("#omsToast").html(res.message);
+                $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
+            }).fail(function (res) {
+                $("#addAccountNameForPaymentModal").modal("hide");
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
+        }
+
+        function showUpdatePaymentModal() {
+            var rowProcessed = false;
+            var challanNoLabelList = new Array();
+            var challanNoList = new Array();
+            var totalAmountCalculated = 0;
+            paymentTable.rows('.selected').every(function (rowIdx, tableLoop, rowLoop) {
+                rowProcessed = true;
+                var d = this.data();
+                // console.log(JSON.stringify(d));
+                challanNoList.push(d.challanNo);
+                challanNoLabelList.push(" " + d.challanNo + "(" + d.orderAmount + ")");
+                totalAmountCalculated += d.orderAmount;
+                $("#customer").val(d.customerName);
+                $("#customerId").val(d.customerId);
+            });
+            if (rowProcessed) {
+                $("#challanNos").val(challanNoList);
+                $("#challanNoslabel").val(challanNoLabelList);
+                $("#totalAmount").val(totalAmountCalculated);
+                $('#paymentDate').datepicker('update', formatDateAsDDMMYYYY(new Date()));
+                $("#updatePaymentModal").modal("show");
+
+            } else {
+                $("#omsToast").html("Please select row for updating payment");
+                $(".toast").addClass("bg-danger").toast("show");
+            }
+
+        }
+        function updatePayment() {
+            if ($("#paymentType").val() == 0) {
+                $("#paymentType").focus();
+                return false;
+            }
+            if ($("#paymentType").val() == 'bank' && $("#orderRemark").val() == 0) {
+                $("#orderRemark").focus();
+                return false;
+            }
+
+            var requestData = {
+                "paymentDate": $("#paymentDate").val(),
+                "challanNos": $("#challanNos").val(),
+                "customerId": $("#customerId").val(),
+                "paymentType": $("#paymentType").val(),
+                "paymentAccount": $("#orderRemark").val(),
+                "amount": $("#totalAmount").val(),
+                "userId": appUser.userId
+            };
+            $.post("/paymentIn", JSON.stringify(requestData), function (res) {
+                paymentTable.rows('.selected').remove().draw();
+                $("#updatePaymentModal").modal("hide");
+                $("#omsToast").html(res.message);
+                $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
+        }
+
+        function initData() {
+            $.get("/salesOrders/all?fromDate="+$("#fromDate").val()+"&toDate="+$("#toDate").val(), function (res) {
+                pendingOrderData = res.data;
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
+        }
+    </script>
+</head>
+
+<body>
+    <div class="mt-0">
+        <div class="p-2 input-group" style="border: 1px; background-color: #C4DDFF;">
+            <label class="p-2 pb-0" for="boxNo">From Date</label>
+            <input type="text" style="max-width: 100px;" readonly class="form-control" id="fromDate">
+            <label class="p-2 pb-0" for="boxNo">To Date</label>
+            <input type="text" style="max-width: 100px;" readonly class="form-control" id="toDate">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Show</button>
+        </div>
+        <div>
+            <table id="dataTable" style="width: 100%;" class="display">
+                <thead>
+                    <tr>
+                        <th class="th-sm" style="max-width: 50px;">Challan</th>
+                        <th class="th-sm">Order Date</th>
+                        <th class="th-sm">Customer</th>
+                        <th class="th-sm">Model</th>
+                        <th class="th-sm">Part</th>
+                        <th class="th-sm">Config</th>
+                        <th class="th-sm">Details</th>
+                        <th class="th-sm">Qty</th>
+                        <th class="th-sm">Sell Price</th>
+                        <th class="th-sm">Courier Charges</th>
+                        <th class="th-sm">Order Amount</th>
+                        <th class="th-sm">SalesOrderId</th>
+                        <th class="th-sm">StockHeaderId</th>
+                        <th class="th-sm">CustomerId</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+    <div class="modal fade" id="updatePaymentModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-0">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Payment
+                            Date</span>
+                        <input type="text" readonly class="form-control" id="paymentDate">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text"
+                            style="width: 140px;text-align: right;display: block;">Customer</span>
+                        <input disabled type="text" class="form-control" id="customer" aria-label="customer"
+                            aria-describedby="customer">
+                    </div>
+                    <div class="input-group mb-0">
+                        <input hidden disabled type="text" id="customerId">
+                    </div>
+                    <div class="input-group mb-0">
+                        <input hidden disabled type="text" class="form-control" id="challanNos" aria-label="challanNos"
+                            aria-describedby="challanNos">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text"
+                            style="width: 140px;text-align: right;display: block;">Challan</span>
+                        <input disabled type="text" class="form-control" id="challanNoslabel"
+                            aria-label="challanNoslabel" aria-describedby="challanNoslabel">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Total
+                            Amount</span>
+                        <input disabled type="text" class="form-control" id="totalAmount" aria-label="totalAmount"
+                            aria-describedby="totalAmount">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Payment
+                            Type</span>
+                        <select class="form-control" id="paymentType" style="max-width: 160px;">
+                            <option value="0">Select Payment Type</option>
+                            <option value="cash">Cash</option>
+                            <option value="paytm">Paytm</option>
+                            <option value="bank">Bank</option>
+                        </select>
+                        <span class="input-group-text" style="width: 130px;text-align: right;display: block;">Account
+                            Name</span>
+                        <select class="form-control" id="orderRemark" disabled>
+                        </select>
+                        <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                            data-bs-placement="top" id="showAccountForPaymentModalBtn" title="Add Account">+</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="updatePaymentBtn" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="addAccountNameForPaymentModal" data-bs-backdrop="static" data-bs-keyboard="true"
+        tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Create Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Account Name</span>
+                        <input autocomplete="off" type="text" class="form-control" id="accountName"
+                            placeholder="Account Name" aria-label="accountName" aria-describedby="accountName">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="createAccountBtn" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

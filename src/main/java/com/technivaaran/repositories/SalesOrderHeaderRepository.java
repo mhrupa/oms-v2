@@ -1,5 +1,6 @@
 package com.technivaaran.repositories;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.technivaaran.entities.SalesOrderHeader;
@@ -15,5 +16,7 @@ public interface SalesOrderHeaderRepository extends JpaRepository<SalesOrderHead
     List<SalesOrderHeader> findByIdIn(List<Long> challanNoList);
 
     List<SalesOrderHeader> findByChallanNoIn(List<Long> challanNoList);
+
+    List<SalesOrderHeader> findByOrderDateBetween(LocalDate fromDate, LocalDate toDate);
 
 }
