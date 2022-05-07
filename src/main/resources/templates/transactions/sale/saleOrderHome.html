@@ -58,10 +58,9 @@
                 initPaymentAccountData();
                 $("#paymentType").change(paymentTypeChangeHandler);
                 $("#showAccountForPaymentModalBtn").click(showAccountForPaymentBtnClick);
-                $("#createAccountBtn").click(createAccountForPayment)
-                $("#updatePaymentBtn").click(updatePayment)
+                $("#showOrederDataBtn").click(showOrderData);
                 paymentTable = $("#dataTable").DataTable({
-                    dom: 'Bfrtip',
+                    compact: true,
                     data: pendingOrderData,
                     "columns": [
                         { data: "challanNo" },
@@ -75,6 +74,7 @@
                         { data: "sellPrice", visible: false },
                         { data: "courierCharges" },
                         { data: "orderAmount" },
+                        { data: "paymentType" },
                         { data: "salesOrderId", visible: false },
                         { data: "stockHeaderId", visible: false },
                         { data: "customerId", visible: false }
@@ -139,7 +139,7 @@
             });
         }
 
-        function showUpdatePaymentModal() {
+        function showUpdatePaymentModal(initData) {
             var rowProcessed = false;
             var challanNoLabelList = new Array();
             var challanNoList = new Array();
@@ -197,6 +197,16 @@
             });
         }
 
+        function showOrderData() {
+            $.get("/salesOrders/all?fromDate="+$("#fromDate").val()+"&toDate="+$("#toDate").val(), function (res) {
+                pendingOrderData = res.data;
+                paymentTable.clear().rows.add(pendingOrderData).draw();
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
+        }
+
         function initData() {
             $.get("/salesOrders/all?fromDate="+$("#fromDate").val()+"&toDate="+$("#toDate").val(), function (res) {
                 pendingOrderData = res.data;
@@ -215,10 +225,10 @@
             <input type="text" style="max-width: 100px;" readonly class="form-control" id="fromDate">
             <label class="p-2 pb-0" for="boxNo">To Date</label>
             <input type="text" style="max-width: 100px;" readonly class="form-control" id="toDate">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Show</button>
+            <button type="button" class="btn btn-secondary" id="showOrederDataBtn">Show</button>
         </div>
         <div>
-            <table id="dataTable" style="width: 100%;" class="display">
+            <table id="dataTable" style="width: 100%;" class="display cell-border">
                 <thead>
                     <tr>
                         <th class="th-sm" style="max-width: 50px;">Challan</th>
@@ -232,6 +242,7 @@
                         <th class="th-sm">Sell Price</th>
                         <th class="th-sm">Courier Charges</th>
                         <th class="th-sm">Order Amount</th>
+                        <th class="th-sm">Payment Type</th>
                         <th class="th-sm">SalesOrderId</th>
                         <th class="th-sm">StockHeaderId</th>
                         <th class="th-sm">CustomerId</th>

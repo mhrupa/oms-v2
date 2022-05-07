@@ -220,6 +220,7 @@ public class SalesOrderService {
                     .salesOrderId(orderHeader.getId())
                     .stockHeaderId(orderHeader.getStockHeader().getId())
                     .customerId(orderHeader.getCustomer().getId())
+                    .paymentType(orderHeader.getPaymentType())
                     .build();
             orderResponseDtos.add(salesOrderResponseDto);
         });

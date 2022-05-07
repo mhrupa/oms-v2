@@ -22,4 +22,5 @@ public class SalesOrderResponseDto {
     private long salesOrderId;
     private long stockHeaderId;
     private long customerId;
+    private String paymentType;
 }
