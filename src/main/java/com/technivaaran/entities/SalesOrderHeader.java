@@ -32,7 +32,7 @@ public class SalesOrderHeader extends BaseEntity<Long> {
 	@Column(name = "order_date")
 	private LocalDate orderDate;
 
-	private long challanNo;
+	private Long challanNo;
 	private float sellPrice;
 	private long quantity;
 	private float courierCharges;

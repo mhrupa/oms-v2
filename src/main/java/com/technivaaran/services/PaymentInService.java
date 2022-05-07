@@ -115,7 +115,7 @@ public class PaymentInService {
 
     private List<Long> validateChallanNo(List<Long> challanNoList, List<SalesOrderHeader> salesOrderHeaders) {
         return challanNoList.stream().filter(challanNo -> salesOrderHeaders.stream()
-                .noneMatch(salesOrderHeader -> salesOrderHeader.getId().equals(challanNo)))
+                .noneMatch(salesOrderHeader -> salesOrderHeader.getChallanNo().equals(challanNo)))
                 .collect(Collectors.toList());
     }
 
