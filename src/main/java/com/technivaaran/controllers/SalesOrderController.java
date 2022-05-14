@@ -8,6 +8,7 @@ import com.technivaaran.services.SalesOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +29,12 @@ public class SalesOrderController {
     public ResponseEntity<OmsResponse> createSalesOrder(@RequestBody OrderRequestDto orderRequestDto) {
         log.info("create sales oreder started");
         return salesOrderService.createSalesOrder(orderRequestDto);
+    }
+
+    @GetMapping("/salesOrderDataForPrint/{challanNo}")
+    public ResponseEntity<OmsResponse> getSalesOrderDataForPrinting(@PathVariable Long challanNo) {
+        log.info("Get sales oreder data for printing started");
+        return salesOrderService.getSalesOrderDataForPrinting(challanNo);
     }
 
     @GetMapping("/salesOrders")

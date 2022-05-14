@@ -20,10 +20,11 @@
         .dataTables_filter input {
             min-width: 350px;
         }
-
         @media print {
             @page {
                 size: 150mm 50mm;
+                margin-top: 0;
+                margin-bottom: 0;
             }
         }
     </style>
@@ -404,8 +405,8 @@
             console.log($("#configForStockChange").val());
             if ($("#configForStockChange").val() == undefined ||
                 $("#configForStockChange").val() == "" || $("#configForStockChange").val() == 0) {
-                
-                $("#configForStockChange").focus();    
+
+                $("#configForStockChange").focus();
                 $("#omsToast").html("Invalid Configuration");
                 $(".toast").addClass("bg-danger").toast("show");
                 return false;
@@ -468,7 +469,7 @@
                         if (res.data.qty != 0) {
                             d.qty = res.data.qty;
                             d.sellPrice = res.data.sellPrice;
-                            if($("#currentRemark").val() != $("#remarkForEditStock option:selected").text()) {
+                            if ($("#currentRemark").val() != $("#remarkForEditStock option:selected").text()) {
                                 d.remarkText = $("#remarkForEditStock option:selected").text();
                                 d.remarkId = $("#remarkForEditStock option:selected").val();
                             }
@@ -1518,7 +1519,8 @@
                             <input type="text" class="form-control numberOnly" id="sellPriceForEditStock">
                         </div>
                         <div class="input-group mb-2">
-                            <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Remark</span>
+                            <span class="input-group-text"
+                                style="width: 120px;text-align: right;display: block;">Remark</span>
                             <input type="text" disabled="disabled" class="form-control" id="currentRemark">
                             <select class="form-control" id="remarkForEditStock"></select>
                         </div>
@@ -1760,9 +1762,86 @@
                     </div>
                     <div class="modal-body">
                         <div class="input-group mb-3" id="printArea">
-                            <span class="input-group-text">Company Name</span>
-                            <span class="input-group-text">Customer Name</span>
-                            <span class="input-group-text">Customer Name New</span>
+                            <div>
+                                <table style="width: 100%;">
+                                    <tr>
+                                        <td style="border: 1px solid silver;width: 270px;text-align: center;">CUSTOMER'S NAME &
+                                            ADDRESS</td>
+                                        <td style="border: 1px solid silver;width: 270px;text-align: center;">DELIVERY CHALLAN</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid silver;">
+                                            <table>
+                                                <tr>
+                                                    <td>M/s.&nbsp;<label id="customerNameForPrint"></label></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label id="customerNameForPrint1"></label></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label id="customerNameForPrint2"></label></td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td style="border: 1px solid silver;">
+                                            <table>
+                                                <tr>
+                                                    <td>CHALLAN NO.&nbsp;<label id="challanNoPrint"></label></td>
+                                                    <td>DATE&nbsp;<label id="challanDatePrint"></label></td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2">Phone:&nbsp;9987507293/9987507293</td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2">Mob.:&nbsp;9987507293/9987507293</td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <table style="width: 100%;">
+                                    <tr>
+                                        <td style="width: 5%;border: 1px solid silver;font-size: 12px;text-align: center;">SR.NO.</td>
+                                        <td style="border: 1px solid silver;font-size: 12px;text-align: center;">PARTICULARS</td>
+                                        <td style="width: 15%;border: 1px solid silver;font-size: 12px;text-align: center;">QUANTITY</td>
+                                        <td style="width: 15%;border: 1px solid silver;font-size: 12px;text-align: center;">UNIT RATE</td>
+                                        <td style="width: 15%;border: 1px solid silver;font-size: 12px;text-align: center;">AMOUNT</td>
+                                    </tr>
+                                    <tr style="height: 100px;vertical-align: top;">
+                                        <td style="border: 1px solid silver;font-size: 12px;">1</td>
+                                        <td style="border: 1px solid silver;font-size: 12px;">PARTICULARS</td>
+                                        <td style="border: 1px solid silver;font-size: 12px;text-align: right;padding-right: 5px;">QUANTITY</td>
+                                        <td style="border: 1px solid silver;font-size: 12px;text-align: right;padding-right: 5px;">UNIT RATE</td>
+                                        <td style="border: 1px solid silver;font-size: 12px;text-align: right;padding-right: 5px;">100000</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid silver;" colspan="3" rowspan="2">Amount in words</td>
+                                        <td style="border: 1px solid silver;">TOTAL</td>
+                                        <td style="border: 1px solid silver;">121212</td>
+                                    </tr>
+                                    <tr>
+                                        <td rowspan="3" colspan="2" style="text-align: center;border: 1px solid silver;">PAL IT
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid silver;font-size: 11px;text-align: left;" colspan="3" rowspan="2">Received The Above Goods In Good
+                                            Condition & Order
+                                            <br>
+                                            Receiver's Signature
+                                        </td>
+                                    </tr>
+                                </table>
+                                <table style="width: 100%;">
+                                    <tr>
+                                        <td style="font-size: 10px;text-align: left;line-height: 12px;">
+                                            1. In the case on onboard, CPU, Motherboard, No Display, No Power Not
+                                            Covered in warranty.
+                                            <br>2. Intell Chip will not be covered in warranty.
+                                            <br>3. Burn & Physical Not be covered in warranty.
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">

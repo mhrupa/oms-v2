@@ -237,4 +237,8 @@ public class SalesOrderService {
     public SalesOrderHeader updateOrder(SalesOrderHeader salesOrderHeader) {
         return salesOrderHeaderRepository.save(salesOrderHeader);
     }
+
+    public ResponseEntity<OmsResponse> getSalesOrderDataForPrinting(Long challanNo) {
+        return null;
+    }
 }
