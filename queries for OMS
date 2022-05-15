@@ -12,3 +12,55 @@ delete from sales_order_details;
 delete from sales_order_header;
 delete from stock_details;
 delete from stock_header;
+
+
+
+
+
+
+Run these queries for updating the DB
+
+update sales_order_header set challan_no = id;
+
+value for challan no has to be upadted to the max from sales_order_header
+INSERT INTO `OMS`.`challan_no` (created_at, updated_at, `version`, `challan_no`) VALUES (now(), now(), '1', '6');
+
+
+update stock details
+update stock_details set type = 'In' where in_qty>0;
+update stock_details set type ='Out' where type is null;
+
+update remarks
+update stock_header set remark = null where remark = '';
+
+
+Creat SP
+CREATE DEFINER=`root`@`localhost` PROCEDURE `update_remarks`()
+BEGIN
+	DECLARE temp_remark VARCHAR(200) DEFAULT '';
+	DECLARE finished INTEGER DEFAULT 0;
+
+	DEClARE curRemark 
+			CURSOR FOR 
+				SELECT DISTINCT(remark) FROM stock_header WHERE remark IS NOT null;
+
+	DECLARE CONTINUE HANDLER 
+			FOR NOT FOUND SET finished = 1;
+			
+	OPEN curRemark;
+
+	getRemark: LOOP
+			FETCH curRemark INTO temp_remark;
+			IF finished = 1 THEN 
+				LEAVE getRemark;
+			END IF;
+			-- insert remarks
+			INSERT INTO remarks(created_at, updated_at, version, remark_text) VALUES (now(), now(), 0, temp_remark);
+		END LOOP getRemark;
+
+	CLOSE curRemark;
+
+END
+*********
+update stock_header sh set remark_id = (select id from remarks r where r.remark_text = sh.remark) where remark is not null;
+
