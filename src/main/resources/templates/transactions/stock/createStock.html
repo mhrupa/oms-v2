@@ -40,7 +40,11 @@
             initPage();
             $(".numberOnly").keypress(numberOnly);
             $(".numberOnlyWithNegativeValues").keypress(numberOnlyWithNegativeValues);
-
+            //$("#companyName").val(company.companyName);
+            $("#contact1").text(company.contact1);
+            $("#contact2").text(company.contact2);
+            $("#contact3").text(company.contact3);
+            $("#contact4").text(company.contact4);
             table = $("#dataTable").DataTable({
                 // paging: false,
                 // scrollY: 420,
@@ -625,6 +629,24 @@
                     table.row.add(res.data).draw(false);
                 }
                 $("#createOrderModal").modal("hide");
+                $("#contact1").text(company.contact1);
+                $("#contact2").text(company.contact2);
+                $("#contact3").text(company.contact3);
+                $("#contact4").text(company.contact4);
+
+                $("#customerNameForPrint").text(res.data.customerName);
+                $("#customerEmailForPrint").text(res.data.customerEmail);
+                $("#customerLocationForPrint").text(res.data.customerLocation);
+                $("#amountInWords").text(res.data.totalAmountString);
+                $("#challanNoPrint").text(res.data.challanNo);
+                $("#challanDatePrint").text(res.data.orderDate);
+                $("#printItemDescription").text(res.data.model + " " + res.data.part + " " + res.data.configuration);
+                $("#printCourierCharges").text(Number.parseFloat($("#courierCharges").val()));
+                $("#printQty").text(Number.parseInt($("#itemQuantity").val()));
+                $("#printRate").text($("#newItemSellRate").val());
+                $("#printAmount").text(Number.parseInt($("#itemQuantity").val()) * Number.parseFloat($("#newItemSellRate").val()));
+                $("#printTotalAmount").text(Number.parseInt($("#itemQuantity").val()) * Number.parseFloat($("#newItemSellRate").val()) + Number.parseFloat($("#courierCharges").val()));
+
                 $("#printOptionModal").modal("show");
                 $("#omsToast").html(res.message);
                 $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
@@ -1801,28 +1823,25 @@
                                     <tr>
                                         <td style="border: 1px solid silver;">
                                             <table>
-                                                <tr>
-                                                    <td>M/s.&nbsp;<label id="customerNameForPrint"></label></td>
-                                                </tr>
-                                                <tr>
-                                                    <td><label id="customerNameForPrint1"></label></td>
-                                                </tr>
-                                                <tr>
-                                                    <td><label id="customerNameForPrint2"></label></td>
+                                                <tr style="vertical-align: top;">
+                                                    <td>M/s.&nbsp;<label id="customerNameForPrint"></label>
+                                                        <br><label id="customerEmailForPrint"></label>
+                                                        <br><label id="customerLocationForPrint"></label>
+                                                    </td>
                                                 </tr>
                                             </table>
                                         </td>
                                         <td style="border: 1px solid silver;">
-                                            <table>
+                                            <table style="width: 100%;">
                                                 <tr>
-                                                    <td>CHALLAN NO.&nbsp;<label id="challanNoPrint"></label></td>
-                                                    <td>DATE&nbsp;<label id="challanDatePrint"></label></td>
+                                                    <td style="text-align: left;">CHALLAN NO.&nbsp;<label id="challanNoPrint"></label></td>
+                                                    <td style="text-align: right;padding-right: 5px;">DATE&nbsp;<label id="challanDatePrint"></label></td>
                                                 </tr>
                                                 <tr>
-                                                    <td colspan="2">Phone:&nbsp;9987507293/9987507293</td>
+                                                    <td colspan="2">Phone:&nbsp;<label id="contact1"></label>/<label id="contact2"></label></td>
                                                 </tr>
                                                 <tr>
-                                                    <td colspan="2">Mob.:&nbsp;9987507293/9987507293</td>
+                                                    <td colspan="2">Mob.:&nbsp;<label id="contact3"></label>/<label id="contact4"></label></td>
                                                 </tr>
                                             </table>
                                         </td>
@@ -1832,21 +1851,43 @@
                                     <tr>
                                         <td style="width: 5%;border: 1px solid silver;font-size: 12px;text-align: center;">SR.NO.</td>
                                         <td style="border: 1px solid silver;font-size: 12px;text-align: center;">PARTICULARS</td>
-                                        <td style="width: 15%;border: 1px solid silver;font-size: 12px;text-align: center;">QUANTITY</td>
+                                        <td style="width: 7%;border: 1px solid silver;font-size: 12px;text-align: center;">QTY</td>
                                         <td style="width: 15%;border: 1px solid silver;font-size: 12px;text-align: center;">UNIT RATE</td>
                                         <td style="width: 15%;border: 1px solid silver;font-size: 12px;text-align: center;">AMOUNT</td>
                                     </tr>
-                                    <tr style="height: 100px;vertical-align: top;">
-                                        <td style="border: 1px solid silver;font-size: 12px;">1</td>
-                                        <td style="border: 1px solid silver;font-size: 12px;">PARTICULARS</td>
-                                        <td style="border: 1px solid silver;font-size: 12px;text-align: right;padding-right: 5px;">QUANTITY</td>
-                                        <td style="border: 1px solid silver;font-size: 12px;text-align: right;padding-right: 5px;">UNIT RATE</td>
-                                        <td style="border: 1px solid silver;font-size: 12px;text-align: right;padding-right: 5px;">100000</td>
+                                    <tr style="height: 250px;vertical-align: top;">
+                                        <td style="border: 1px solid silver;font-size: 12px;text-align: center;">1</td>
+                                        <td style="border: 1px solid silver;font-size: 12px;">
+                                            <table style="height: 250px;">
+                                                <tr style="vertical-align: top;">
+                                                    <td><label id="printItemDescription"></label>
+                                                        <br><label>Courier Charges</label>
+                                                    </td>
+                                                </tr>
+                                                <tr style="height: 10%;vertical-align: bottom;">
+                                                    <td style="font-size: 12px;text-align: left;line-height: 12px;font-weight: bold;">
+                                                        1. In the case of onboard, CPU, Motherboard, No Display, No Power Not
+                                                        Covered in warranty.
+                                                        <br>2. Intel Chip will not be covered in warranty.
+                                                        <br>3. Burn &amp; Physical damage not covered in warranty.
+                                                        <br>4. Goods once sold cannot be returned or exchanged.
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td style="border: 1px solid silver;font-size: 12px;text-align: center;padding-right: 5px;"><label id="printQty"></label></td>
+                                        <td style="border: 1px solid silver;font-size: 12px;text-align: right;padding-right: 5px;">
+                                            <label id="printRate"></label>
+                                        </td>
+                                        <td style="border: 1px solid silver;font-size: 12px;text-align: right;">
+                                            <label id="printAmount"></label>
+                                            <br><label id="printCourierCharges"></label>&nbsp;
+                                        </td>
                                     </tr>
                                     <tr>
-                                        <td style="border: 1px solid silver;" colspan="3" rowspan="2">Amount in words</td>
-                                        <td style="border: 1px solid silver;">TOTAL</td>
-                                        <td style="border: 1px solid silver;">121212</td>
+                                        <td style="border: 1px solid silver;" colspan="3" rowspan="2">&nbsp;<label id="amountInWords"></label></td>
+                                        <td style="border: 1px solid silver;text-align: center;">TOTAL</td>
+                                        <td style="border: 1px solid silver;text-align: right;padding-right: 5px;"><label id="printTotalAmount"></label></td>
                                     </tr>
                                     <tr>
                                         <td rowspan="3" colspan="2" style="text-align: center;border: 1px solid silver;">PAL IT
@@ -1857,16 +1898,6 @@
                                             Condition & Order
                                             <br>
                                             Receiver's Signature
-                                        </td>
-                                    </tr>
-                                </table>
-                                <table style="width: 100%;">
-                                    <tr>
-                                        <td style="font-size: 10px;text-align: left;line-height: 12px;">
-                                            1. In the case on onboard, CPU, Motherboard, No Display, No Power Not
-                                            Covered in warranty.
-                                            <br>2. Intell Chip will not be covered in warranty.
-                                            <br>3. Burn & Physical Not be covered in warranty.
                                         </td>
                                     </tr>
                                 </table>

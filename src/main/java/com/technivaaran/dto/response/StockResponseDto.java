@@ -34,4 +34,11 @@ public class StockResponseDto {
     private String remarkText;
     private long remarkId;
     private String stockTransactionType;
+    private String challanNo;
+    private String orderDate;
+    private String customerName;
+    private String customerEmail;
+    private String customerLocation;
+    private String totalAmount;
+    private String totalAmountString;
 }

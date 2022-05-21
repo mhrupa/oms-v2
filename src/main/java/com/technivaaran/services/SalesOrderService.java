@@ -13,6 +13,7 @@ import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.dto.request.OrderRequestDto;
 import com.technivaaran.dto.request.PaymentInRequestDto;
 import com.technivaaran.dto.response.SalesOrderResponseDto;
+import com.technivaaran.dto.response.StockResponseDto;
 import com.technivaaran.entities.CustomerEntity;
 import com.technivaaran.entities.SalesOrderDetails;
 import com.technivaaran.entities.SalesOrderHeader;
@@ -26,6 +27,7 @@ import com.technivaaran.enums.StockType;
 import com.technivaaran.exceptions.OMSException;
 import com.technivaaran.repositories.SalesOderDetailRepository;
 import com.technivaaran.repositories.SalesOrderHeaderRepository;
+import com.technivaaran.utils.CurrencyUtil;
 import com.technivaaran.utils.DateUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,9 +160,17 @@ public class SalesOrderService {
                 stockDetailsOp.get().getBuyPrice(), user, StockTransactionType.NORMAL, "");
         OmsResponse omsResponse = response.getBody();
         if (!ObjectUtils.isEmpty(omsResponse)) {
+                StockResponseDto stockResponseDto = (StockResponseDto)omsResponse.getData();
+                stockResponseDto.setChallanNo(Long.toString(salesOrderHeader.getChallanNo()));
+                stockResponseDto.setOrderDate(salesOrderHeader.getOrderDate()+"");
+                stockResponseDto.setCustomerName(customer.getCustomerName());
+                stockResponseDto.setCustomerEmail(customer.getEmail());
+                stockResponseDto.setCustomerLocation(customer.getLocation());
+                stockResponseDto.setTotalAmount(Double.toString(salesOrderHeader.getOrderAmount()));
+                stockResponseDto.setTotalAmountString(CurrencyUtil.convertToIndianCurrency(Double.toString(salesOrderHeader.getOrderAmount())));
             return new ResponseEntity<>(OmsResponse.builder()
                     .message("Sales order created successfully.")
-                    .data(omsResponse.getData()).build(), HttpStatus.OK);
+                    .data(stockResponseDto).build(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(
                     OmsResponse.builder().message("Invalid order request received.")
