@@ -140,6 +140,7 @@
             $("#printChallan").click(printChallanClick);
             $("#addRemarkBtn").click(showRemarkModal);
             $("#createRemarkBtn").click(addNewRemark);
+            $("#deleteStockModalBtn").click(deleteStockRow);
 
             $("#addStockBtn").click(() => {
                 if (validateFields()) {
@@ -326,7 +327,8 @@
             $("#sellPriceForEditStock").val(selectedRowData.sellPrice);
             $("#qtyForEditStock").val("0");
             $("#currentRemark").val(selectedRowData.remarkText);
-            $("#remarkForEditStock").val(selectedRowData.remarkId);
+            //$("#remarkForEditStock").val(selectedRowData.remarkId);
+            $("#remarkForEditStock").val(selectedRowData.remarkText);
             $("#tempTotalStock").val(selectedRowData.qty);
             $("#optionModal").modal("hide");
             $("#stockEditModal").modal("show");
@@ -402,7 +404,6 @@
                 $(".toast").addClass("bg-danger").toast("show");
                 return false;
             }
-            console.log($("#configForStockChange").val());
             if ($("#configForStockChange").val() == undefined ||
                 $("#configForStockChange").val() == "" || $("#configForStockChange").val() == 0) {
 
@@ -466,17 +467,17 @@
                         && d.part == res.data.part && d.configuration == res.data.configuration
                         && d.details == res.data.details && d.vendor == res.data.vendor
                         && d.buyPrice == res.data.buyPrice) {
-                        if (res.data.qty != 0) {
                             d.qty = res.data.qty;
+                        // if (res.data.qty != 0) {
                             d.sellPrice = res.data.sellPrice;
-                            if ($("#currentRemark").val() != $("#remarkForEditStock option:selected").text()) {
-                                d.remarkText = $("#remarkForEditStock option:selected").text();
-                                d.remarkId = $("#remarkForEditStock option:selected").val();
+                            if ($("#currentRemark").val() != $("#remarkForEditStock").val()) {
+                                d.remarkText = $("#remarkForEditStock").val();
+                                // d.remarkId = $("#remarkForEditStock option:selected").val();
                             }
-                        } else {
-                            rowTodeleteFlag = true;
-                            rowTodelete = this;
-                        }
+                        //} else {
+                            // rowTodeleteFlag = true;
+                          //  rowTodelete = this;
+                        //}
                         this.invalidate();
                         rowUpdated = true;
                         $("#stockEditModal").modal("hide");
@@ -525,7 +526,7 @@
                 "sellPrice": $("#sellPrice").val(),
                 "userId": appUser.userId,
                 "vendorId": $("#vendor").val(),
-                "remarkText": $("#remarkText option:selected").text()
+                "remarkText": $("#remarkText").val()
             };
             $.post("/stock", JSON.stringify(requestData), function (res) {
                 var rowUpdated = false;
@@ -604,12 +605,12 @@
                         && d.part == res.data.part && d.configuration == res.data.configuration
                         && d.details == res.data.details && d.vendor == res.data.vendor
                         && d.buyPrice == res.data.buyPrice) {
-                        if (res.data.qty != 0) {
+                        // if (res.data.qty != 0) {
                             d.qty = res.data.qty;
-                        } else {
-                            rowTodeleteFlag = true;
-                            rowTodelete = this;
-                        }
+                        // } else {
+                        //     rowTodeleteFlag = true;
+                        //     rowTodelete = this;
+                        // }
                         this.invalidate();
                         rowUpdated = true;
                         return false;
@@ -632,6 +633,26 @@
                 $(".toast").addClass("bg-danger").toast("show");
             });
         }
+        function deleteStockRow() {
+            if(selectedRowData.qty>0) {
+                $("#optionModal").modal("hide");
+                $("#omsToast").html("Can not delete row as quantity is not 0.");
+                $(".toast").addClass("bg-danger").toast("show");
+                return false;
+            }
+            if(confirm("Do you want to delete row?")) {
+                $.post("/stock/delRow/" + selectedRowData.id, {}, function (res) {
+                    $("#omsToast").html(res.message);
+                    $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
+                    $("#optionModal").modal("hide");
+                    selectedRow.remove().draw();
+                }).fail(function (res) {
+                    $("#optionModal").modal("hide");
+                    $("#omsToast").html(JSON.parse(res.responseText).message);
+                    $(".toast").addClass("bg-danger").toast("show");
+                });
+            }
+        }
 
         function initCreateOrderFields() {
             $("#customer").val("0");
@@ -651,7 +672,7 @@
             $("#qty").val("");
             $("#buyPrice").val("");
             $("#sellPrice").val("");
-            $("#remarkText").val(0);
+            $("#remarkText").val("");
             $("#boxNo").val("").focus();
         }
         function validateFields() {
@@ -982,13 +1003,14 @@
         function initRemarkData() {
             $.get("/remarks", function (res) {
                 remarks = res;
-                $("#remarkText").empty();
-                $("#remarkForEditStock").empty();
-                $("#remarkText").append("<option selected='selected' value='0'></option>");
-                $("#remarkForEditStock").append("<option selected='selected' value='0'></option>");
+                $("#remarkData").empty();
+                $("#remarkForEditStockList").empty();
+                
                 remarks.forEach(remark => {
-                    $("#remarkText").append("<option value='" + remark.id + "'>" + remark.remarkText + "</option>");
-                    $("#remarkForEditStock").append("<option value='" + remark.id + "'>" + remark.remarkText + "</option>");
+                    $("#remarkData").append("<option value='" + remark.remarkText
+                        + "' remarkId='" + remark.id + "'></option>");
+                    $("#remarkForEditStockList").append("<option value='" + remark.remarkText
+                        + "' remarkId='" + remark.id + "'></option>");
                 });
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
@@ -1160,9 +1182,11 @@
         function initRemarkResponseData(remark) {
             if (remark) {
                 remarks.push(remark);
-                $("#remarkText").append("<option value='" + remark.id + "'>" + remark.remarkText + "</option>");
-                $("#remarkForEditStock").append("<option value='" + remark.id + "'>" + remark.remarkText + "</option>");
-                $("#remarkText").val(remark.id);
+                $("#remarkData").append("<option value='" + remark.remarkText
+                        + "' remarkId='" + remark.id + "'></option>");
+                    $("#remarkForEditStockList").append("<option value='" + remark.remarkText
+                        + "' remarkId='" + remark.id + "'></option>");
+                $("#remarkText").val(remark.remarkText);
                 $("#remarkText").focus();
             }
         }
@@ -1250,14 +1274,15 @@
                             id="sellPrice">
                     </div>
                 </div>
-                <div class="row mb-1" style="padding-left: 12px;">
-                    <div class="col ps-2">
-                        <label for="qty" class="p-1 pb-0">Remark</label>
-                        <div class="input-group">
-                            <select class="form-control" id="remarkText"></select>
-                            <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
-                                data-bs-placement="top" id="addRemarkBtn" title="Add New Remark">+</button>
-                        </div>
+                <div class="mb-1 ps-2">
+                    <label class="p-1 pb-0" for="remarkText">Remark</label>
+                    <div class="input-group">
+                        <input class="form-control" autocomplete="off" list="remarkData" id="remarkText"
+                            placeholder="Search Remark...">
+                        <datalist id="remarkData">
+                        </datalist>
+                        <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                            data-bs-placement="top" id="addRemarkBtn" title="Add new Remark">+</button>
                     </div>
                 </div>
                 <div class="ps-2 mt-3">
@@ -1448,7 +1473,7 @@
         </div>
         <div class="modal fade" id="stockEditModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
             aria-hidden="true">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="staticBackdropLabel">Update Stock</h5>
@@ -1518,11 +1543,13 @@
                             <input type="text" disabled="disabled" class="form-control" id="currentSellPrice">
                             <input type="text" class="form-control numberOnly" id="sellPriceForEditStock">
                         </div>
-                        <div class="input-group mb-2">
-                            <span class="input-group-text"
-                                style="width: 120px;text-align: right;display: block;">Remark</span>
+                        <div class="input-group mb-0">
+                            <span class="input-group-text" style="width: 120px;text-align: right;display: block;">Remark</span>
                             <input type="text" disabled="disabled" class="form-control" id="currentRemark">
-                            <select class="form-control" id="remarkForEditStock"></select>
+                            <input autocomplete="off" class="form-control" list="remarkForEditStockList" accesskey="b"
+                                id="remarkForEditStock" placeholder="Search Box...">
+                            <datalist id="remarkForEditStockList">
+                            </datalist>
                         </div>
                         <div class="input-group mb-3">
                             <span class="input-group-text"
@@ -1560,8 +1587,10 @@
                         <div class="input-group mb-2">
                             <button type="button" class="btn btn-primary pe-2 me-2" id="createOrderModalBtn">Create
                                 Order</button>
-                            <button type="button" id="updateStockModalBtn" class="btn btn-secondary">Update
+                            <button type="button" id="updateStockModalBtn" class="btn btn-secondary pe-2 me-2">Update
                                 Stock</button>
+                            <button type="button" id="deleteStockModalBtn" class="btn btn-danger">Delete
+                                Row</button>
                         </div>
                     </div>
                 </div>

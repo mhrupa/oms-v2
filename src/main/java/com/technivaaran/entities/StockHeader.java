@@ -48,6 +48,8 @@ public class StockHeader extends BaseEntity<Long> {
     private long remarkId;
 
     private long stockDetailId;
+
+    private boolean rowDelStatus;
     
     @ManyToOne
     @JoinColumn(name = "location_id")

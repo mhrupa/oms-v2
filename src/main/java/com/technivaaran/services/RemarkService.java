@@ -46,4 +46,8 @@ public class RemarkService {
 
     }
 
+    public Optional<RemarkEntity> findRemarkByRemarkText(String remark) {
+        log.info("find remark by remarText method called in service");
+        return remarkRepository.findByRemarkText(remark);
+    }
 }

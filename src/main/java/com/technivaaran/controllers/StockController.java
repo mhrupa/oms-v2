@@ -37,6 +37,12 @@ public class StockController {
         return stockService.createStockEntry(stockRequestDto);
     }
 
+    @PostMapping("/stock/delRow/{stockHeaderId}")
+    public ResponseEntity<OmsResponse> deleteRowForZeroStock(@PathVariable(name = "stockHeaderId") long stockHeaderId) {
+        log.info("started delete row for stoch header ID {}", stockHeaderId);
+        return stockService.deleteRowForZerorStock(stockHeaderId);
+    }
+
     @PostMapping("/stock/{id}")
     public ResponseEntity<OmsResponse> updateStockById(@RequestBody StockRequestDto stockRequestDto,
             @PathVariable(name = "id") long id) {

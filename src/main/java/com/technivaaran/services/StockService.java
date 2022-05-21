@@ -281,9 +281,9 @@ public class StockService {
                     stockHeader.setInQty(stockHeader.getInQty() + quantity);
                     stockHeader.setClosingQty(stockHeader.getClosingQty() + quantity);
                     stockHeader.setSellPrice(sellPrice);
-                    if(remark != null && !remark.isEmpty()) {
-                        Optional<RemarkEntity> remarkOp = remarkService.findRemarkById(Long.valueOf(remark));
-                        if(remarkOp.isPresent()) {
+                    if (remark != null && !remark.isEmpty()) {
+                        Optional<RemarkEntity> remarkOp = remarkService.findRemarkByRemarkText(remark);
+                        if (remarkOp.isPresent()) {
                             stockHeader.setRemark(remarkOp.get().getRemarkText());
                         }
                     }
@@ -352,5 +352,20 @@ public class StockService {
     public Optional<StockDetails> findLatestStockDetailsByStockHeader(long stockHeaderId) {
 
         return stockDetailsRepository.findLatestStockDetailsByStockHeader(stockHeaderId);
+    }
+
+    public ResponseEntity<OmsResponse> deleteRowForZerorStock(long stockHeaderId) {
+        Optional<StockHeader> stockHeaderOp = stockHeaderRepository.findById(stockHeaderId);
+        if(stockHeaderOp.isEmpty()) {
+            return new ResponseEntity<>(OmsResponse.builder().message("No daya found to update.").build(),
+            HttpStatus.BAD_REQUEST);    
+        }
+        StockHeader stockHeader = stockHeaderOp.get();
+        stockHeader.setRowDelStatus(Boolean.TRUE);
+
+        stockHeaderRepository.save(stockHeader);
+
+        return new ResponseEntity<>(OmsResponse.builder().message("Row deleted successfully.").build(),
+                HttpStatus.OK);
     }
 }
