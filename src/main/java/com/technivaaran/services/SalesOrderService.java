@@ -9,6 +9,12 @@ import java.util.Optional;
 
 import javax.transaction.Transactional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+
 import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.dto.request.OrderRequestDto;
 import com.technivaaran.dto.request.PaymentInRequestDto;
@@ -29,12 +35,6 @@ import com.technivaaran.repositories.SalesOderDetailRepository;
 import com.technivaaran.repositories.SalesOrderHeaderRepository;
 import com.technivaaran.utils.CurrencyUtil;
 import com.technivaaran.utils.DateUtils;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,7 +65,19 @@ public class SalesOrderService {
 
     public ResponseEntity<OmsResponse> createSalesOrder(OrderRequestDto orderRequestDto) {
         log.info("Inside create sales oreder service");
-        Optional<CustomerEntity> customerOp = customerService.findCustomerById(orderRequestDto.getCustomerId());
+        String customerName = "";
+        String customerLocation = "";
+        try {
+                customerName = orderRequestDto.getCustomer().split("\\(")[0];
+                customerLocation = orderRequestDto.getCustomer().split("\\(")[1].split("\\)")[0];
+        } catch (Exception e) {
+                log.error("invalid customer entered");
+                return new ResponseEntity<>(
+                                OmsResponse.builder().message("invalid customer entered.").build(),
+                                HttpStatus.BAD_REQUEST);
+        }
+
+        Optional<CustomerEntity> customerOp = customerService.findCustomerByNameAndLocation(customerName, customerLocation);
         if (customerOp.isPresent()) {
             Optional<StockHeader> stockHeaderOp = stockService
                     .getStockHeaderByStockHeaderId(orderRequestDto.getStockHeaderId());
@@ -191,7 +203,7 @@ public class SalesOrderService {
             SalesOrderResponseDto salesOrderResponseDto = SalesOrderResponseDto.builder()
                     .challanNo(orderHeader.getChallanNo())
                     .orderDate(orderHeader.getOrderDate())
-                    .customerName(orderHeader.getCustomer().getCustomerName())
+                    .customerName(orderHeader.getCustomer().getCustomerName() + "(" + orderHeader.getCustomer().getLocation() +")")
                     .part(orderHeader.getStockHeader().getPartEntity().getPartNo())
                     .model(orderHeader.getStockHeader().getItemMaster().getItemName())
                     .config(orderHeader.getStockHeader().getConfigDetailsEntity().getConfiguration())
@@ -200,6 +212,7 @@ public class SalesOrderService {
                     .sellPrice(orderHeader.getSellPrice())
                     .courierCharges(orderHeader.getCourierCharges())
                     .orderAmount(orderHeader.getOrderAmount())
+                    .paymentType(orderHeader.getPaymentType())
                     .salesOrderId(orderHeader.getId())
                     .stockHeaderId(orderHeader.getStockHeader().getId())
                     .customerId(orderHeader.getCustomer().getId())

@@ -11,5 +11,6 @@ import com.technivaaran.entities.CustomerEntity;
 public interface CustomerRepository extends JpaRepository<CustomerEntity, Long>{
 
     Optional<CustomerEntity> findByCustomerName(String customerName);
+    Optional<CustomerEntity> findByCustomerNameAndLocation(String customerName, String location);
 
 }

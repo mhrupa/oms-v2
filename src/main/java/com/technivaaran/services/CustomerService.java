@@ -31,13 +31,18 @@ public class CustomerService {
 		return customerRepository.findById(customerId);
 	}
 
+	public Optional<CustomerEntity> findCustomerByNameAndLocation(String customerName, String customerLocation) {
+		return customerRepository.findByCustomerNameAndLocation(customerName, customerLocation);
+	}
+
 	public List<CustomerEntity> findAllCustomers() {
 		return customerRepository.findAll();
 	}
 
 	public ResponseEntity<OmsResponse> saveCustomer(CustomerDto customerDto) {
 		CustomerEntity customer = null;
-		Optional<CustomerEntity> customerOp = customerRepository.findByCustomerName(customerDto.getCustomerName());
+		Optional<CustomerEntity> customerOp = customerRepository
+				.findByCustomerNameAndLocation(customerDto.getCustomerName(), customerDto.getLocation());
 		if (customerOp.isEmpty()) {
 			customer = customerMapper.convertToEntity(customerDto);
 			customer = customerRepository.save(customer);

@@ -567,7 +567,7 @@
         }
         function createOrderButtonClick() {
             $("#cashPaid").text("");
-            if ($("#customer").val() == 0) {
+            if ($("#customer").val() == "") {
                 $("#customer").focus();
                 return false;
             }
@@ -599,7 +599,7 @@
                 "courierCharges": $("#courierCharges").val(),
                 "paymentType": $("#paymentType").val(),
                 "remark": $("#orderRemark").val(),
-                "customerId": $("#customer").val(),
+                "customer": $("#customer").val(),
                 "stockHeaderId": $("#stockHeaderId").val(),
                 "stockDetailId": $("#stockDetailsId").val(),
                 "userId": appUser.userId
@@ -684,7 +684,7 @@
         }
 
         function initCreateOrderFields() {
-            $("#customer").val("0");
+            $("#customer").val("");
             $("#itemQuantity").val("0");
             $("#courierCharges").val("0");
             $("#paymentType").val("0");
@@ -1188,15 +1188,17 @@
             }
         }
         function initCustomerResponseData(customer) {
+            $("#customerData").empty();
             if (customer) {
                 customers.push(customer);
-                $("#customer").append("<option value='" + customer.id + "' selected>" + customer.customerName + "</option>");
-                $("#customer").val(customer.id);
+                res.forEach(location => {
+                    $("#customerData").append("<option value='" + customer.customerName+ "(" + customer.location +")" 
+                        + "' customerId='" + customer.id+ "'></option>");
+                });
             } else {
-                $("#customer").empty();
-                $("#customer").append("<option selected='selected' value='0'>Select Customer</option>");
                 customers.forEach(customer => {
-                    $("#customer").append("<option value='" + customer.id + "'>" + customer.customerName + "</option>");
+                    $("#customerData").append("<option value='" + customer.customerName+ "(" + customer.location +")" 
+                        + "' customerId='" + customer.id+ "'></option>");
                 });
             }
             return;
@@ -1654,12 +1656,15 @@
                                 id="itemDetailsForOrder"></span>
                         </div>
                         <div class="input-group mb-0">
-                            <span class="input-group-text"
-                                style="width: 140px;text-align: right;display: block;">Customer</span>
-                            <select class="form-control" id="customer"></select>
-                            <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
-                                data-bs-placement="top" id="showCustomerModalBtn" title="Add new Customer">+</button>
+                            <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Customer</span>
+                            <input class="form-control" autocomplete="off" list="customerData" accesskey="b" id="customer"
+                                placeholder="Search Customer...">
+                            <datalist id="customerData">
+                            </datalist>
+                            <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip" data-bs-placement="top"
+                                id="showCustomerModalBtn" title="Add new Customer">+</button>
                         </div>
+
                         <div class="input-group mb-0">
                             <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Sell
                                 Price</span>

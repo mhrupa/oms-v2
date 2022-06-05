@@ -18,7 +18,7 @@ public class OrderRequestDto {
 	private float courierCharges;
 	private String paymentType;
 	private String remark;
-    private long customerId;
+    private String customer;
     private long stockHeaderId;
     private long stockDetailId;
     private long userId;

@@ -34,7 +34,7 @@ public class PaymentAccountController {
     }
 
     @GetMapping("/paymentAccounts")
-    public List<PaymentAccountsEntity> getAllParts() {
+    public List<PaymentAccountsEntity> getAllPaymentAccounts() {
         return paymentAccountsService.getAllPaymentAccounts();
     }
 

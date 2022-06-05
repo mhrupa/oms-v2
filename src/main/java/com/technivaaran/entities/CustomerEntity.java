@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CustomerEntity extends BaseEntity<Long> {
 
-	@Column(name = "customer_name", unique = true)
+	@Column(name = "customer_name")
 	@Length(max = 50)
 	private String customerName;
 

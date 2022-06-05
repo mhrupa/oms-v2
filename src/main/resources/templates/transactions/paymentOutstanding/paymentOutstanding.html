@@ -93,6 +93,7 @@
                         { data: "sellPrice", visible: false },
                         { data: "courierCharges" },
                         { data: "orderAmount" },
+                        { data: "paymentType" },
                         { data: "salesOrderId", visible: false },
                         { data: "stockHeaderId", visible: false },
                         { data: "customerId", visible: false }
@@ -129,7 +130,7 @@
             $("#addAccountNameForPaymentModal").modal("show");
         }
         function paymentTypeChangeHandler() {
-            if ($("#paymentType").val() == "bank") {
+            if ($("#paymentType").val() == "bank" || $("#paymentType").val() == "paytm") {
                 $("#orderRemark").removeAttr("disabled");
             } else {
                 $("#orderRemark").val("0");
@@ -190,7 +191,7 @@
                 $("#paymentType").focus();
                 return false;
             }
-            if ($("#paymentType").val() == 'bank' && $("#orderRemark").val() == 0) {
+            if (($("#paymentType").val() == 'bank' || $("#paymentType").val() == 'paytm') && $("#orderRemark").val() == 0) {
                 $("#orderRemark").focus();
                 return false;
             }
@@ -242,6 +243,7 @@
                     <th class="th-sm">Sell Price</th>
                     <th class="th-sm">Courier Charges</th>
                     <th class="th-sm">Order Amount</th>
+                    <th class="th-sm">Payment Type</th>
                     <th class="th-sm">SalesOrderId</th>
                     <th class="th-sm">StockHeaderId</th>
                     <th class="th-sm">CustomerId</th>
@@ -294,6 +296,7 @@
                         <select class="form-control" id="paymentType" style="max-width: 160px;">
                             <option value="0">Select Payment Type</option>
                             <option value="cash">Cash</option>
+                            <option value="vpp">VPP</option>
                             <option value="paytm">Paytm</option>
                             <option value="bank">Bank</option>
                         </select>
