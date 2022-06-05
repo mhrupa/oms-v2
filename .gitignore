@@ -6,3 +6,4 @@
 .DS*
 .project
 *.log
+.idea/

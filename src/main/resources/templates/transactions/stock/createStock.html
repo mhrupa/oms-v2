@@ -232,7 +232,7 @@
         }
 
         function paymentTypeChangeHandler() {
-            if ($("#paymentType").val() == "bank") {
+            if ($("#paymentType").val() == "bank" || $("#paymentType").val() == "paytm") {
                 $("#orderRemark").removeAttr("disabled");
             } else {
                 $("#orderRemark").val("0");
@@ -291,6 +291,10 @@
 
         function showCreateCustomerModal() {
             selectedCustomer = $("#customer").val();
+            $("#customerName").val("");
+            $("#customerLocation").val("");
+            $("#email").val("");
+            $("#contact").val("");
             $("#createOrderModal").modal("hide");
             $("#createCustomerModal").modal("show");
         }
@@ -562,6 +566,7 @@
 
         }
         function createOrderButtonClick() {
+            $("#cashPaid").text("");
             if ($("#customer").val() == 0) {
                 $("#customer").focus();
                 return false;
@@ -582,10 +587,11 @@
                 $("#paymentType").focus();
                 return false;
             }
-            if ($("#paymentType").val() == 'bank' && $("#orderRemark").val() == 0) {
+            if (($("#paymentType").val() == 'bank' || $("#paymentType").val() == 'paytm') && $("#orderRemark").val() == 0) {
                 $("#orderRemark").focus();
                 return false;
             }
+
             var requestData = {
                 "orderDate": $("#datepicker").val(),
                 "sellPrice": $("#newItemSellRate").val(),
@@ -598,7 +604,6 @@
                 "stockDetailId": $("#stockDetailsId").val(),
                 "userId": appUser.userId
             };
-
             $.post("/salesOrders", JSON.stringify(requestData), function (res) {
                 var rowUpdated = false;
                 var rowTodelete;
@@ -646,7 +651,9 @@
                 $("#printRate").text($("#newItemSellRate").val());
                 $("#printAmount").text(Number.parseInt($("#itemQuantity").val()) * Number.parseFloat($("#newItemSellRate").val()));
                 $("#printTotalAmount").text(Number.parseInt($("#itemQuantity").val()) * Number.parseFloat($("#newItemSellRate").val()) + Number.parseFloat($("#courierCharges").val()));
-
+                if ($("#paymentType").val() =='cash') {
+                    $("#cashPaid").text("CASH PAID");
+                }
                 $("#printOptionModal").modal("show");
                 $("#omsToast").html(res.message);
                 $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
@@ -1692,6 +1699,7 @@
                             <select class="form-control" id="paymentType" style="max-width: 160px;">
                                 <option value="0">Select Payment Type</option>
                                 <option value="cash">Cash</option>
+                                <option value="vpp">VPP</option>
                                 <option value="paytm">Paytm</option>
                                 <option value="bank">Bank</option>
                                 <option value="pending">Pending</option>
@@ -1862,6 +1870,10 @@
                                                 <tr style="vertical-align: top;">
                                                     <td><label id="printItemDescription"></label>
                                                         <br><label>Courier Charges</label>
+                                                        <br><br><br>
+                                                        <div style="width: 100%;text-align: right;font-weight: bold;">
+                                                            <label id="cashPaid" style="font-size: 20px;text-align: right;padding-right: 10px;"></label>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 <tr style="height: 10%;vertical-align: bottom;">

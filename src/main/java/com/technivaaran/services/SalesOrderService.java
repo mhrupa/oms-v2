@@ -115,15 +115,18 @@ public class SalesOrderService {
                 .orderAmount(orderRequestDto.getQuantity()
                         * orderRequestDto.getSellPrice()
                         + orderRequestDto.getCourierCharges())
-                .status(orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
-                        ? OrderStatus.PENDING.type
-                        : OrderStatus.COMPLETE.type)
                 .stockDetails(stockDetailsOp.get())
                 .challanNo(challanNoService.getMaxChallanNo())
                 .customer(customer)
                 .stockHeader(stockHeader)
                 .user(user)
                 .build();
+                if (orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
+                        || orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type)) {
+                        salesOrderHeader.setStatus(OrderStatus.PENDING.type);
+                } else {
+                        salesOrderHeader.setStatus(OrderStatus.COMPLETE.type);
+                }
         salesOrderHeader = salesOrderHeaderRepository.save(salesOrderHeader);
 
         SalesOrderDetails salesOrderDetails = SalesOrderDetails.builder()
@@ -136,7 +139,8 @@ public class SalesOrderService {
                 .build();
         salesOderDetailRepository.save(salesOrderDetails);
         ResponseEntity<OmsResponse> response;
-        if (!orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)) {
+        if (!(orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
+                || orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type))) {
             PaymentInRequestDto paymentInRequestDto = PaymentInRequestDto.builder()
                     .challanNos(salesOrderHeader.getChallanNo()+"")
                     .paymentDate(orderRequestDto.getOrderDate())
@@ -216,7 +220,7 @@ public class SalesOrderService {
         List<SalesOrderResponseDto> orderResponseDtos = new ArrayList<>();
         orderHeaderList.forEach(orderHeader -> {
             SalesOrderResponseDto salesOrderResponseDto = SalesOrderResponseDto.builder()
-                    .challanNo(orderHeader.getId())
+                    .challanNo(orderHeader.getChallanNo())
                     .orderDate(orderHeader.getOrderDate())
                     .customerName(orderHeader.getCustomer().getCustomerName())
                     .part(orderHeader.getStockHeader().getPartEntity().getPartNo())
