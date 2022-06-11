@@ -48,4 +48,10 @@ public class SalesOrderController {
         log.info("get all sales oreder started date range from {} to {}", fromDate, toDate);
         return salesOrderService.getAllOrders(fromDate, toDate);
     }
+
+    @PostMapping("/salesOrders/return/{challanNo}")
+    public ResponseEntity<OmsResponse> returnSalesOrder(@PathVariable Long challanNo) {
+        log.info("return sales oreder started");
+        return salesOrderService.returnSalesOrder(challanNo);
+    }
 }

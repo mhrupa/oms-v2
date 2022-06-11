@@ -91,7 +91,7 @@ public class PaymentInService {
 
         for (SalesOrderHeader salesOrderHeader : salesOrderHeaders) {
             PaymentInDetails paymentInDetails = PaymentInDetails.builder()
-                    .challanNo(salesOrderHeader.getId())
+                    .challanNo(salesOrderHeader.getChallanNo())
                     .orderAmount(salesOrderHeader.getOrderAmount())
                     .transactionDate(LocalDate.now())
                     .paymentInHeader(paymentInHeader)
@@ -120,6 +120,16 @@ public class PaymentInService {
         return challanNoList.stream().filter(challanNo -> salesOrderHeaders.stream()
                 .noneMatch(salesOrderHeader -> salesOrderHeader.getChallanNo().equals(challanNo)))
                 .collect(Collectors.toList());
+    }
+
+    public void updatePaymentAmountByChallanNoToZero(Long challanNo) {
+           Optional<PaymentInDetails> paymentIndetailsOp = paymentInDetailsRepository.findByChallanNo(challanNo);
+           if(paymentIndetailsOp.isPresent()) {
+                PaymentInDetails paymentInDetails = paymentIndetailsOp.get();
+                paymentInDetails.setOrderAmount(0);
+                paymentInDetails.getPaymentInHeader().setAmount(0);
+                paymentInDetailsRepository.save(paymentInDetails);
+           } 
     }
 
 }

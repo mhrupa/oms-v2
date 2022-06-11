@@ -37,4 +37,8 @@ public class PaymentAccountsService {
     public List<PaymentAccountsEntity> getAllPaymentAccounts() {
         return paymentAccountsRepository.findAll();
     }
+
+    public Optional<PaymentAccountsEntity> findById(Long id) {
+        return paymentAccountsRepository.findById(id);
+    }
 }

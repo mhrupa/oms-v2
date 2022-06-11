@@ -2,6 +2,7 @@ package com.technivaaran.repositories;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import com.technivaaran.entities.SalesOrderHeader;
 
@@ -14,6 +15,8 @@ public interface SalesOrderHeaderRepository extends JpaRepository<SalesOrderHead
     List<SalesOrderHeader> findByStatus(String string);
 
     List<SalesOrderHeader> findByIdIn(List<Long> challanNoList);
+
+    Optional<SalesOrderHeader> findByChallanNo(Long challanNo);
 
     List<SalesOrderHeader> findByChallanNoIn(List<Long> challanNoList);
 

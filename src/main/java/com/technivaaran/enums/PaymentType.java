@@ -1,7 +1,7 @@
 package com.technivaaran.enums;
 
 public enum PaymentType {
-    CASH("Cash"), BANK("Bank"),PAYTM("Paytm"), PENDING("Pending"), VPP("vpp");;
+    CASH("Cash"), BANK("Bank"),PAYTM("Paytm"), PENDING("Pending"), VPP("vpp"), RETURNED("returned");
 
     public final String type;
 

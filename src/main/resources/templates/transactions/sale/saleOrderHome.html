@@ -35,6 +35,7 @@
     </style>
     <script type="text/javascript">
         var paymentTable, pendingOrderData;
+        var selectedRowData, selectedRow;
         $(document).ready(
             function () {
                 $("#fromDate").datepicker({
@@ -59,6 +60,9 @@
                 $("#paymentType").change(paymentTypeChangeHandler);
                 $("#showAccountForPaymentModalBtn").click(showAccountForPaymentBtnClick);
                 $("#showOrederDataBtn").click(showOrderData);
+                // $("#updateSalesOrderModalBtn").click(showSalesOrderUpdateData)
+                $("#returnMaterialBtn").click(returnMaterial);
+                
                 paymentTable = $("#dataTable").DataTable({
                     compact: true,
                     data: pendingOrderData,
@@ -75,6 +79,8 @@
                         { data: "courierCharges" },
                         { data: "orderAmount" },
                         { data: "paymentType" },
+                        { data: "paymentAccName" },
+                        { data: "paymentDate" },
                         { data: "salesOrderId", visible: false },
                         { data: "stockHeaderId", visible: false },
                         { data: "customerId", visible: false }
@@ -88,8 +94,10 @@
                     $("#paymentType").focus();
                 });
                 $('#paymentDate').datepicker('update', formatDateAsDDMMYYYY(new Date()));
-                $('#dataTable tbody').on('click', 'tr', function () {
-                    //$(this).toggleClass('selected');
+                $("#dataTable tbody").css("cursor", "pointer").on("click", "tr", function () {
+                    selectedRow = paymentTable.row(this);
+                    selectedRowData = paymentTable.row(this).data();
+                    showSalesOrderUpdateModal();
                 });
             });
 
@@ -167,6 +175,22 @@
             }
 
         }
+        
+        function showSalesOrderUpdateModal() {
+            $("#updateSalesOrderChallanNo").val(selectedRowData.challanNo);
+            $("#updateSalesOrderOrderDate").val(selectedRowData.orderDate);
+            $("#updateSalesOrderCustomer").val(selectedRowData.customerName);
+            $("#updateSalesOrderModel").val(selectedRowData.model);
+            $("#updateSalesOrderPart").val(selectedRowData.part);
+            $("#updateSalesOrderConfig").val(selectedRowData.config);
+            $("#updateSalesOrderDetails").val(selectedRowData.details);
+            $("#updateSalesOrderQuantity").val(selectedRowData.qty);
+            $("#updateSalesOrderCourierCharges").val(selectedRowData.courierCharges);
+            $("#updateSalesOrderOrderAmount").val(selectedRowData.orderAmount);
+            $("#updateSalesOrderPaymentType").val(selectedRowData.paymentType);
+
+            $("#updateSalesOrderModal").modal("show");
+        }
         function updatePayment() {
             if ($("#paymentType").val() == 0) {
                 $("#paymentType").focus();
@@ -196,7 +220,32 @@
                 $(".toast").addClass("bg-danger").toast("show");
             });
         }
+        function returnMaterial() {
+            if (confirm("Do you want to return this oreder?")) {
+                $.post("/salesOrders/return/" + selectedRowData.challanNo, function (res) {
+                    $("#omsToast").html(res.message);
+                    $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
+                    $("#updateSalesOrderModal").modal("hide");
 
+                    paymentTable.rows().every(function (rowIdx, tableLoop, rowLoop) {
+                        var d = this.data();
+                        if (d.challanNo == res.data.challanNo) {
+                                d.paymentType = res.data.paymentType;
+                                d.paymentAccName = "";
+                                d.paymentDate = "";
+                            this.invalidate();
+                            return false;
+                        }
+                    });
+                }).fail(function (res) {
+                    $("#updateSalesOrderModal").modal("hide");
+                    $("#omsToast").html(JSON.parse(res.responseText).message);
+                    $(".toast").addClass("bg-danger").toast("show");
+                });
+            } else {
+                $("#updateSalesOrderModal").modal("hide");
+            }
+        }
         function showOrderData() {
             $.get("/salesOrders/all?fromDate="+$("#fromDate").val()+"&toDate="+$("#toDate").val(), function (res) {
                 pendingOrderData = res.data;
@@ -228,21 +277,23 @@
             <button type="button" class="btn btn-secondary" id="showOrederDataBtn">Show</button>
         </div>
         <div>
-            <table id="dataTable" style="width: 100%;" class="display cell-border">
+            <table id="dataTable" style="width: 100%;font-size: 11px;" class="display cell-border">
                 <thead>
                     <tr>
-                        <th class="th-sm" style="max-width: 50px;">Challan</th>
-                        <th class="th-sm">Order Date</th>
+                        <th class="th-sm" style="max-width: 40px;">Challan</th>
+                        <th class="th-sm" style="max-width: 50px;">Order Date</th>
                         <th class="th-sm">Customer</th>
                         <th class="th-sm">Model</th>
                         <th class="th-sm">Part</th>
                         <th class="th-sm">Config</th>
-                        <th class="th-sm">Details</th>
-                        <th class="th-sm">Qty</th>
+                        <th class="th-sm" style="max-width: 35px;">Details</th>
+                        <th class="th-sm" style="max-width: 20px;">Qty</th>
                         <th class="th-sm">Sell Price</th>
-                        <th class="th-sm">Courier Charges</th>
-                        <th class="th-sm">Order Amt</th>
-                        <th class="th-sm">Payment Type</th>
+                        <th class="th-sm" style="max-width: 40px;">Courier Charges</th>
+                        <th class="th-sm" style="max-width: 40px;">Order Amt</th>
+                        <th class="th-sm" style="max-width: 40px;">P.Type</th>
+                        <th class="th-sm">P. Acc Name</th>
+                        <th class="th-sm" style="max-width: 50px;">P. Date</th>
                         <th class="th-sm">SalesOrderId</th>
                         <th class="th-sm">StockHeaderId</th>
                         <th class="th-sm">CustomerId</th>
@@ -333,6 +384,94 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" id="createAccountBtn" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="salesOrderOptionModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Select Option</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-0" style="display: none;">
+                        <span class="input-group-text">stockHeaderId</span>
+                        <input type="text" disabled="disabled" class="form-control" id="stockHeaderId">
+                    </div>
+                    <div class="input-group mb-2">
+                        <button type="button" id="updateSalesOrderModalBtn" class="btn btn-secondary pe-2 me-2">Update
+                            Order</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="updateSalesOrderModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+        aria-hidden="true">
+        <div class="modal-dialog modal-small">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Return</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-0">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Challan No</span>
+                        <input type="text" readonly class="form-control" id="updateSalesOrderChallanNo">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Order
+                            Date</span>
+                        <input type="text" readonly class="form-control" id="updateSalesOrderOrderDate">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text"
+                            style="width: 140px;text-align: right;display: block;">Customer</span>
+                        <input disabled type="text" class="form-control" id="updateSalesOrderCustomer" aria-label="customer"
+                            aria-describedby="customer">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Model</span>
+                        <input type="text" readonly class="form-control" id="updateSalesOrderModel">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Part</span>
+                        <input type="text" readonly class="form-control" id="updateSalesOrderPart">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Config</span>
+                        <input type="text" readonly class="form-control" id="updateSalesOrderConfig">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Details</span>
+                        <input type="text" readonly class="form-control" id="updateSalesOrderDetails">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Quantity</span>
+                        <input type="text" readonly class="form-control" id="updateSalesOrderQuantity">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Courier Charges</span>
+                        <input type="text" readonly class="form-control" id="updateSalesOrderCourierCharges">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Order Amount</span>
+                        <input type="text" readonly class="form-control" id="updateSalesOrderOrderAmount">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Payment Type</span>
+                        <input type="text" readonly class="form-control" id="updateSalesOrderPaymentType">
+                    </div>
+                    <div class="input-group mb-0">
+                        <input hidden disabled type="text" id="customerId">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="returnMaterialBtn" class="btn btn-primary">Return</button>
                 </div>
             </div>
         </div>
