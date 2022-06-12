@@ -221,15 +221,15 @@
             });
         }
         function returnMaterial() {
+            $("#updateSalesOrderModal").modal("hide");
             if (confirm("Do you want to return this oreder?")) {
                 $.post("/salesOrders/return/" + selectedRowData.challanNo, function (res) {
                     $("#omsToast").html(res.message);
                     $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
-                    $("#updateSalesOrderModal").modal("hide");
-
                     paymentTable.rows().every(function (rowIdx, tableLoop, rowLoop) {
                         var d = this.data();
                         if (d.challanNo == res.data.challanNo) {
+                                d.orderAmount = 0;
                                 d.paymentType = res.data.paymentType;
                                 d.paymentAccName = "";
                                 d.paymentDate = "";
@@ -281,7 +281,7 @@
                 <thead>
                     <tr>
                         <th class="th-sm" style="max-width: 40px;">Challan</th>
-                        <th class="th-sm" style="max-width: 50px;">Order Date</th>
+                        <th class="th-sm" style="max-width: 55px;">Order Date</th>
                         <th class="th-sm">Customer</th>
                         <th class="th-sm">Model</th>
                         <th class="th-sm">Part</th>
@@ -293,7 +293,7 @@
                         <th class="th-sm" style="max-width: 40px;">Order Amt</th>
                         <th class="th-sm" style="max-width: 40px;">P.Type</th>
                         <th class="th-sm">P. Acc Name</th>
-                        <th class="th-sm" style="max-width: 50px;">P. Date</th>
+                        <th class="th-sm" style="max-width: 55px;">P. Date</th>
                         <th class="th-sm">SalesOrderId</th>
                         <th class="th-sm">StockHeaderId</th>
                         <th class="th-sm">CustomerId</th>

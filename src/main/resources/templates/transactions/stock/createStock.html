@@ -654,6 +654,9 @@
                 if ($("#paymentType").val() =='cash') {
                     $("#cashPaid").text("CASH PAID");
                 }
+                if ($("#paymentType").val() =='vpp') {
+                    $("#cashPaid").text("VPP");
+                }
                 $("#printOptionModal").modal("show");
                 $("#omsToast").html(res.message);
                 $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");

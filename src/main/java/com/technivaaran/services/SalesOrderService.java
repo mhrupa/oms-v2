@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import javax.swing.text.DateFormatter;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +20,10 @@ import com.technivaaran.dto.request.OrderRequestDto;
 import com.technivaaran.dto.request.PaymentInRequestDto;
 import com.technivaaran.dto.response.SalesOrderResponseDto;
 import com.technivaaran.dto.response.StockResponseDto;
+import com.technivaaran.dto.response.reports.AccountPaymentDataDto;
 import com.technivaaran.entities.CustomerEntity;
 import com.technivaaran.entities.PaymentAccountsEntity;
+import com.technivaaran.entities.PaymentInDetails;
 import com.technivaaran.entities.SalesOrderDetails;
 import com.technivaaran.entities.SalesOrderHeader;
 import com.technivaaran.entities.StockDetails;
@@ -116,7 +117,8 @@ public class SalesOrderService {
 
                         return new ResponseEntity<>(
                                         OmsResponse.builder().message("Order returned successfully.")
-                                        .data(salesOrderHeader).build(), HttpStatus.OK);
+                                                        .data(salesOrderHeader).build(),
+                                        HttpStatus.OK);
                 } else {
                         return new ResponseEntity<>(OmsResponse.builder().message("invalid challan no received.")
                                         .data(challanNo).build(), HttpStatus.BAD_REQUEST);
@@ -230,7 +232,7 @@ public class SalesOrderService {
                 orderHeaderList.forEach(orderHeader -> {
                         SalesOrderResponseDto salesOrderResponseDto = SalesOrderResponseDto.builder()
                                         .challanNo(orderHeader.getChallanNo())
-                                        .orderDate(orderHeader.getOrderDate())
+                                        .orderDate(DateUtils.convertDateToddmmyyyy(orderHeader.getOrderDate()))
                                         .customerName(orderHeader.getCustomer().getCustomerName() + "("
                                                         + orderHeader.getCustomer().getLocation() + ")")
                                         .part(orderHeader.getStockHeader().getPartEntity().getPartNo())
@@ -265,7 +267,7 @@ public class SalesOrderService {
                 orderHeaderList.forEach(orderHeader -> {
                         SalesOrderResponseDto salesOrderResponseDto = SalesOrderResponseDto.builder()
                                         .challanNo(orderHeader.getChallanNo())
-                                        .orderDate(orderHeader.getOrderDate())
+                                        .orderDate(DateUtils.convertDateToddmmyyyy(orderHeader.getOrderDate()))
                                         .customerName(orderHeader.getCustomer().getCustomerName())
                                         .part(orderHeader.getStockHeader().getPartEntity().getPartNo())
                                         .model(orderHeader.getStockHeader().getItemMaster().getItemName())
@@ -286,12 +288,19 @@ public class SalesOrderService {
                                         || orderHeader.getPaymentType().equalsIgnoreCase(PaymentType.PAYTM.type)) {
                                 Optional<PaymentAccountsEntity> paymentAccountEntityOp = paymentAccountsService
                                                 .findById(Long.parseLong(orderHeader.getRemark()));
-                                if(paymentAccountEntityOp.isPresent()) {
+                                if (paymentAccountEntityOp.isPresent()) {
                                         PaymentAccountsEntity accountsEntity = paymentAccountEntityOp.get();
-                                        salesOrderResponseDto.setPaymentAccName(accountsEntity.getAccountName()); 
-                                        salesOrderResponseDto.setPaymentDate(DateUtils.convertDateToyyyymmdd(orderHeader.getUpdatedAt()));
+                                        salesOrderResponseDto.setPaymentAccName(accountsEntity.getAccountName());
                                 }
                         }
+                        Optional<PaymentInDetails> paymentInDetailsOp = paymentInService
+                                        .findByChallanNo(orderHeader.getChallanNo());
+                        if (paymentInDetailsOp.isPresent()) {
+
+                                salesOrderResponseDto.setPaymentDate(DateUtils.convertDateToddmmyyyy(
+                                                paymentInDetailsOp.get().getPaymentInHeader().getPaymentInDate()));
+                        }
+
                         orderResponseDtos.add(salesOrderResponseDto);
                 });
                 return new ResponseEntity<>(
@@ -310,5 +319,27 @@ public class SalesOrderService {
 
         public ResponseEntity<OmsResponse> getSalesOrderDataForPrinting(Long challanNo) {
                 return null;
+        }
+
+        public ResponseEntity<OmsResponse> getAccountPaymentData(Long account, int month, int year) {
+                List<Object[]> dataList = salesOrderHeaderRepository.getAccountPaymentData(account, month, year);
+                List<AccountPaymentDataDto> accountPaymentDataDtos = new ArrayList<>();
+                
+                dataList.forEach(data->{
+                        AccountPaymentDataDto accountPaymentDataDto = AccountPaymentDataDto.builder()
+                        .challanNo(data[0].toString())
+                        .orderDate(DateUtils.convertDateToddmmyyyy(LocalDate.parse(data[1].toString())))
+                        .paymentDate(DateUtils.convertDateToddmmyyyy(LocalDate.parse(data[2].toString())))
+                        .customerName(data[3].toString())
+                        .itemName(data[4].toString())
+                        .orderAmount(data[5].toString())
+                        .build();
+                        accountPaymentDataDtos.add(accountPaymentDataDto);
+                });
+
+                return new ResponseEntity<>(
+                                OmsResponse.builder().message("Order data received.")
+                                                .data(accountPaymentDataDtos).build(),
+                                HttpStatus.OK);
         }
 }

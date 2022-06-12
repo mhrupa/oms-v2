@@ -54,4 +54,10 @@ public class SalesOrderController {
         log.info("return sales oreder started");
         return salesOrderService.returnSalesOrder(challanNo);
     }
+
+    @GetMapping("/salesOrders/getAccountPaymentData")
+    public ResponseEntity<OmsResponse> getAccountPaymentData(@RequestParam Long account, @RequestParam int month, @RequestParam int year) {
+        log.info("getAccountPaymentData started");
+        return salesOrderService.getAccountPaymentData(account, month+1, year);
+    }
 }

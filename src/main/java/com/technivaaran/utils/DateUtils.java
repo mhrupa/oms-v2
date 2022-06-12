@@ -21,8 +21,12 @@ public class DateUtils {
         return LocalDate.parse(date, formatter);
     }
 
-    public static String convertDateToyyyymmdd(LocalDateTime date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public static String convertDateToddmmyyyy(LocalDateTime date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        return formatter.format(date);
+    }
+    public static String convertDateToddmmyyyy(LocalDate date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         return formatter.format(date);
     }
 }

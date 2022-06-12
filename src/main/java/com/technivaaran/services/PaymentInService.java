@@ -132,4 +132,8 @@ public class PaymentInService {
            } 
     }
 
+    public Optional<PaymentInDetails> findByChallanNo(Long challanNo) {
+         return paymentInDetailsRepository.findByChallanNo(challanNo);
+    }
+
 }

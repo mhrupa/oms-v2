@@ -132,4 +132,10 @@ public class NavigationController {
 	public String getPendingOrdersPage() {
 		return "transactions/paymentOutstanding/paymentOutstanding";
 	}
+
+	// ****************Account Payment reconcilation *****************//
+	@GetMapping("/accPaymentReconcilation")
+	public String getAccPaymentReconcilation() {
+		return "reports/accountPaymentReconcilation";
+	}
 }
