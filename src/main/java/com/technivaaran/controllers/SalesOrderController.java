@@ -1,10 +1,5 @@
 package com.technivaaran.controllers;
 
-import com.technivaaran.AppUrlConstants;
-import com.technivaaran.dto.OmsResponse;
-import com.technivaaran.dto.request.OrderRequestDto;
-import com.technivaaran.services.SalesOrderService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +9,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.technivaaran.AppUrlConstants;
+import com.technivaaran.dto.OmsResponse;
+import com.technivaaran.dto.request.OrderRequestDto;
+import com.technivaaran.services.SalesOrderService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,6 +41,12 @@ public class SalesOrderController {
     public ResponseEntity<OmsResponse> getPendingSalesOrders() {
         log.info("get pending sales oreder started");
         return salesOrderService.getPendingOrders();
+    }
+
+    @PostMapping("/updateSalesOrders")
+    public ResponseEntity<OmsResponse> updateSalesOrders(@RequestBody OrderRequestDto orderRequestDto) {
+        log.info("update sales oreder started");
+        return salesOrderService.updateSalesOrder(orderRequestDto);
     }
 
     @GetMapping("/salesOrders/all")

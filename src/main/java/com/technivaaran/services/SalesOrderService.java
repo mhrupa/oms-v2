@@ -125,6 +125,60 @@ public class SalesOrderService {
                 }
         }
 
+        public ResponseEntity<OmsResponse> updateSalesOrder(OrderRequestDto orderRequestDto) {
+                log.info("Inside updateSalesOrder sales oreder service");
+                Optional<SalesOrderHeader> salesOrderOp = salesOrderHeaderRepository
+                                .findByChallanNo(orderRequestDto.getChallanNo());
+                if (salesOrderOp.isPresent()) {
+                        String customerName = "";
+                        String customerLocation = "";
+                        try {
+                                customerName = orderRequestDto.getCustomer().split("\\(")[0];
+                                customerLocation = orderRequestDto.getCustomer().split("\\(")[1].split("\\)")[0];
+                        } catch (Exception e) {
+                                log.error("invalid customer entered");
+                                return new ResponseEntity<>(
+                                                OmsResponse.builder().message("invalid customer entered.").build(),
+                                                HttpStatus.BAD_REQUEST);
+                        }
+                        Optional<CustomerEntity> customerOp = customerService.findCustomerByNameAndLocation(
+                                        customerName, customerLocation);
+                        if (customerOp.isPresent()) {
+                                SalesOrderHeader salesOrderHeader = salesOrderOp.get();
+                                salesOrderHeader.setOrderDate(
+                                                 DateUtils.getLocalDateFromDDMMYYYYString(
+                                                                orderRequestDto.getOrderDate()));
+                                salesOrderHeader.setOrderAmount(orderRequestDto.getOrderAmount());
+                                salesOrderHeader.setCustomer(customerOp.get());
+                                salesOrderHeader = salesOrderHeaderRepository.save(salesOrderHeader);
+
+                                List<SalesOrderDetails> salesOrderDetailsList = salesOderDetailRepository
+                                                .findBySalesOrderHeader(salesOrderHeader);
+
+                                for (SalesOrderDetails salesOrderDetails : salesOrderDetailsList) {
+                                        salesOrderDetails.setSellRate((float) salesOrderHeader.getOrderAmount()
+                                                        / salesOrderHeader.getQuantity());
+
+                                        salesOderDetailRepository.save(salesOrderDetails);
+                                }
+
+                                // SalesOrderDetails
+                                // paymentInService.updatePaymentAmountByChallanNoToZero(challanNo);
+
+                                return new ResponseEntity<>(OmsResponse.builder().message("Order updated successfully.")
+                                                .data(salesOrderHeader).build(), HttpStatus.OK);
+                        } else {
+                                return new ResponseEntity<>(
+                                                OmsResponse.builder().message("invalid customer data received.")
+                                                                .data(orderRequestDto).build(),
+                                                HttpStatus.BAD_REQUEST);
+                        }
+                } else {
+                        return new ResponseEntity<>(OmsResponse.builder().message("invalid challan no received.")
+                                        .data(orderRequestDto.getChallanNo()).build(), HttpStatus.BAD_REQUEST);
+                }
+        }
+
         @Transactional
         private ResponseEntity<OmsResponse> validateStockDetailsAndcreateOrder(OrderRequestDto orderRequestDto,
                         StockHeader stockHeader, CustomerEntity customer) {
@@ -189,6 +243,9 @@ public class SalesOrderService {
                                         .paymentType(orderRequestDto.getPaymentType())
                                         .paymentAccount(orderRequestDto.getRemark())
                                         .amount(salesOrderHeader.getOrderAmount())
+                                        .updatedAmount(orderRequestDto.getQuantity() *
+                                                        orderRequestDto.getSellPrice()
+                                                        + orderRequestDto.getCourierCharges())
                                         .userId(user.getId())
                                         .build();
                         response = paymentInService.savePaymentIn(paymentInRequestDto);
@@ -269,10 +326,13 @@ public class SalesOrderService {
                                         .challanNo(orderHeader.getChallanNo())
                                         .orderDate(DateUtils.convertDateToddmmyyyy(orderHeader.getOrderDate()))
                                         .customerName(orderHeader.getCustomer().getCustomerName())
+                                        .customerLocation(orderHeader.getCustomer().getLocation())
                                         .part(orderHeader.getStockHeader().getPartEntity().getPartNo())
+                                        .partId(orderHeader.getStockHeader().getPartEntity().getId())
                                         .model(orderHeader.getStockHeader().getItemMaster().getItemName())
                                         .config(orderHeader.getStockHeader().getConfigDetailsEntity()
                                                         .getConfiguration())
+                                        .configId(orderHeader.getStockHeader().getConfigDetailsEntity().getId())
                                         .details(orderHeader.getStockHeader().getDetails())
                                         .qty(orderHeader.getQuantity())
                                         .sellPrice(orderHeader.getSellPrice())
@@ -324,16 +384,17 @@ public class SalesOrderService {
         public ResponseEntity<OmsResponse> getAccountPaymentData(Long account, int month, int year) {
                 List<Object[]> dataList = salesOrderHeaderRepository.getAccountPaymentData(account, month, year);
                 List<AccountPaymentDataDto> accountPaymentDataDtos = new ArrayList<>();
-                
-                dataList.forEach(data->{
+
+                dataList.forEach(data -> {
                         AccountPaymentDataDto accountPaymentDataDto = AccountPaymentDataDto.builder()
-                        .challanNo(data[0].toString())
-                        .orderDate(DateUtils.convertDateToddmmyyyy(LocalDate.parse(data[1].toString())))
-                        .paymentDate(DateUtils.convertDateToddmmyyyy(LocalDate.parse(data[2].toString())))
-                        .customerName(data[3].toString())
-                        .itemName(data[4].toString())
-                        .orderAmount(data[5].toString())
-                        .build();
+                                        .challanNo(data[0].toString())
+                                        .orderDate(DateUtils.convertDateToddmmyyyy(LocalDate.parse(data[1].toString())))
+                                        .paymentDate(DateUtils
+                                                        .convertDateToddmmyyyy(LocalDate.parse(data[2].toString())))
+                                        .customerName(data[3].toString())
+                                        .itemName(data[4].toString())
+                                        .orderAmount(data[5].toString())
+                                        .build();
                         accountPaymentDataDtos.add(accountPaymentDataDto);
                 });
 

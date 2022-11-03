@@ -36,6 +36,7 @@
     <script type="text/javascript">
         var paymentTable, pendingOrderData;
         var selectedRowData, selectedRow;
+        var items = new Array();
         $(document).ready(
             function () {
                 $("#fromDate").datepicker({
@@ -52,24 +53,46 @@
                 }).on("changeDate", function (e) {
                     //$("#paymentType").focus();
                 });
+                $("#updateSalesOrderOrderDate").datepicker({
+                    format: "dd/mm/yyyy",
+                    autoclose: true,
+                    todayHighlight: true,
+                }).on("changeDate", function (e) {
+                    //$("#paymentType").focus();
+                });;
                 $('#fromDate').datepicker('update', formatDateAsDDMMYYYY(new Date()));
                 $('#toDate').datepicker('update', formatDateAsDDMMYYYY(new Date()));
-                
+                $('#updateSalesOrderOrderDate').datepicker('update', formatDateAsDDMMYYYY(new Date()));
+
                 initData();
                 initPaymentAccountData();
                 $("#paymentType").change(paymentTypeChangeHandler);
                 $("#showAccountForPaymentModalBtn").click(showAccountForPaymentBtnClick);
                 $("#showOrederDataBtn").click(showOrderData);
-                // $("#updateSalesOrderModalBtn").click(showSalesOrderUpdateData)
+                $("#updateSalesOrderModel").change(modelOnChange);
+                $("#updateSalesOrderPart").change(partNoOnChange);
                 $("#returnMaterialBtn").click(returnMaterial);
-                
+                $("#updateSalesOrderModalBtn").click(updateSalesOrder);
+                $("#createCustomerBtn").click(createCustomerBtnClick);
+                $("#showCustomerModalBtn").click(showCreateCustomerModal);
+
                 paymentTable = $("#dataTable").DataTable({
+                    dom: 'Bfrtip',
+                    buttons: [
+                        {
+                            extend: 'excelHtml5',
+                            exportOptions: {
+                                columns: [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14]
+                            }
+                        }
+                    ],
                     compact: true,
                     data: pendingOrderData,
                     "columns": [
                         { data: "challanNo" },
                         { data: "orderDate" },
                         { data: "customerName" },
+                        { data: "customerLocation" },
                         { data: "model" },
                         { data: "part" },
                         { data: "config" },
@@ -83,8 +106,13 @@
                         { data: "paymentDate" },
                         { data: "salesOrderId", visible: false },
                         { data: "stockHeaderId", visible: false },
-                        { data: "customerId", visible: false }
+                        { data: "customerId", visible: false },
+                        { data: "partId", visible: false },
+                        { data: "configId", visible: false },
                     ]
+                });
+                $('#createCustomerModal').on('shown.bs.modal', function () {
+                    $('#customerName').focus();
                 });
                 $("#paymentDate").datepicker({
                     format: "dd/mm/yyyy",
@@ -100,7 +128,16 @@
                     showSalesOrderUpdateModal();
                 });
             });
-
+        
+        function showCreateCustomerModal() {
+            selectedCustomer = $("#customer").val();
+            $("#customerName").val("");
+            $("#customerLocation").val("");
+            $("#email").val("");
+            $("#contact").val("");
+            $("#createOrderModal").modal("hide");
+            $("#createCustomerModal").modal("show");
+        }
         function initPaymentAccountData() {
             $.get("/paymentAccounts", function (res) {
                 paymentAccounts = res;
@@ -146,7 +183,121 @@
                 $(".toast").addClass("bg-danger").toast("show");
             });
         }
+        function modelOnChange() {
+            if ($("#updateSalesOrderModel").val() != "0") {
+                items.forEach(item => {
+                    if (item.itemName == $("#updateSalesOrderModel").val()) {
+                        $("#updateSalesOrderPart").empty();
+                        $("#updateSalesOrderPart").append("<option value='0' selected>Select Part</option>");
+                        item.parts.forEach(part => {
+                            $("#updateSalesOrderPart").append("<option value='" + part.id + "'>"
+                                + part.partNo + "</option>");
+                        });
+                        $("#updateSalesOrderPart").val(0);
+                        return;
+                    }
+                });
+            } else {
+                $("#updateSalesOrderModel").focus();
+                $("#updateSalesOrderPart").empty();
+            }
+        }
+        function partNoOnChange() {
+            if ($("#updateSalesOrderPart").val() != "0") {
+                items.forEach(item => {
+                    if (item.itemName == $("#updateSalesOrderModel").val()) {
+                        item.parts.forEach(part => {
+                            if (part.id == $("#updateSalesOrderPart").val()) {
+                                $("#updateSalesOrderConfig").empty();
+                                $("#updateSalesOrderConfig").append("<option value='0' selected>Select Configuration</option>");
+                                part.configurations.forEach(config => {
+                                    $("#updateSalesOrderConfig").append("<option value='" + config.id + "'>" + config.configuration + "</option>");
+                                });
+                                return;
+                            }
+                        })
+                    }
+                })
+            } else {
+                $("#updateSalesOrderPart").focus();
+                $("#updateSalesOrderConfig").empty();
+            }
+        }
 
+        function updateSalesOrder() {
+            var requestData = {
+                "orderDate": $("#updateSalesOrderOrderDate").val(),
+                "customer" : $("#updateSalesOrderCustomer").val(),
+                "challanNo": $("#updateSalesOrderChallanNo").val(),
+                "orderAmount": $("#updateSalesOrderOrderAmount").val(),
+                "userId": appUser.userId
+            };
+            // console.log(JSON.stringify(requestData));
+            $("#updateSalesOrderModal").modal("hide");
+            $.post("/updateSalesOrders", JSON.stringify(requestData), function (res) {
+                // console.log(JSON.stringify(res));
+                $("#omsToast").html(res.message);
+                    $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
+                    paymentTable.rows().every(function (rowIdx, tableLoop, rowLoop) {
+                        var d = this.data();
+                        if (d.challanNo == res.data.challanNo) {
+                            d.orderAmount = res.data.orderAmount;
+                            var td = JSON.stringify(res.data.orderDate);
+                            var tempDateArr = td.split("-");
+                            d.orderDate = tempDateArr[2].split("\"")[0] + "-" + tempDateArr[1] + "-" + tempDateArr[0].split("\"")[1];
+                            d.customerName = res.data.customer.customerName;
+                            d.customerLocation = res.data.customer.location;
+                            this.invalidate();
+                            showOrderData();
+                            return false;
+                        }
+                    });
+
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
+        }
+        function createCustomerBtnClick() {
+            $("#createCustomerBtn").attr("disabled", "disabled")
+            if ($("#customerName").val() == "") {
+                $("#customerName").focus();
+                $("#omsToast").html("Please enter Customer Name");
+                $(".toast").removeClass("bg-danger").removeClass("bg-success").addClass("bg-warning").toast("show");
+                $("#createCustomerBtn").removeAttr("disabled");
+                return false;
+            }
+            if ($("#customerLocation").val() == "") {
+                $("#customerLocation").focus();
+                $("#omsToast").html("Please enter Customer Location");
+                $(".toast").removeClass("bg-danger").removeClass("bg-success").addClass("bg-warning").toast("show");
+                $("#createCustomerBtn").removeAttr("disabled");
+                return false;
+            }
+
+            var requestData = {
+                "customerName": $("#customerName").val(),
+                "location": $("#customerLocation").val(),
+                "email": $("#email").val(),
+                "contact": $("#contact").val(),
+                "userId": appUser.userId
+            };
+            $.post("/customers", JSON.stringify(requestData), function (res) {
+                $("#createCustomerModal").modal("hide");
+                $("#omsToast").html(res.message);
+                $(".toast").removeClass("bg-danger").removeClass("bg-warning").addClass("bg-success").toast("show");
+                $("#createCustomerBtn").removeAttr("disabled");
+                initCustomerResponseData(res.data);
+                $("#createOrderModal").modal("show");
+                $("#customer").focus();
+            }).fail(function (res) {
+                $("#createCustomerModal").modal("hide");
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+                $("#createCustomerBtn").removeAttr("disabled");
+                $("#createOrderModal").modal("show");
+            });
+        }
         function showUpdatePaymentModal(initData) {
             var rowProcessed = false;
             var challanNoLabelList = new Array();
@@ -175,20 +326,31 @@
             }
 
         }
-        
+
         function showSalesOrderUpdateModal() {
             $("#updateSalesOrderChallanNo").val(selectedRowData.challanNo);
-            $("#updateSalesOrderOrderDate").val(selectedRowData.orderDate);
-            $("#updateSalesOrderCustomer").val(selectedRowData.customerName);
+            $("#selectedSalesOrderOrderDate").val(selectedRowData.orderDate.replaceAll("-", "/"));
+            $("#updateSalesOrderOrderDate").val(selectedRowData.orderDate.replaceAll("-", "/"));
+            $("#selectedSalesOrderCustomer").val(selectedRowData.customerName + "(" + selectedRowData.customerLocation + ")")
+            $("#updateSalesOrderCustomer").val(selectedRowData.customerName + "(" + selectedRowData.customerLocation + ")")
+            $("#seletecdSalesOrderModel").val(selectedRowData.model);
             $("#updateSalesOrderModel").val(selectedRowData.model);
-            $("#updateSalesOrderPart").val(selectedRowData.part);
-            $("#updateSalesOrderConfig").val(selectedRowData.config);
+            modelOnChange();
+            $("#selectedSalesOrderPart").val(selectedRowData.part);
+            $("#updateSalesOrderPart").val(selectedRowData.partId);
+            partNoOnChange();
+            $("#selectedSalesOrderConfig").val(selectedRowData.config);
+            $("#updateSalesOrderConfig").val(selectedRowData.configId);
+            $("#selectedSalesOrderDetails").val(selectedRowData.details);
             $("#updateSalesOrderDetails").val(selectedRowData.details);
+            $("#selectedSalesOrderQuantity").val(selectedRowData.qty);
             $("#updateSalesOrderQuantity").val(selectedRowData.qty);
+            $("#selectedSalesOrderCourierCharges").val(selectedRowData.courierCharges);
             $("#updateSalesOrderCourierCharges").val(selectedRowData.courierCharges);
+            $("#selectedSalesOrderOrderAmount").val(selectedRowData.orderAmount);
             $("#updateSalesOrderOrderAmount").val(selectedRowData.orderAmount);
+            $("#selectedSalesOrderPaymentType").val(selectedRowData.paymentType);
             $("#updateSalesOrderPaymentType").val(selectedRowData.paymentType);
-
             $("#updateSalesOrderModal").modal("show");
         }
         function updatePayment() {
@@ -229,10 +391,10 @@
                     paymentTable.rows().every(function (rowIdx, tableLoop, rowLoop) {
                         var d = this.data();
                         if (d.challanNo == res.data.challanNo) {
-                                d.orderAmount = 0;
-                                d.paymentType = res.data.paymentType;
-                                d.paymentAccName = "";
-                                d.paymentDate = "";
+                            d.orderAmount = 0;
+                            d.paymentType = res.data.paymentType;
+                            d.paymentAccName = "";
+                            d.paymentDate = "";
                             this.invalidate();
                             return false;
                         }
@@ -247,7 +409,7 @@
             }
         }
         function showOrderData() {
-            $.get("/salesOrders/all?fromDate="+$("#fromDate").val()+"&toDate="+$("#toDate").val(), function (res) {
+            $.get("/salesOrders/all?fromDate=" + $("#fromDate").val() + "&toDate=" + $("#toDate").val(), function (res) {
                 pendingOrderData = res.data;
                 paymentTable.clear().rows.add(pendingOrderData).draw();
             }).fail(function (res) {
@@ -256,13 +418,53 @@
             });
         }
 
-        function initData() {
-            $.get("/salesOrders/all?fromDate="+$("#fromDate").val()+"&toDate="+$("#toDate").val(), function (res) {
-                pendingOrderData = res.data;
+        function initCustomerData() {
+            $.get("/customers", function (res) {
+                customers = res;
+                initCustomerResponseData();
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $(".toast").addClass("bg-danger").toast("show");
             });
+        }
+        function initCustomerResponseData(customer) {
+            $("#customerData").empty();
+            if (customer) {
+                customers.push(customer);
+                $("#updateSalesOrderCustomer").val(customer.customerName+"("+customer.location+")");
+            }
+            customers.forEach(customer => {
+                    $("#customerData").append("<option value='" + customer.customerName + "(" + customer.location + ")"
+                        + "' customerId='" + customer.id + "'></option>");
+                });
+            return;
+        }
+        function initModelData() {
+            $.get("/items", function (res) {
+                items = res;
+                initModelResponseData();
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
+        }
+        function initModelResponseData(model) {
+            $("#modelData").empty();
+            items.forEach(item => {
+                $("#modelData").append("<option value='" + item.itemName + "' itemid='" + item.id + "'></option>");
+            });
+        }
+        function initData() {
+            $.get("/salesOrders/all?fromDate=" + $("#fromDate").val() + "&toDate=" + $("#toDate").val(), function (res) {
+                pendingOrderData = res.data;
+                // console.log(pendingOrderData);
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
+
+            initCustomerData();
+            initModelData();
         }
     </script>
 </head>
@@ -276,13 +478,15 @@
             <input type="text" style="max-width: 100px;" readonly class="form-control" id="toDate">
             <button type="button" class="btn btn-secondary" id="showOrederDataBtn">Show</button>
         </div>
-        <div>
+        <div style="margin: 2px;">
             <table id="dataTable" style="width: 100%;font-size: 11px;" class="display cell-border">
+                <caption>sales order datatable</caption>
                 <thead>
                     <tr>
                         <th class="th-sm" style="max-width: 40px;">Challan</th>
                         <th class="th-sm" style="max-width: 55px;">Order Date</th>
                         <th class="th-sm">Customer</th>
+                        <th class="th-sm">Location</th>
                         <th class="th-sm">Model</th>
                         <th class="th-sm">Part</th>
                         <th class="th-sm">Config</th>
@@ -361,6 +565,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" id="updateOrderBtn" data-bs-dismiss="modal">Update
+                        Order</button>
                     <button type="button" id="updatePaymentBtn" class="btn btn-primary">Save</button>
                 </div>
             </div>
@@ -401,10 +607,6 @@
                         <span class="input-group-text">stockHeaderId</span>
                         <input type="text" disabled="disabled" class="form-control" id="stockHeaderId">
                     </div>
-                    <div class="input-group mb-2">
-                        <button type="button" id="updateSalesOrderModalBtn" class="btn btn-secondary pe-2 me-2">Update
-                            Order</button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -419,51 +621,69 @@
                 </div>
                 <div class="modal-body">
                     <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Challan No</span>
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Challan
+                            No</span>
                         <input type="text" readonly class="form-control" id="updateSalesOrderChallanNo">
                     </div>
                     <div class="input-group mb-0">
                         <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Order
                             Date</span>
+                        <input type="text" readonly class="form-control"
+                            id="selectedSalesOrderOrderDate">
                         <input type="text" readonly class="form-control" id="updateSalesOrderOrderDate">
                     </div>
                     <div class="input-group mb-0">
                         <span class="input-group-text"
                             style="width: 140px;text-align: right;display: block;">Customer</span>
-                        <input disabled type="text" class="form-control" id="updateSalesOrderCustomer" aria-label="customer"
-                            aria-describedby="customer">
+                        <input disabled type="text" class="form-control"
+                            id="selectedSalesOrderCustomer" aria-label="customer" aria-describedby="customer">
+                        <input class="form-control" style="max-width: 293px;" list="customerData" id="updateSalesOrderCustomer"
+                            placeholder="Search Customer...">
+                        <datalist id="customerData">
+                        </datalist>
+                        <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
+                            data-bs-placement="top" id="showCustomerModalBtn" title="Add new Customer">+</button>
                     </div>
                     <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Model</span>
-                        <input type="text" readonly class="form-control" id="updateSalesOrderModel">
+                        <span class="input-group-text"
+                            style="width: 140px;text-align: right;display: block;">Model</span>
+                        <input type="text" readonly class="form-control" id="seletecdSalesOrderModel">
                     </div>
                     <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Part</span>
-                        <input type="text" readonly class="form-control" id="updateSalesOrderPart">
+                        <span class="input-group-text"
+                            style="width: 140px;text-align: right;display: block;">Part</span>
+                        <input type="text" readonly class="form-control" id="selectedSalesOrderPart">
                     </div>
                     <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Config</span>
-                        <input type="text" readonly class="form-control" id="updateSalesOrderConfig">
+                        <span class="input-group-text"
+                            style="width: 140px;text-align: right;display: block;">Config</span>
+                        <input type="text" readonly class="form-control" id="selectedSalesOrderConfig">
                     </div>
                     <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Details</span>
-                        <input type="text" readonly class="form-control" id="updateSalesOrderDetails">
+                        <span class="input-group-text"
+                            style="width: 140px;text-align: right;display: block;">Details</span>
+                        <input type="text" readonly class="form-control" id="selectedSalesOrderDetails">
                     </div>
                     <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Quantity</span>
-                        <input type="text" readonly class="form-control" id="updateSalesOrderQuantity">
+                        <span class="input-group-text"
+                            style="width: 140px;text-align: right;display: block;">Quantity</span>
+                        <input type="text" readonly class="form-control" id="selectedSalesOrderQuantity">
                     </div>
                     <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Courier Charges</span>
-                        <input type="text" readonly class="form-control" id="updateSalesOrderCourierCharges">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Courier
+                            Charges</span>
+                        <input type="text" readonly class="form-control" id="selectedSalesOrderCourierCharges">
                     </div>
                     <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Order Amount</span>
-                        <input type="text" readonly class="form-control" id="updateSalesOrderOrderAmount">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Order
+                            Amount</span>
+                        <input type="text" readonly class="form-control" id="selectedSalesOrderOrderAmount">
+                        <input type="text" class="form-control" id="updateSalesOrderOrderAmount">
                     </div>
                     <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Payment Type</span>
-                        <input type="text" readonly class="form-control" id="updateSalesOrderPaymentType">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Payment
+                            Type</span>
+                        <input type="text" readonly class="form-control" id="selectedSalesOrderPaymentType">
                     </div>
                     <div class="input-group mb-0">
                         <input hidden disabled type="text" id="customerId">
@@ -471,7 +691,46 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="updateSalesOrderModalBtn" class="btn btn-primary pe-2 me-2">Update
+                        Order</button>
                     <button type="button" id="returnMaterialBtn" class="btn btn-primary">Return</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="createCustomerModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Create Customer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-0">
+                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Customer
+                            Name</span>
+                        <input autocomplete="off" type="text" class="form-control" id="customerName">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text"
+                            style="width: 140px;text-align: right;display: block;">Location</span>
+                        <input autocomplete="off" type="text" class="form-control" id="customerLocation">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text"
+                            style="width: 140px;text-align: right;display: block;">Email</span>
+                        <input autocomplete="off" type="email" class="form-control" id="email">
+                    </div>
+                    <div class="input-group mb-0">
+                        <span class="input-group-text"
+                            style="width: 140px;text-align: right;display: block;">Contact</span>
+                        <input autocomplete="off" type="text" class="form-control" id="contact">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="createCustomerBtn" class="btn btn-primary">Create Customer</button>
                 </div>
             </div>
         </div>

@@ -10,14 +10,14 @@ import lombok.Data;
 public class OrderDetailsDto {
 	
 	@NonNull
-	private int orderQty;
+	private Integer orderQty;
 
 	@NonNull
-	private double itemRate;
+	private Double itemRate;
 
 	@NonNull
-	private long orderItemId;
+	private Long orderItemId;
 	
 	@NonNull
-	private long userId;
+	private Long userId;
 }

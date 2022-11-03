@@ -19,16 +19,16 @@ public class OrderDto {
 	private String poNo;
 
 	@NonNull
-	private double orderAmount;
+	private Double orderAmount;
 
 	@NonNull
 	private String status;
 
 	@NonNull
-	private long customerId;
+	private Long customerId;
 
 	@NonNull
-	private long userId;
+	private Long userId;
 	
 	private List<OrderDetailsDto> orderDetailsList;
 }

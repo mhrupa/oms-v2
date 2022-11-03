@@ -22,4 +22,5 @@ public class OrderRequestDto {
     private long stockHeaderId;
     private long stockDetailId;
     private long userId;
+    private float orderAmount;
 }

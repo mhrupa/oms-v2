@@ -1,7 +1,5 @@
 package com.technivaaran.dto.response;
 
-import java.time.LocalDate;
-
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,6 +9,7 @@ public class SalesOrderResponseDto {
     private long challanNo;
     private String orderDate;
     private String customerName;
+    private String customerLocation;
     private String model;
     private String part;
     private String config;
@@ -25,4 +24,6 @@ public class SalesOrderResponseDto {
     private String paymentType;
     private String paymentAccName;
     private String paymentDate;
+    private long partId;
+    private long configId;
 }

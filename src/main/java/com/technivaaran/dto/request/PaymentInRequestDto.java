@@ -17,6 +17,7 @@ public class PaymentInRequestDto {
     private String paymentType;
     private String paymentAccount;
     private double amount;
+    private double updatedAmount;
     private long userId;
     private String paymentDate;
 }

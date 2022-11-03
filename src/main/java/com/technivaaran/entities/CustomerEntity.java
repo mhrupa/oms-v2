@@ -36,7 +36,7 @@ public class CustomerEntity extends BaseEntity<Long> {
 	private String email;
 
 	@Column(name = "contact")
-	@Length(max = 20)
+	@Length(max = 50)
 	private String contact;
 
 	@Column(name = "location")

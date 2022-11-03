@@ -13,12 +13,14 @@ import com.technivaaran.dto.request.PaymentInRequestDto;
 import com.technivaaran.entities.CustomerEntity;
 import com.technivaaran.entities.PaymentInDetails;
 import com.technivaaran.entities.PaymentInHeader;
+import com.technivaaran.entities.SalesOrderDetails;
 import com.technivaaran.entities.SalesOrderHeader;
 import com.technivaaran.entities.User;
 import com.technivaaran.enums.OrderStatus;
 import com.technivaaran.enums.PaymentType;
 import com.technivaaran.repositories.PaymentInDetailsRepository;
 import com.technivaaran.repositories.PaymentInHeaderRepository;
+import com.technivaaran.repositories.SalesOderDetailRepository;
 import com.technivaaran.repositories.SalesOrderHeaderRepository;
 import com.technivaaran.utils.DateUtils;
 
@@ -49,6 +51,9 @@ public class PaymentInService {
     @Autowired
     private SalesOrderHeaderRepository salesOrderHeaderRepository;
 
+    @Autowired
+    private SalesOderDetailRepository salesOderDetailRepository;
+
     @Transactional
     public ResponseEntity<OmsResponse> savePaymentIn(PaymentInRequestDto paymentInRequestDto) {
         log.info("In Save payment in started.");
@@ -77,7 +82,8 @@ public class PaymentInService {
 
         PaymentInHeader paymentInHeader = PaymentInHeader.builder()
                 .paymentInDate(DateUtils.getLocalDateFromDDMMYYYYString(paymentInRequestDto.getPaymentDate()))
-                .amount(paymentInRequestDto.getAmount())
+                // .amount(paymentInRequestDto.getAmount())
+                .amount(paymentInRequestDto.getUpdatedAmount())
                 .paymentType(paymentInRequestDto.getPaymentType())
                 .paymentAccountName(
                         paymentInRequestDto.getPaymentType()
@@ -90,25 +96,36 @@ public class PaymentInService {
         paymentInHeader = paymentInHeaderRepository.save(paymentInHeader);
 
         for (SalesOrderHeader salesOrderHeader : salesOrderHeaders) {
-            PaymentInDetails paymentInDetails = PaymentInDetails.builder()
-                    .challanNo(salesOrderHeader.getChallanNo())
-                    .orderAmount(salesOrderHeader.getOrderAmount())
-                    .transactionDate(LocalDate.now())
-                    .paymentInHeader(paymentInHeader)
-                    .build();
-            paymentInDetailsRepository.save(paymentInDetails);
-             if(paymentInRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
-                || paymentInRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type)) {
+                PaymentInDetails paymentInDetails = PaymentInDetails.builder()
+                                .challanNo(salesOrderHeader.getChallanNo())
+                                .orderAmount(salesOrderHeader.getOrderAmount())
+                                .transactionDate(LocalDate.now())
+                                .paymentInHeader(paymentInHeader)
+                                .build();
+                paymentInDetailsRepository.save(paymentInDetails);
+                if (paymentInRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
+                                || paymentInRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type)) {
                         salesOrderHeader.setStatus(OrderStatus.PENDING.type);
                 } else {
                         salesOrderHeader.setStatus(OrderStatus.COMPLETE.type);
                 }
-            salesOrderHeader.setPaymentType(paymentInRequestDto.getPaymentType());
-            if (paymentInRequestDto.getPaymentType()
-                    .equalsIgnoreCase(PaymentType.BANK.type)) {
-                salesOrderHeader.setRemark(paymentInRequestDto.getPaymentAccount());
-            }
-            salesOrderHeaderRepository.save(salesOrderHeader);
+                salesOrderHeader.setPaymentType(paymentInRequestDto.getPaymentType());
+
+                if(paymentInRequestDto.getAmount() != paymentInRequestDto.getUpdatedAmount()) {
+                        salesOrderHeader.setOrderAmount(paymentInRequestDto.getUpdatedAmount());
+                        salesOrderHeader.setSellPrice((float)paymentInRequestDto.getUpdatedAmount()/salesOrderHeader.getQuantity());
+
+                        List<SalesOrderDetails> salesOrderDetailsList = salesOderDetailRepository.findBySalesOrderHeader(salesOrderHeader);
+                        for(SalesOrderDetails salesOrderDetails : salesOrderDetailsList) {
+                                salesOrderDetails.setSellRate((float)paymentInRequestDto.getUpdatedAmount()/salesOrderHeader.getQuantity());
+                                salesOderDetailRepository.save(salesOrderDetails);
+                        }
+                }
+                if (paymentInRequestDto.getPaymentType()
+                                .equalsIgnoreCase(PaymentType.BANK.type)) {
+                        salesOrderHeader.setRemark(paymentInRequestDto.getPaymentAccount());
+                }
+                salesOrderHeaderRepository.save(salesOrderHeader);
         }
 
         return new ResponseEntity<>(

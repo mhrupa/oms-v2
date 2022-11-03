@@ -21,6 +21,11 @@ public class DateUtils {
         return LocalDate.parse(date, formatter);
     }
 
+    public static LocalDate getLocalDateFromYYYYMMDDString(String date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        return LocalDate.parse(date, formatter);
+    }
+
     public static String convertDateToddmmyyyy(LocalDateTime date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         return formatter.format(date);

@@ -37,8 +37,8 @@ public class UserDto {
 	private boolean firstLogin;
 
 	@NonNull
-	private int branchId;
+	private Integer branchId;
 	
 	@NonNull
-	private int roleId;
+	private Integer roleId;
 }

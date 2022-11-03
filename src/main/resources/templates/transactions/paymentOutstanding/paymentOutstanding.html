@@ -177,6 +177,7 @@
                 $("#challanNos").val(challanNoList);
                 $("#challanNoslabel").val(challanNoLabelList);
                 $("#totalAmount").val(totalAmountCalculated);
+                $("#updatedTotalAmount").val(totalAmountCalculated);
                 $('#paymentDate').datepicker('update', formatDateAsDDMMYYYY(new Date()));
                 $("#updatePaymentModal").modal("show");
 
@@ -187,6 +188,12 @@
 
         }
         function updatePayment() {
+            if($("#updatedTotalAmount").val() == "" || $("#updatedTotalAmount").val()<0) {
+                $("#updatedTotalAmount").focus();
+                $("#omsToast").html("Amount can not be less than 0.");
+                $(".toast").addClass("bg-danger").toast("show");
+                return false;
+            }
             if ($("#paymentType").val() == 0) {
                 $("#paymentType").focus();
                 return false;
@@ -195,7 +202,6 @@
                 $("#orderRemark").focus();
                 return false;
             }
-
             var requestData = {
                 "paymentDate": $("#paymentDate").val(),
                 "challanNos": $("#challanNos").val(),
@@ -203,6 +209,7 @@
                 "paymentType": $("#paymentType").val(),
                 "paymentAccount": $("#orderRemark").val(),
                 "amount": $("#totalAmount").val(),
+                "updatedAmount": $("#updatedTotalAmount").val(),
                 "userId": appUser.userId
             };
             $.post("/paymentIn", JSON.stringify(requestData), function (res) {
@@ -289,6 +296,7 @@
                             Amount</span>
                         <input disabled type="text" class="form-control" id="totalAmount" aria-label="totalAmount"
                             aria-describedby="totalAmount">
+                        <input type="text" class="form-control" id="updatedTotalAmount">
                     </div>
                     <div class="input-group mb-0">
                         <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Payment

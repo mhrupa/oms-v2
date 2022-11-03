@@ -27,5 +27,5 @@ public class CustomerDto {
 	private String location;
 	
 	@NonNull
-	private int userId;
+	private Integer userId;
 }
