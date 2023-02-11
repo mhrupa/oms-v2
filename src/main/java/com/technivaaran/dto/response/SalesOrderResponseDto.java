@@ -26,4 +26,6 @@ public class SalesOrderResponseDto {
     private String paymentDate;
     private long partId;
     private long configId;
+    private float buyPrice;
+    private String locationName;
 }

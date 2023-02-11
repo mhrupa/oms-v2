@@ -342,6 +342,8 @@ public class SalesOrderService {
                                         .stockHeaderId(orderHeader.getStockHeader().getId())
                                         .customerId(orderHeader.getCustomer().getId())
                                         .paymentType(orderHeader.getPaymentType())
+                                        .buyPrice(orderHeader.getStockDetails().getBuyPrice())
+                                        .locationName(orderHeader.getStockHeader().getStorageLocation().getLocationName())
                                         .build();
 
                         if (orderHeader.getPaymentType().equalsIgnoreCase(PaymentType.BANK.type)

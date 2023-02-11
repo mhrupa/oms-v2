@@ -82,14 +82,14 @@
                         {
                             extend: 'excelHtml5',
                             exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14]
+                                columns: [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 21]
                             }
                         }
                     ],
                     compact: true,
                     data: pendingOrderData,
                     "columns": [
-                        { data: "challanNo" },
+                        { data: "challanNo" }, // 0
                         { data: "orderDate" },
                         { data: "customerName" },
                         { data: "customerLocation" },
@@ -98,7 +98,8 @@
                         { data: "config" },
                         { data: "details" },
                         { data: "qty" },
-                        { data: "sellPrice", visible: false },
+                        { data: "buyPrice", visible: false},
+                        { data: "sellPrice", visible: false }, // 10 
                         { data: "courierCharges" },
                         { data: "orderAmount" },
                         { data: "paymentType" },
@@ -108,7 +109,8 @@
                         { data: "stockHeaderId", visible: false },
                         { data: "customerId", visible: false },
                         { data: "partId", visible: false },
-                        { data: "configId", visible: false },
+                        { data: "configId", visible: false }, // 20
+                        { data: "locationName", visible: false }
                     ]
                 });
                 $('#createCustomerModal').on('shown.bs.modal', function () {
@@ -492,6 +494,7 @@
                         <th class="th-sm">Config</th>
                         <th class="th-sm" style="max-width: 35px;">Details</th>
                         <th class="th-sm" style="max-width: 20px;">Qty</th>
+                        <th class="th-sm">Buy Price</th>
                         <th class="th-sm">Sell Price</th>
                         <th class="th-sm" style="max-width: 40px;">Courier Charges</th>
                         <th class="th-sm" style="max-width: 40px;">Order Amt</th>
@@ -501,6 +504,9 @@
                         <th class="th-sm">SalesOrderId</th>
                         <th class="th-sm">StockHeaderId</th>
                         <th class="th-sm">CustomerId</th>
+                        <th class="th-sm">Part Id</th>
+                        <th class="th-sm">configId</th>
+                        <th class="th-sm">Storage Location</th>
                     </tr>
                 </thead>
             </table>
