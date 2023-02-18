@@ -82,35 +82,35 @@
                         {
                             extend: 'excelHtml5',
                             exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 21]
+                                columns: [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 21]
                             }
                         }
                     ],
                     compact: true,
                     data: pendingOrderData,
                     "columns": [
-                        { data: "challanNo" }, // 0
-                        { data: "orderDate" },
-                        { data: "customerName" },
-                        { data: "customerLocation" },
-                        { data: "model" },
-                        { data: "part" },
-                        { data: "config" },
-                        { data: "details" },
-                        { data: "qty" },
-                        { data: "buyPrice", visible: false},
-                        { data: "sellPrice", visible: false }, // 10 
-                        { data: "courierCharges" },
-                        { data: "orderAmount" },
-                        { data: "paymentType" },
-                        { data: "paymentAccName" },
-                        { data: "paymentDate" },
-                        { data: "salesOrderId", visible: false },
-                        { data: "stockHeaderId", visible: false },
-                        { data: "customerId", visible: false },
-                        { data: "partId", visible: false },
-                        { data: "configId", visible: false }, // 20
-                        { data: "locationName", visible: false }
+                        { data: "challanNo" }, 						// 0
+                        { data: "orderDate" },						// 1
+                        { data: "customerName" },					// 2
+                        { data: "customerLocation" },				// 3
+                        { data: "model" },							// 4
+                        { data: "part" },							// 5
+                        { data: "config" },							// 6
+                       	{ data: "details" },						// 7
+                        { data: "qty" },							// 8
+                       	{ data: "buyPrice", visible: false},		// 9
+                        { data: "sellPrice", visible: false }, 		// 10 
+                        { data: "courierCharges" }, 				// 11
+                        { data: "orderAmount" },					// 12
+                        { data: "paymentType" },					// 13
+                        { data: "paymentAccName" },					// 14
+                        { data: "paymentDate" },					// 15
+                        { data: "salesOrderId", visible: false },	// 16
+                        { data: "stockHeaderId", visible: false },	// 17
+                        { data: "customerId", visible: false },		// 18
+                        { data: "partId", visible: false },			// 19
+                        { data: "configId", visible: false }, 		// 20
+                        { data: "locationName", visible: false } 	// 21
                     ]
                 });
                 $('#createCustomerModal').on('shown.bs.modal', function () {
