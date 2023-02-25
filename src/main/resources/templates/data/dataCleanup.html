@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+      .dataTables_wrapper .dataTables_filter {
+        float: left;
+        margin-top: 5px;
+        /* padding-bottom: 5px; */
+      }
+
+      .dataTables_length {
+        display: none;
+        cursor: pointer;
+      }
+
+      .dataTables_filter input {
+        min-width: 350px;
+      }
+
+      .allBtnCss {
+        margin-left: 54px;
+        width: 100px;
+      }
+
+      .noneBtnCss {
+        width: 100px;
+      }
+
+      .updateBtnCss {
+        width: 100px;
+      }
+    </style>
+    <script type="text/javascript">
+      var accountPaymentTable, accountPaymentData;
+      var selectedRowData, selectedRow;
+      $(document).ready(function () {
+        $("#tillDate")
+          .datepicker({
+            format: "dd-mm-yyyy",
+            autoclose: true,
+            todayHighlight: true,
+          })
+          .on("changeDate", function (e) {
+            //$("#paymentType").focus();
+          });
+        $("#tillDate").datepicker("update", formatDateAsDDMMYYYY(new Date()));
+        $("#cleanUpData").click(cleanUpdata);
+      });
+
+      function cleanUpdata() {
+        if (
+          confirm(
+            "Do you want to Clean up data till  " + $("#tillDate").val() + "?"
+          )
+        ) {
+          const reqObj = {
+            tillDate: $("#tillDate").val()
+          };
+
+          $.post("/cleanUpData/" + $("#tillDate").val(), function (res) {
+            $("#omsToast").html(res.message);
+            $(".toast")
+              .removeClass("bg-danger")
+              .addClass("bg-success")
+              .toast("show");
+          }).fail(function (res) {
+            $("#omsToast").html(JSON.parse(res.responseText).message);
+            $(".toast").addClass("bg-danger").toast("show");
+          });
+        }
+      }
+    </script>
+  </head>
+
+  <body>
+    <div class="mt-0">
+      <div
+        class="p-2 input-group"
+        style="border: 1px; background-color: #c4ddff"
+      >
+        <label class="p-2 pb-0" for="boxNo">Clean up data till date : </label>
+        <input
+          type="text"
+          style="max-width: 100px"
+          readonly
+          class="form-control"
+          id="tillDate"
+        />
+        <button type="button" class="btn btn-secondary" id="cleanUpData">
+          Cleanup Data
+        </button>
+      </div>
+    </div>
+  </body>
+</html>

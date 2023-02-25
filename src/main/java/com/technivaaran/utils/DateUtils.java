@@ -30,8 +30,16 @@ public class DateUtils {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         return formatter.format(date);
     }
+
     public static String convertDateToddmmyyyy(LocalDate date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         return formatter.format(date);
+    }
+
+    public static String convertStringDateToyyyymmdd(String date) {
+
+        var dateArr = date.split("-");
+
+        return dateArr[2] + "-" + dateArr[1] + "-" + dateArr[0];
     }
 }

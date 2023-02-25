@@ -7,6 +7,7 @@ import java.util.Optional;
 import com.technivaaran.entities.SalesOrderHeader;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -32,4 +33,8 @@ public interface SalesOrderHeaderRepository extends JpaRepository<SalesOrderHead
             + " AND MONTH(ph.payment_in_date) = :month AND YEAR(payment_in_date) = :year", nativeQuery = true)
     public List<Object[]> getAccountPaymentData(@Param("account") Long account, @Param("month") int month, @Param("year") int year);
 
+    @Modifying
+    @Query(value = "DELETE FROM sales_order_header WHERE order_date <= :tillDate", nativeQuery = true)
+    public void deleteLessThanEqualToOrderDate(String tillDate);
+    
 }

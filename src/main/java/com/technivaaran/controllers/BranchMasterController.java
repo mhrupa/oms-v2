@@ -40,7 +40,7 @@ public class BranchMasterController {
 	}
 
 	@PostMapping(value = "/branches", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<OmsResponse> saveUser(@RequestBody BranchMasterDto branchMasterDto) {
+	public ResponseEntity<OmsResponse> saveBranch(@RequestBody BranchMasterDto branchMasterDto) {
 		log.info("Branch Creation started.");
 		branchMasterService.saveBranchMaster(branchMasterDto);
 		log.info("Branch Creation completed.");
@@ -49,7 +49,7 @@ public class BranchMasterController {
 	}
 
 	@PutMapping(value = "/branches/{branchId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<OmsResponse> updateUserById(@PathVariable(name = "branchId") int branchId,
+	public ResponseEntity<OmsResponse> updateBranchById(@PathVariable(name = "branchId") int branchId,
 			@RequestBody BranchMasterDto branchMasterDto) {
 		log.info("Update Branch by Id called");
 		branchMasterService.updateBranchMasterById(branchId, branchMasterDto);

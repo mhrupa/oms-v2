@@ -4,6 +4,7 @@ import com.technivaaran.AppUrlConstants;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -137,5 +138,17 @@ public class NavigationController {
 	@GetMapping("/accPaymentReconcilation")
 	public String getAccPaymentReconcilation() {
 		return "reports/accountPaymentReconcilation";
+	}
+
+	// ****************Data Clean Up *****************//
+	@GetMapping("/dataCleanUp")
+	public String dataCleanUp() {
+		return "data/dataCleanup";
+	}
+
+	// ****************Data Back Up *****************//
+	@GetMapping("/dataBackUp")
+	public String dataBackUp() {
+		return "data/dataBackup";
 	}
 }
