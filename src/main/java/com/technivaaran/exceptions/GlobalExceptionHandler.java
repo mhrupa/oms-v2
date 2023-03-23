@@ -22,6 +22,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(value = { IllegalArgumentException.class, IllegalStateException.class, Exception.class })
 	protected ResponseEntity<OmsResponse> handleConflict(RuntimeException ex, WebRequest request) {
+	    ex.printStackTrace();
 		HttpHeaders headers = new HttpHeaders();
 		headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 		return new ResponseEntity<>(OmsResponse.builder().message(ex.getMessage()).build(), headers,

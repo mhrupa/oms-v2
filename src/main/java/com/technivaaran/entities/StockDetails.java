@@ -37,6 +37,7 @@ public class StockDetails extends BaseEntity<Long> {
     private float outQty;
 
     private float buyPrice;
+    private float initialBuyPrice;
     private float sellPrice;
 
     private String type;

@@ -1,11 +1,10 @@
 package com.technivaaran.controllers;
 
-import com.technivaaran.AppUrlConstants;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.technivaaran.AppUrlConstants;
 
 @Controller
 @RequestMapping(AppUrlConstants.BASE_URL)
@@ -106,6 +105,12 @@ public class NavigationController {
 		return "masters/customer/updateCustomer";
 	}
 
+	// ****************Inward-menu*****************//
+    @GetMapping("/inward")
+    public String getInwardPage() {
+        return "transactions/stock/inward";
+    }
+	
 	// ****************Stock-menu*****************//
 	@GetMapping("/stockHome")
 	public String getStockPage() {

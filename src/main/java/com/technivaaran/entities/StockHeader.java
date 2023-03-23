@@ -42,6 +42,7 @@ public class StockHeader extends BaseEntity<Long> {
     private float closingQty;
 
     private float buyPrice;
+    private float initialBuyPrice;
     private float sellPrice;
     private String details;
     private String remark;

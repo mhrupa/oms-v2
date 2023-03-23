@@ -125,6 +125,7 @@ public class SalesOrderService {
                 }
         }
 
+        @SuppressWarnings("null")
         public ResponseEntity<OmsResponse> updateSalesOrder(OrderRequestDto orderRequestDto) {
                 log.info("Inside updateSalesOrder sales oreder service");
                 Optional<SalesOrderHeader> salesOrderOp = salesOrderHeaderRepository
@@ -179,6 +180,7 @@ public class SalesOrderService {
                 }
         }
 
+        @SuppressWarnings("null")
         @Transactional
         private ResponseEntity<OmsResponse> validateStockDetailsAndcreateOrder(OrderRequestDto orderRequestDto,
                         StockHeader stockHeader, CustomerEntity customer) {

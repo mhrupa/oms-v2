@@ -15,19 +15,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CustomerMapper {
 
-	@Autowired
-	UserService userService;
+    @Autowired
+    UserService userService;
 
-	public CustomerEntity convertToEntity(CustomerDto customerDto) {
-		try {
-			User user = userService.getUserById(customerDto.getUserId());
-
-			return CustomerEntity.builder().customerName(customerDto.getCustomerName())
-					.email(customerDto.getEmail()).contact(customerDto.getContact()).location(customerDto.getLocation())
-					.user(user).build();
-		} catch (Exception exception) {
-			log.info("Error occurred while converting to Customer entity");
-			throw new EntityConversionException(exception.getMessage(), exception);
-		}
-	}
+    @SuppressWarnings("null")
+    public CustomerEntity convertToEntity(CustomerDto customerDto) {
+        try {
+            User user = userService.getUserById(customerDto.getUserId());
+            return CustomerEntity.builder().customerName(customerDto.getCustomerName())
+                    .email(customerDto.getEmail()).contact(customerDto.getContact()).location(customerDto.getLocation())
+                    .user(user).build();
+        } catch (Exception exception) {
+            log.info("Error occurred while converting to Customer entity");
+            throw new EntityConversionException(exception.getMessage(), exception);
+        }
+    }
 }
