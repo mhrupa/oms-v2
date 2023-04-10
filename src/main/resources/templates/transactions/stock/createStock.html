@@ -30,7 +30,7 @@
 }
 </style>
 <script>
-        var items = new Array();
+        //var items = new Array();
         var stockData = new Array();
         var table;
         var vendors, customers, locations, paymentAccounts, remarks;
@@ -84,6 +84,8 @@
                     { data: "remarkId", visible: false }
                 ]
             });
+            console.log("initialising search string");
+            table.search(searchString).draw();
             $(":input[type='search']").attr("accesskey", "h");
 
             $('#stockAddBoxModal').on('shown.bs.modal', function () {
@@ -479,32 +481,38 @@
                 var rowUpdated = false;
                 var rowTodelete;
                 var rowTodeleteFlag = false;
+                
+                $("#stockEditModal").modal("hide");
+                $("#omsToast").html(res.message);
+                $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
+                searchString = $(":input[type='search']").val();
+                $("#omsData").load("/createStockPage");
 
-                table.rows().every(function (rowIdx, tableLoop, rowLoop) {
+                /* table.rows().every(function (rowIdx, tableLoop, rowLoop) {
                     var d = this.data();
                     if (d.box == res.data.box && d.model == res.data.model
                         && d.part == res.data.part && d.configuration == res.data.configuration
                         && d.details == res.data.details && d.vendor == res.data.vendor
                         && d.buyPrice == res.data.buyPrice) {
                             d.qty = res.data.qty;
-                        // if (res.data.qty != 0) {
                             d.sellPrice = res.data.sellPrice;
                             if ($("#currentRemark").val() != $("#remarkForEditStock").val()) {
                                 d.remarkText = $("#remarkForEditStock").val();
-                                // d.remarkId = $("#remarkForEditStock option:selected").val();
                             }
-                        //} else {
-                            // rowTodeleteFlag = true;
-                          //  rowTodelete = this;
-                        //}
-                        this.invalidate();
                         rowUpdated = true;
-                        $("#stockEditModal").modal("hide");
-                        $("#omsToast").html(res.message);
-                        $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
-                        return false;
+                        this.invalidate().draw();
                     }
+                    
                 });
+                initStockData();
+               	if (rowUpdated) {
+                	console.log("inside row updated 1st block mn");
+                	table.draw();
+                	$("#stockEditModal").modal("hide");
+                    $("#omsToast").html(res.message);
+                    $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
+                    return false;
+                }
                 if (rowTodeleteFlag) {
                     rowTodelete.remove().draw(false);
                 }
@@ -518,8 +526,8 @@
                     $("#stockEditModal").modal("hide");
                     $("#omsToast").html(res.message);
                     $(".toast").removeClass("bg-danger").addClass("bg-success").toast("show");
-                }
-                initFields();
+                } */
+                //initFields();
             }).fail(function (res) {
                 $("#omsToast").html(JSON.parse(res.responseText).message);
                 $(".toast").addClass("bg-danger").toast("show");
@@ -1093,13 +1101,18 @@
             });
         }
         function initModelData() {
-            $.get("/items", function (res) {
-                items = res;
-                initModelResponseData();
-            }).fail(function (res) {
-                $("#omsToast").html(JSON.parse(res.responseText).message);
-                $(".toast").addClass("bg-danger").toast("show");
-            });
+        	if(items.length === 0) {
+	        	// console.log("item arr length :" + items.length);
+	            $.get("/items", function (res) {
+	                items = res;
+	                
+	            }).fail(function (res) {
+	                $("#omsToast").html(JSON.parse(res.responseText).message);
+	                $(".toast").addClass("bg-danger").toast("show");
+	            });
+        	} else {
+        		initModelResponseData();
+        	}
         }
         function initStockData() {
             $.get("/stock", function (res) {
@@ -1143,7 +1156,7 @@
         }
         function initModelResponseData(model) {
             if (model) {
-                /*  */$("#model").append("<option value='" + model.itemName + "' itemid='" + model.id + "'></option>");
+                //$("#model").append("<option value='" + model.itemName + "' itemid='" + model.id + "'></option>");
                 $("#modelDataForEditStockList").append("<option value='" + model.itemName + "' itemid='" + model.id + "'></option>");
                 $("#modelData").val(model.itemName);
                 $("#modelData").focus();
@@ -1236,118 +1249,7 @@
 <body style="overflow: hidden;">
 	<div id="stockPageBody" style="visibility: hidden">
 		<div class="row" style="width: 100%;padding-left: 20px;">
-		
-			<!-- <div class="pt-0" style="width: 250px;">
-				<div class="mb-1 ps-2">
-					<label class="p-1 pb-0" for="boxNo"><span
-						style="text-decoration: underline;">B</span>ox</label>
-					<div class="input-group">
-						<input class="form-control" autocomplete="off" list="boxData"
-							accesskey="b" id="boxNo" placeholder="Search Box...">
-						<datalist id="boxData">
-						</datalist>
-						<button type="button" class="btn btn-secondary" tabindex="-1"
-							data-bs-toggle="tooltip" data-bs-placement="top" id="addBoxBtn"
-							title="Add new Box">+</button>
-					</div>
-				</div>
-				<div class="ps-2">
-					<label for="vendor" class="p-1 pb-0">Vendor</label>
-					<div class="input-group">
-						<select class="form-control" id="vendor"></select>
-						<button type="button" class="btn btn-secondary" tabindex="-1"
-							data-bs-toggle="tooltip" data-bs-placement="top"
-							id="addVendorBtn" title="Add new Vendor">+</button>
-					</div>
-				</div>
-				<div class="ps-2">
-					<label for="model" class="p-1 pb-0">Motherboard Model</label>
-					<div class="input-group">
-						<input class="form-control" autocomplete="off" list="model"
-							id="modelData" placeholder="Search Model...">
-						<datalist id="model">
-						</datalist>
-						<button type="button" class="btn btn-secondary" tabindex="-1"
-							data-bs-toggle="tooltip" data-bs-placement="top" id="addModelBtn"
-							title="Add new Model">+</button>
-					</div>
-				</div>
-				<div class="ps-2">
-					<label for="partNo" class="p-1 pb-0">Part</label>
-					<div class="input-group">
-						<select class="form-control" id="partNo"></select>
-						<button type="button" class="btn btn-secondary" tabindex="-1"
-							data-bs-toggle="tooltip" data-bs-placement="top" id="addPartBtn"
-							title="Add new Part">+</button>
-					</div>
-				</div>
-				<div class="ps-2">
-					<label for="config" class="p-1 pb-0">Configuration</label>
-					<div class="input-group">
-						<select class="form-control" id="config"></select>
-						<button type="button" class="btn btn-secondary" tabindex="-1"
-							data-bs-toggle="tooltip" data-bs-placement="top"
-							id="addConfigBtn" title="Add new Configuration">+</button>
-					</div>
-				</div>
-				<div class="row" style="padding-left: 12px;">
-					<div class="col mb-1 ps-2">
-						<label for="details" class="p-1 pb-0">Details</label>
-						<div class="input-group">
-							<select class="form-control" id="details">
-								<option>GM</option>
-								<option>PM</option>
-							</select>
-						</div>
-					</div>
-					<div class="col ps-2 mb-1">
-						<label for="qty" class="p-1 pb-0">Quantity</label> <input min="1"
-							autocomplete="off" required type="number"
-							class="form-control numberOnly" aria-label="qty" id="qty">
-						<div class="invalid-tooltip">Please enter quantity</div>
-					</div>
-				</div>
-				<div class="row mb-1" style="padding-left: 12px;">
-					<div class="col ps-2">
-						<label for="qty" class="p-1 pb-0">Buy Price</label> <input min="0"
-							autocomplete="off" type="number" class="form-control numberOnly"
-							aria-label="qty" id="buyPrice">
-					</div>
-					<div class="col ps-2">
-						<label for="qty" class="p-1 pb-0">Sell Price</label> <input
-							min="0" autocomplete="off" type="number"
-							class="form-control numberOnly" aria-label="qty" id="sellPrice">
-					</div>
-				</div>
-				<div class="mb-1 ps-2">
-					<label class="p-1 pb-0" for="remarkText">Remark</label>
-					<div class="input-group">
-						<input class="form-control" autocomplete="off" list="remarkData"
-							id="remarkText" placeholder="Search Remark...">
-						<datalist id="remarkData">
-						</datalist>
-						<button type="button" class="btn btn-secondary" tabindex="-1"
-							data-bs-toggle="tooltip" data-bs-placement="top"
-							id="addRemarkBtn" title="Add new Remark">+</button>
-					</div>
-				</div>
-				<div class="ps-2 mt-3">
-					<button type="button" style="width: 100%;" id="addStockBtn"
-						class="btn btn-primary">Add</button>
-				</div>
-				<div class="ps-2 mt-2">
-					<button type="button" style="width: 100%;" id="clearFieldsBtn"
-						class="btn btn-secondary">Clear</button>
-				</div>
-			</div> -->
 			<div class="col mt-4">
-				<!-- <div class="position-relative">
-					<div class="ps-2 mt-2">
-						<button type="button" id="toggleBuyPrice" style="z-index: 5000;"
-							class="position-absolute top-0 end-0 px-2 btn btn-success">Buy
-							Price</button>
-					</div>
-				</div> -->
 				<table id="dataTable" style="width: 100%; font-size: 10px;"
 					class="display cell-border">
 					<thead>

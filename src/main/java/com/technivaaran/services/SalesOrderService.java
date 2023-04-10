@@ -34,6 +34,7 @@ import com.technivaaran.enums.PaymentType;
 import com.technivaaran.enums.StockTransactionType;
 import com.technivaaran.enums.StockType;
 import com.technivaaran.exceptions.OMSException;
+import com.technivaaran.mapper.SalesOrderMapper;
 import com.technivaaran.repositories.SalesOderDetailRepository;
 import com.technivaaran.repositories.SalesOrderHeaderRepository;
 import com.technivaaran.utils.CurrencyUtil;
@@ -68,6 +69,9 @@ public class SalesOrderService {
 
         @Autowired
         private PaymentAccountsService paymentAccountsService;
+        
+        @Autowired
+        private SalesOrderMapper salesOrderMapper;
 
         public ResponseEntity<OmsResponse> createSalesOrder(OrderRequestDto orderRequestDto) {
                 log.info("Inside create sales oreder service");
@@ -324,29 +328,8 @@ public class SalesOrderService {
                                                 LocalDate.parse(toDate, formatter));
                 List<SalesOrderResponseDto> orderResponseDtos = new ArrayList<>();
                 orderHeaderList.forEach(orderHeader -> {
-                        SalesOrderResponseDto salesOrderResponseDto = SalesOrderResponseDto.builder()
-                                        .challanNo(orderHeader.getChallanNo())
-                                        .orderDate(DateUtils.convertDateToddmmyyyy(orderHeader.getOrderDate()))
-                                        .customerName(orderHeader.getCustomer().getCustomerName())
-                                        .customerLocation(orderHeader.getCustomer().getLocation())
-                                        .part(orderHeader.getStockHeader().getPartEntity().getPartNo())
-                                        .partId(orderHeader.getStockHeader().getPartEntity().getId())
-                                        .model(orderHeader.getStockHeader().getItemMaster().getItemName())
-                                        .config(orderHeader.getStockHeader().getConfigDetailsEntity()
-                                                        .getConfiguration())
-                                        .configId(orderHeader.getStockHeader().getConfigDetailsEntity().getId())
-                                        .details(orderHeader.getStockHeader().getDetails())
-                                        .qty(orderHeader.getQuantity())
-                                        .sellPrice(orderHeader.getSellPrice())
-                                        .courierCharges(orderHeader.getCourierCharges())
-                                        .orderAmount(orderHeader.getOrderAmount())
-                                        .salesOrderId(orderHeader.getId())
-                                        .stockHeaderId(orderHeader.getStockHeader().getId())
-                                        .customerId(orderHeader.getCustomer().getId())
-                                        .paymentType(orderHeader.getPaymentType())
-                                        .buyPrice(orderHeader.getStockDetails().getBuyPrice())
-                                        .locationName(orderHeader.getStockHeader().getStorageLocation().getLocationName())
-                                        .build();
+                    SalesOrderResponseDto salesOrderResponseDto = salesOrderMapper
+                            .convertToSalesOrderHeaderToDto(orderHeader);
 
                         if (orderHeader.getPaymentType().equalsIgnoreCase(PaymentType.BANK.type)
                                         || orderHeader.getPaymentType().equalsIgnoreCase(PaymentType.PAYTM.type)) {

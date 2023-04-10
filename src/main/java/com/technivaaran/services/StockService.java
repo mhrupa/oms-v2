@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.dto.request.StockRequestDto;
@@ -69,9 +70,12 @@ public class StockService {
 
     public List<StockResponseDto> getStockHeader() {
         List<StockResponseDto> stockResponseDtos = new ArrayList<>();
-        stockHeaderRepository.findByClosingQtyGreaterThan(0).forEach(
-                stockHeader -> stockResponseDtos
-                        .add(stockHeaderResponseMapper.convertToDto(stockHeader, StockTransactionType.NORMAL)));
+        stockHeaderRepository.getInventoryData().forEach(object -> stockResponseDtos
+                .add(stockHeaderResponseMapper.convertToDto(object, StockTransactionType.NORMAL)));
+
+        //stockHeaderRepository.findByClosingQtyGreaterThan(0).forEach(
+//                stockHeader -> stockResponseDtos
+//                        .add(stockHeaderResponseMapper.convertToDto(stockHeader, StockTransactionType.NORMAL)));
         return stockResponseDtos;
     }
 
@@ -95,8 +99,10 @@ public class StockService {
         }
         ConfigDetailsEntity configEntity = configOp.get();
 //        Optional<StockHeader> stockHeaderOp = findStockHeaderByLocationAndModelAndPartAndConfigAndVendorAndBuyPrice(
-        Optional<StockHeader> stockHeaderOp = findStockHeaderByLocationAndModelAndPartAndConfigAndVendor(
-                storageLocationOp.get(), configEntity, vendorOp.get());
+//        Optional<StockHeader> stockHeaderOp = findStockHeaderByLocationAndModelAndPartAndConfigAndVendorAndDetails(
+        Optional<StockHeader> stockHeaderOp = findByStorageLocationAndItemMasterAndPartEntityAndConfigDetailsEntityAndVendorAndRemark(
+                storageLocationOp.get(), configEntity, vendorOp.get(), stockRequestDto.getDetails(),
+                stockRequestDto.getRemarkText());
         StockHeader stockHeader = null;
         User user = userService.getUserById(stockRequestDto.getUserId());
         if (stockHeaderOp.isPresent()) {
@@ -119,24 +125,10 @@ public class StockService {
                 stockHeader.setSellPrice(stockRequestDto.getSellPrice());
                 stockHeader.setVendor(vendorOp.get());
                 
-                /**
-                 *  > as per new logic implemented on 19th march 2023
-                 *      we need to calculate average of the buy price
-                 *      for the selected item, which is existing in all the boxes at all the locations.
-                 *      We also need to update the price of existing items in other boxes 
-                 *      with this calculated average price. 
-                 *  > We have also updated sell price as input sell price
-                 *  > We have added initial_buy_price column to stock_header and stock_details tables
-                 */
-                
-                var sumAndRowCountForBuyPrice = getSumAndRowCountForBuyPrice(configEntity.getId(), 
-                        configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId());
-
-                double sumBuyPrice = (double)sumAndRowCountForBuyPrice.get("priceSum");
-                double itemQty = ((double)sumAndRowCountForBuyPrice.get("rowCount"));
-                
-                double avgPrice = Math.ceil((sumBuyPrice + (stockRequestDto.getBuyPrice() * stockRequestDto.getQty()))
-                        / (itemQty + stockRequestDto.getQty()));
+                double avgPrice = calculateAveragePrice(configEntity.getId(),
+                        configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId(),
+                        stockRequestDto.getBuyPrice(), stockRequestDto.getQty(), stockRequestDto.getDetails(),
+                        stockRequestDto.getUpdatedRemark());
                 
                 stockHeader.setBuyPrice((float)avgPrice);                
                 
@@ -150,9 +142,10 @@ public class StockService {
 
                 var response = updateStock(stockHeader, stockDetails, StockTransactionType.NORMAL);
                 
-                updateAverageBuyAndSellPrice((float)avgPrice, stockRequestDto.getSellPrice(), configEntity.getId(), 
-                        configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId());
-                
+                updateAverageBuyAndSellPrice((float) avgPrice, stockRequestDto.getSellPrice(), configEntity.getId(),
+                        configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId(),
+                        stockRequestDto.getDetails(), stockRequestDto.getUpdatedRemark());
+
                 return response;
             }
         }
@@ -172,26 +165,11 @@ public class StockService {
                 .vendor(vendorOp.get())
                 .build();
         
-        
-        /**
-         *  > as per new logic implemented on 19th march 2023
-         *      we need to calculate average of the buy price
-         *      for the selected item, which is existing in all the boxes at all the locations.
-         *      We also need to update the price of existing items in other boxes 
-         *      with this calculated average price. 
-         *  > We have also updated sell price as input sell price
-         *  > We have added initial_buy_price column to stock_header and stock_details tables
-         */
-        
-        var sumAndRowCountForBuyPrice = getSumAndRowCountForBuyPrice(configEntity.getId(), 
-                configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId());
+        double avgPrice = calculateAveragePrice(configEntity.getId(),
+                configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId(),
+                stockRequestDto.getBuyPrice(), stockRequestDto.getQty(), stockRequestDto.getDetails(),
+                stockRequestDto.getUpdatedRemark());
 
-        double sumBuyPrice = (double)sumAndRowCountForBuyPrice.get("priceSum");
-        double itemQty = ((double)sumAndRowCountForBuyPrice.get("rowCount"));
-        
-        double avgPrice = Math.ceil((sumBuyPrice + (stockRequestDto.getBuyPrice() * stockRequestDto.getQty()))
-                / (itemQty + stockRequestDto.getQty()));
-        
         stockHeader.setBuyPrice((float)avgPrice);
         
         StockDetails stockDetails = createStockDetails(stockRequestDto.getBuyPrice(),
@@ -202,22 +180,70 @@ public class StockService {
 
         updateStock(stockHeader, stockDetails, StockTransactionType.NORMAL);
 
-        updateAverageBuyAndSellPrice((float)avgPrice, stockRequestDto.getSellPrice(), configEntity.getId(), 
-                configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId());
+        updateAverageBuyAndSellPrice((float) avgPrice, stockRequestDto.getSellPrice(), configEntity.getId(),
+                configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId(),
+                stockRequestDto.getDetails(), stockRequestDto.getUpdatedRemark());
         
         return new ResponseEntity<>(OmsResponse.builder().message(STOCK_UPDATE_SUCCESS)
                 .data(stockHeaderResponseMapper.convertToDto(stockHeader, StockTransactionType.NORMAL)).build(),
                 HttpStatus.OK);
 
     }
+    
+    /**
+     * 
+     * @param configDetailsId
+     * @param itemMasterId
+     * @param partId
+     * @param buyPrice
+     * @param qty
+     * @return
+     */
+    public double calculateAveragePrice(Long configDetailsId, Long itemMasterId, Long partId, float buyPrice,
+            float qty, String details, String remark) {
 
-    public Optional<StockHeader> findStockHeaderByLocationAndModelAndPartAndConfigAndVendor(
-            StorageLocationEntity storageLocationEntity, ConfigDetailsEntity configDetailsEntity, VendorEntity vendor) {
+        var sumAndRowCountForBuyPrice = getSumAndRowCountForBuyPrice(configDetailsId, itemMasterId, partId, details,
+                remark);
+
+        double sumBuyPrice = ObjectUtils.isEmpty(sumAndRowCountForBuyPrice.get("priceSum")) ? 0
+                : (double) sumAndRowCountForBuyPrice.get("priceSum");
+        double itemQty = ObjectUtils.isEmpty(sumAndRowCountForBuyPrice.get("rowCount")) ? 0
+                : (double) sumAndRowCountForBuyPrice.get("rowCount");
+
+        if ((itemQty + qty) != 0) {
+            return Math.ceil((sumBuyPrice + (buyPrice * qty)) / (itemQty + qty));
+        } else {
+            return 0;
+        }
+        
+    }
+    
+    public double calculateAveragePriceForDetailsChange(Long configDetailsId, Long itemMasterId, Long partId,
+            String details, String remark) {
+
+        var avgPrice = getAveragePriceForConfig(configDetailsId, itemMasterId, partId, details, remark);
+
+        return Math.ceil(avgPrice);
+    }
+
+    public Optional<StockHeader> findStockHeaderByLocationAndModelAndPartAndConfigAndVendorAndDetails1(
+            StorageLocationEntity storageLocationEntity, ConfigDetailsEntity configDetailsEntity, VendorEntity vendor,
+            String details) {
 
         return stockHeaderRepository
-                .findByStorageLocationAndItemMasterAndPartEntityAndConfigDetailsEntityAndVendor(
+                .findByStorageLocationAndItemMasterAndPartEntityAndConfigDetailsEntityAndVendorAndDetailsAndRowDelStatus(
                         storageLocationEntity, configDetailsEntity.getPartEntity().getItemMaster(),
-                        configDetailsEntity.getPartEntity(), configDetailsEntity, vendor);
+                        configDetailsEntity.getPartEntity(), configDetailsEntity, vendor, details, false);
+    }
+    
+    public Optional<StockHeader> findByStorageLocationAndItemMasterAndPartEntityAndConfigDetailsEntityAndVendorAndRemark(
+            StorageLocationEntity storageLocationEntity, ConfigDetailsEntity configDetailsEntity, VendorEntity vendor,
+            String details, String remark) {
+
+        return stockHeaderRepository
+                .findByStorageLocationAndItemMasterAndPartEntityAndConfigDetailsEntityAndVendorAndDetailsAndRowDelStatusAndRemark(
+                        storageLocationEntity, configDetailsEntity.getPartEntity().getItemMaster(),
+                        configDetailsEntity.getPartEntity(), configDetailsEntity, vendor, details, false, remark);
     }
     
     public Optional<StockHeader> findStockHeaderByLocationAndModelAndPartAndConfigAndVendorAndBuyPrice(
@@ -230,15 +256,24 @@ public class StockService {
                         configDetailsEntity.getPartEntity(), configDetailsEntity, vendor, buyPrice);
     }
     
-    public Map<String, Object> getSumAndRowCountForBuyPrice(Long configDetailsId, Long itemMasterId, Long partId) {
+    public Map<String, Object> getSumAndRowCountForBuyPrice(Long configDetailsId, Long itemMasterId, Long partId,
+            String details, String remark) {
 
-        return stockHeaderRepository.getSumAndRowCountForBuyPrice(configDetailsId, itemMasterId, partId);
+        return stockHeaderRepository.getSumAndRowCountForBuyPrice(configDetailsId, itemMasterId, partId, details,
+                remark);
+    }
+    
+    public double getAveragePriceForConfig(Long configDetailsId, Long itemMasterId, Long partId, String details,
+            String remark) {
+
+        return stockHeaderRepository.getAveragePriceForConfig(configDetailsId, itemMasterId, partId, details, remark);
     }
 
-    public void updateAverageBuyAndSellPrice(float buyPrice, float sellPrice, Long configDetailsId, Long itemMasterId, Long partId) {
+    public void updateAverageBuyAndSellPrice(float buyPrice, float sellPrice, Long configDetailsId, Long itemMasterId,
+            Long partId, String details, String remark) {
         try {
             stockHeaderRepository.updateAverageBuyAndSellPrice(buyPrice, sellPrice, configDetailsId, itemMasterId,
-                    partId);
+                    partId, details, remark);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -248,131 +283,170 @@ public class StockService {
     public ResponseEntity<OmsResponse> updateStockHeaderAndStockDetaisById(long id, StockRequestDto stockRequestDto) {
         Optional<StockHeader> stockHeaderOp = stockHeaderRepository.findById(id);
 
-        if (stockHeaderOp.isPresent()) {
-            StockHeader stockHeader = stockHeaderOp.get();
-            Optional<ConfigDetailsEntity> configOp = configDetailsService
-                    .findById(stockRequestDto.getUpdatedConfigId());
-            if (configOp.isEmpty()) {
-                return new ResponseEntity<>(OmsResponse.builder().message("Invalid configuration received.").build(),
-                        HttpStatus.BAD_REQUEST);
-            }
-            Optional<StorageLocationEntity> storageLocationOp = storageLocationService
-                    .findByLocationName(stockRequestDto.getUpdatedBoxName());
-            if (storageLocationOp.isEmpty()) {
-                return new ResponseEntity<>(OmsResponse.builder().message("Invalid box no received.").build(),
-                        HttpStatus.BAD_REQUEST);
-            }
-            Optional<VendorEntity> vendorOp = vendorService.findById(stockRequestDto.getUpdatedVendorId());
-            if (vendorOp.isEmpty()) {
-                return new ResponseEntity<>(OmsResponse.builder().message("Invalid Vendor name received.").build(),
-                        HttpStatus.BAD_REQUEST);
-            }
-            ConfigDetailsEntity configEntity = configOp.get();
-//            Optional<StockHeader> updateStockHeaderOp = findStockHeaderByLocationAndModelAndPartAndConfigAndVendorAndBuyPrice(
-            Optional<StockHeader> updateStockHeaderOp = findStockHeaderByLocationAndModelAndPartAndConfigAndVendor(
-                    storageLocationOp.get(), configEntity, vendorOp.get());
-
-            User user = userService.getUserById(stockRequestDto.getUserId());
-            
-//            if (user != null)
-//                return new ResponseEntity<>(OmsResponse.builder().message("Invalid Vendor name received.").build(),
-//                        HttpStatus.BAD_REQUEST);
-            ResponseEntity<OmsResponse> responseEntity = null;
-            if (updateStockHeaderOp.isPresent()) {
-                if (updateStockHeaderOp.get().getId().equals(stockHeader.getId())) { //if header entry is already exist
-                    if (stockRequestDto.getUpdatedDetails().equalsIgnoreCase(stockHeader.getDetails())) {
-                        // in this scenario we are simple updating the quantity
-                        responseEntity = updateStockHeaderAndStockDetais(stockHeader, stockRequestDto.getStockType(),
-                                stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
-                                stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.NORMAL,
-                                stockRequestDto.getUpdatedRemark());
-                    } else {
-                        // in this scenario we are updating the existing entry after check if the details are mismatching
-                        stockHeader.setDetails(stockRequestDto.getUpdatedDetails());
-                        responseEntity = updateStockHeaderAndStockDetais(stockHeader, stockRequestDto.getStockType(),
-                                stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
-                                stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.CONVERT,
-                                stockRequestDto.getUpdatedRemark());
-                    }
-
-                    var sumAndRowCountForBuyPrice = getSumAndRowCountForBuyPrice(configEntity.getId(), 
-                            configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId());
-
-                    double sumBuyPrice = (double)sumAndRowCountForBuyPrice.get("priceSum");
-                    double itemQty = ((double)sumAndRowCountForBuyPrice.get("rowCount"));
-                    
-                    double avgPrice = Math.ceil((sumBuyPrice + (stockRequestDto.getUpdatedBuyPrice() * stockRequestDto.getQty()))
-                            / (itemQty + stockRequestDto.getQty()));
-                    
-                     stockHeader.setBuyPrice((float)avgPrice);
-                    
-                    updateAverageBuyAndSellPrice((float)avgPrice, stockRequestDto.getSellPrice(), configEntity.getId(), 
-                            configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId());
-                    return responseEntity;
-                } else {
-                    responseEntity = updateStockHeaderAndStockDetais(updateStockHeaderOp.get(),
-                            stockRequestDto.getStockType(),
-                            stockHeader.getClosingQty() + stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
-                            stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.CONVERT,
-                            stockRequestDto.getUpdatedRemark());
-
-                    stockHeader.setOutQty(stockHeader.getClosingQty());
-                    stockHeader.setClosingQty(0);
-
-                    StockDetails stockDetails = createStockDetails(0, 0, user, 0, stockHeader.getClosingQty());
-                    stockDetails.setType(StockType.CONVERT.type);
-                    stockDetails.setRefStockHeaderId(updateStockHeaderOp.get().getId());
-
-                    updateStock(stockHeader, stockDetails, StockTransactionType.CONVERT);
-
-                    return responseEntity;
-                }
-            } else {
-                StockHeader stockHeaderNew = StockHeader.builder()
-                        .openingQty(0)
-                        .inQty(stockHeader.getClosingQty() + stockRequestDto.getQty())
-                        .openingQty(0)
-                        .outQty(0)
-                        .remark(stockHeader.getRemark())
-                        .closingQty(stockHeader.getClosingQty() + stockRequestDto.getQty())
-                        .storageLocation(storageLocationOp.get())
-                        .itemMaster(configEntity.getPartEntity().getItemMaster())
-                        .partEntity(configEntity.getPartEntity()).configDetailsEntity(configEntity)
-                        .details(stockRequestDto.getUpdatedDetails())
-                        .buyPrice(stockRequestDto.getUpdatedBuyPrice())
-                        .sellPrice(stockRequestDto.getSellPrice())
-                        .vendor(vendorOp.get())
-                        .build();
-
-                StockDetails stockDetails = createStockDetails(stockRequestDto.getUpdatedBuyPrice(),
-                        stockRequestDto.getSellPrice(), user,
-                        stockHeader.getClosingQty() + stockRequestDto.getQty(), 0);
-                stockDetails.setType(StockType.IN.type);
-
-                updateStock(stockHeaderNew, stockDetails, StockTransactionType.CONVERT);
-
-                /** Update old stock row */
-                stockHeader.setOutQty(stockHeader.getClosingQty());
-                stockHeader.setClosingQty(0);
-
-                /** Create row for old stock */
-                StockDetails stockDetailsOrg = createStockDetails(0, 0, user, 0, stockHeader.getClosingQty());
-                stockDetailsOrg.setType(StockType.CONVERT.type);
-                stockDetailsOrg.setRefStockHeaderId(stockHeaderNew.getId());
-
-                updateStock(stockHeader, stockDetailsOrg, StockTransactionType.CONVERT);
-
-                return new ResponseEntity<>(OmsResponse.builder().message(STOCK_UPDATE_SUCCESS)
-                        .data(stockHeaderResponseMapper.convertToDto(stockHeaderNew, StockTransactionType.CONVERT))
-                        .build(), HttpStatus.OK);
-            }
-        } else {
+        if (stockHeaderOp.isEmpty()) {
             return new ResponseEntity<>(OmsResponse.builder().message("Invalid stock header received.").build(),
                     HttpStatus.BAD_REQUEST);
         }
 
+        StockHeader stockHeader = stockHeaderOp.get();
+        Optional<ConfigDetailsEntity> configOp = configDetailsService
+                .findById(stockRequestDto.getUpdatedConfigId());
+        if (configOp.isEmpty()) {
+            return new ResponseEntity<>(OmsResponse.builder().message("Invalid configuration received.").build(),
+                    HttpStatus.BAD_REQUEST);
+        }
+        Optional<StorageLocationEntity> storageLocationOp = storageLocationService
+                .findByLocationName(stockRequestDto.getUpdatedBoxName());
+        if (storageLocationOp.isEmpty()) {
+            return new ResponseEntity<>(OmsResponse.builder().message("Invalid box no received.").build(),
+                    HttpStatus.BAD_REQUEST);
+        }
+        Optional<VendorEntity> vendorOp = vendorService.findById(stockRequestDto.getUpdatedVendorId());
+        if (vendorOp.isEmpty()) {
+            return new ResponseEntity<>(OmsResponse.builder().message("Invalid Vendor name received.").build(),
+                    HttpStatus.BAD_REQUEST);
+        }
+        ConfigDetailsEntity configEntity = configOp.get();
+        // Optional<StockHeader> updateStockHeaderOp =
+        // findStockHeaderByLocationAndModelAndPartAndConfigAndVendorAndDetails(
+        Optional<StockHeader> updateStockHeaderOp = findByStorageLocationAndItemMasterAndPartEntityAndConfigDetailsEntityAndVendorAndRemark(
+                storageLocationOp.get(), configEntity, vendorOp.get(), stockRequestDto.getUpdatedDetails(),
+                stockRequestDto.getUpdatedRemark());
+
+        User user = userService.getUserById(stockRequestDto.getUserId());
+
+        ResponseEntity<OmsResponse> responseEntity = null;
+        if (updateStockHeaderOp.isPresent()) {
+            double avgPrice = 0;
+            if (updateStockHeaderOp.get().getId().equals(stockHeader.getId())) { // if we are updating same stockHeader
+//                    if (stockRequestDto.getUpdatedDetails().equalsIgnoreCase(stockHeader.getDetails())) {
+//                        // in this scenario we are simple updating the quantity
+//                        avgPrice = calculateAveragePrice(configEntity.getId(),
+//                                configEntity.getPartEntity().getItemMaster().getId(),
+//                                configEntity.getPartEntity().getId(),
+//                                stockRequestDto.getUpdatedBuyPrice(), stockRequestDto.getQty(),
+//                                stockRequestDto.getUpdatedDetails(), stockRequestDto.getUpdatedRemark());
+//                        responseEntity = updateStockHeaderAndStockDetais(stockHeader, stockRequestDto.getStockType(),
+//                                stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
+//                                stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.NORMAL,
+//                                stockRequestDto.getUpdatedRemark());
+//                    } else {
+//                        // in this scenario we are updating the existing entry after check if the details are mismatching
+//                        avgPrice = calculateAveragePriceForDetailsChange(configEntity.getId(),
+//                                configEntity.getPartEntity().getItemMaster().getId(),
+//                                configEntity.getPartEntity().getId(), stockHeader.getDetails(),
+//                                stockHeader.getRemark());
+//                        stockHeader.setDetails(stockRequestDto.getUpdatedDetails());
+//                        responseEntity = updateStockHeaderAndStockDetais(stockHeader, stockRequestDto.getStockType(),
+//                                stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
+//                                stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.CONVERT,
+//                                stockRequestDto.getUpdatedRemark());
+//                    }
+
+                avgPrice = calculateAveragePrice(configEntity.getId(),
+                        configEntity.getPartEntity().getItemMaster().getId(),
+                        configEntity.getPartEntity().getId(),
+                        stockRequestDto.getUpdatedBuyPrice(), stockRequestDto.getQty(),
+                        stockRequestDto.getUpdatedDetails(), stockRequestDto.getUpdatedRemark());
+
+                responseEntity = updateStockHeaderAndStockDetais(stockHeader, stockRequestDto.getStockType(),
+                        stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
+                        stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.NORMAL,
+                        stockRequestDto.getUpdatedRemark());
+
+                stockHeader.setBuyPrice((float) avgPrice);
+
+                updateAverageBuyAndSellPrice((float) avgPrice, stockRequestDto.getSellPrice(), configEntity.getId(),
+                        configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId(),
+                        stockRequestDto.getUpdatedDetails(), stockRequestDto.getUpdatedRemark());
+
+                
+            } else {
+
+                avgPrice = calculateAveragePrice(configEntity.getId(),
+                        configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId(),
+                        stockRequestDto.getUpdatedBuyPrice(), stockRequestDto.getQty(),
+                        stockRequestDto.getUpdatedDetails(), stockRequestDto.getUpdatedRemark());
+
+                responseEntity = updateStockHeaderAndStockDetais(updateStockHeaderOp.get(),
+                        stockRequestDto.getStockType(),
+                        stockHeader.getClosingQty() + stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
+                        stockRequestDto.getUpdatedBuyPrice(), user, StockTransactionType.CONVERT,
+                        stockRequestDto.getUpdatedRemark());
+
+                stockHeader.setOutQty(stockHeader.getClosingQty());
+                stockHeader.setClosingQty(0);
+
+                stockHeader.setBuyPrice((float) avgPrice);
+
+                StockDetails stockDetails = createStockDetails(0, 0, user, 0, stockHeader.getClosingQty());
+                stockDetails.setType(StockType.CONVERT.type);
+                stockDetails.setRefStockHeaderId(updateStockHeaderOp.get().getId());
+
+                updateStock(stockHeader, stockDetails, StockTransactionType.CONVERT);
+
+                updateAverageBuyAndSellPrice((float) avgPrice, stockRequestDto.getSellPrice(), configEntity.getId(),
+                        configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId(),
+                        stockRequestDto.getUpdatedDetails(), stockRequestDto.getUpdatedRemark());
+            }
+            
+            if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                var t = (StockResponseDto) responseEntity.getBody().getData();
+                t.setBuyPrice((float) avgPrice);
+                responseEntity.getBody().setData(t);
+            }
+            return responseEntity;
+        } else {
+            return createNewStockEntry(stockRequestDto, stockHeader, storageLocationOp.get(), vendorOp.get(),
+                    configEntity, user);
+        }
     }
 
+    private ResponseEntity<OmsResponse> createNewStockEntry(StockRequestDto stockRequestDto, StockHeader stockHeader,
+            StorageLocationEntity storageLocation, VendorEntity vendor,
+            ConfigDetailsEntity configEntity, User user) {
+        StockHeader stockHeaderNew = StockHeader.builder()
+                .openingQty(0)
+                .inQty(stockHeader.getClosingQty() + stockRequestDto.getQty())
+                .openingQty(0)
+                .outQty(0)
+                .remark(stockHeader.getRemark())
+                .closingQty(stockHeader.getClosingQty() + stockRequestDto.getQty())
+                .storageLocation(storageLocation)
+                .itemMaster(configEntity.getPartEntity().getItemMaster())
+                .partEntity(configEntity.getPartEntity()).configDetailsEntity(configEntity)
+                .details(stockRequestDto.getUpdatedDetails())
+                .buyPrice(stockRequestDto.getUpdatedBuyPrice())
+                .sellPrice(stockRequestDto.getSellPrice())
+                .vendor(vendor)
+                .build();
+        
+        StockDetails stockDetails = createStockDetails(stockRequestDto.getUpdatedBuyPrice(),
+                stockRequestDto.getSellPrice(), user,
+                stockHeader.getClosingQty() + stockRequestDto.getQty(), 0);
+        stockDetails.setType(StockType.IN.type);
+
+        updateStock(stockHeaderNew, stockDetails, StockTransactionType.CONVERT);
+
+        /** Update old stock row */
+        stockHeader.setOutQty(stockHeader.getClosingQty());
+        stockHeader.setClosingQty(0);
+
+        /** Create row for old stock */
+        StockDetails stockDetailsOrg = createStockDetails(0, 0, user, 0, stockHeader.getClosingQty());
+        stockDetailsOrg.setType(StockType.CONVERT.type);
+        stockDetailsOrg.setRefStockHeaderId(stockHeaderNew.getId());
+
+        updateStock(stockHeader, stockDetailsOrg, StockTransactionType.CONVERT);
+
+        return new ResponseEntity<>(OmsResponse.builder().message(STOCK_UPDATE_SUCCESS)
+                .data(stockHeaderResponseMapper.convertToDto(stockHeaderNew, StockTransactionType.CONVERT))
+                .build(), HttpStatus.OK);
+        
+    }
+
+    
+    
     public ResponseEntity<OmsResponse> updateStockHeaderAndStockDetais(StockHeader stockHeader,
             String stockType, float quantity, float sellPrice, float buyPrice, User user,
             StockTransactionType stockTransactionType, String remark) {
@@ -389,6 +463,8 @@ public class StockService {
                         if (remarkOp.isPresent()) {
                             stockHeader.setRemark(remarkOp.get().getRemarkText());
                         }
+                    } else {
+                        stockHeader.setRemark(remark);
                     }
                     stockDetails = createStockDetails(buyPrice, sellPrice, user, quantity, 0);
                     stockDetails.setType(StockType.IN.type);
