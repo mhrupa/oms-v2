@@ -35,17 +35,17 @@ public class BranchMasterService {
 		return branchMasterRepository.findAll();
 	}
 
-	public BranchMaster saveBranchMaster(BranchMasterDto branchMasterDto) {
+	public void saveBranchMaster(BranchMasterDto branchMasterDto) {
 		try {
 			BranchMaster branchMaster = branchMapper.convertToEntity(branchMasterDto);
-			return branchMasterRepository.save(branchMaster);
+			branchMasterRepository.save(branchMaster);
 		} catch (DataIntegrityViolationException integrityViolationException) {
 			throw new OMSException(
 					"Branch already exists: " + integrityViolationException.getCause().getCause().getMessage());
 		}
 	}
 
-	public BranchMaster updateBranchMasterById(int branchId, BranchMasterDto branchMasterDto) {
+	public void updateBranchMasterById(int branchId, BranchMasterDto branchMasterDto) {
 		Optional<BranchMaster> branchMasterOp = branchMasterRepository.findById(branchId);
 
 		if (branchMasterOp.isPresent()) {
@@ -53,7 +53,7 @@ public class BranchMasterService {
 			branchMaster.setBranchAdd(branchMasterDto.getBranchAdd());
 			branchMaster.setHomeBranch(branchMasterDto.isHomeBranch());
 
-			return branchMasterRepository.save(branchMaster);
+			branchMasterRepository.save(branchMaster);
 		} else {
 			throw new OMSException("Branch not found for id : " + branchId);
 		}

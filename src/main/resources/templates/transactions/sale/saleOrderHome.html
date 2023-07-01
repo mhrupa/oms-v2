@@ -2,38 +2,38 @@
 <html lang="en">
 
 <head>
-    <title></title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <style>
-        .dataTables_wrapper .dataTables_filter {
-            float: left;
-            margin-top: 5px;
-            /* padding-bottom: 5px; */
-        }
+<title></title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style>
+.dataTables_wrapper .dataTables_filter {
+	float: left;
+	margin-top: 5px;
+	/* padding-bottom: 5px; */
+}
 
-        .dataTables_length {
-            display: none;
-            cursor: pointer;
-        }
+.dataTables_length {
+	display: none;
+	cursor: pointer;
+}
 
-        .dataTables_filter input {
-            min-width: 350px;
-        }
+.dataTables_filter input {
+	min-width: 350px;
+}
 
-        .allBtnCss {
-            margin-left: 54px;
-            width: 100px;
-        }
+.allBtnCss {
+	margin-left: 54px;
+	width: 100px;
+}
 
-        .noneBtnCss {
-            width: 100px;
-        }
+.noneBtnCss {
+	width: 100px;
+}
 
-        .updateBtnCss {
-            width: 100px;
-        }
-    </style>
-    <script type="text/javascript">
+.updateBtnCss {
+	width: 100px;
+}
+</style>
+<script type="text/javascript">
         var paymentTable, pendingOrderData;
         var selectedRowData, selectedRow;
         var items = new Array();
@@ -75,6 +75,7 @@
                 $("#updateSalesOrderModalBtn").click(updateSalesOrder);
                 $("#createCustomerBtn").click(createCustomerBtnClick);
                 $("#showCustomerModalBtn").click(showCreateCustomerModal);
+                $("#updatedPaymentType").change(updatedSalesOrderPaymentTypeChange);
 
                 paymentTable = $("#dataTable").DataTable({
                     dom: 'Bfrtip',
@@ -131,6 +132,29 @@
                 });
             });
         
+        function updatedSalesOrderPaymentTypeChange() {
+	        if ($("#updatedPaymentType").val() == "bank" || $("#updatedPaymentType").val() == "paytm") {
+	            $("#updatedOrderRemark").removeAttr("disabled");
+	        } else {
+	            $("#updatedOrderRemark").val("0");
+	            $("#updatedOrderRemark").attr("disabled", "disabled")
+	        }
+        }
+        
+        function initPaymentAccountData() {
+            $.get("/paymentAccounts", function (res) {
+                paymentAccounts = res;
+                $("#updatedOrderRemark").empty();
+                $("#updatedOrderRemark").append("<option selected='selected' value='0'>Select payment account</option>");
+                res.forEach(paymentAccount => {
+                    $("#updatedOrderRemark").append("<option value='" + paymentAccount.id + "'>" + paymentAccount.accountName + "</option>");
+                });
+            }).fail(function (res) {
+                $("#omsToast").html(JSON.parse(res.responseText).message);
+                $(".toast").addClass("bg-danger").toast("show");
+            });
+        }
+        
         function showCreateCustomerModal() {
             selectedCustomer = $("#customer").val();
             $("#customerName").val("");
@@ -140,19 +164,7 @@
             $("#createOrderModal").modal("hide");
             $("#createCustomerModal").modal("show");
         }
-        function initPaymentAccountData() {
-            $.get("/paymentAccounts", function (res) {
-                paymentAccounts = res;
-                $("#orderRemark").empty();
-                $("#orderRemark").append("<option selected='selected' value='0'>Select payment account</option>");
-                res.forEach(paymentAccount => {
-                    $("#orderRemark").append("<option value='" + paymentAccount.id + "'>" + paymentAccount.accountName + "</option>");
-                });
-            }).fail(function (res) {
-                $("#omsToast").html(JSON.parse(res.responseText).message);
-                $(".toast").addClass("bg-danger").toast("show");
-            });
-        }
+        
         function showAccountForPaymentBtnClick() {
             $("#accountName").val("");
             $("#addAccountNameForPaymentModal").modal("show");
@@ -227,12 +239,18 @@
         }
 
         function updateSalesOrder() {
+        	
+        	// here
+        	
             var requestData = {
                 "orderDate": $("#updateSalesOrderOrderDate").val(),
                 "customer" : $("#updateSalesOrderCustomer").val(),
                 "challanNo": $("#updateSalesOrderChallanNo").val(),
                 "orderAmount": $("#updateSalesOrderOrderAmount").val(),
-                "userId": appUser.userId
+                "userId": appUser.userId,
+                "updatedPaymentType": $("#selectedSalesOrderPaymentType").val() !== $("#updatedPaymentType").val()
+                	?$("#updatedPaymentType").val()
+                	:null 
             };
             // console.log(JSON.stringify(requestData));
             $("#updateSalesOrderModal").modal("hide");
@@ -352,7 +370,7 @@
             $("#selectedSalesOrderOrderAmount").val(selectedRowData.orderAmount);
             $("#updateSalesOrderOrderAmount").val(selectedRowData.orderAmount);
             $("#selectedSalesOrderPaymentType").val(selectedRowData.paymentType);
-            $("#updateSalesOrderPaymentType").val(selectedRowData.paymentType);
+            $("#updatedPaymentType").val(selectedRowData.paymentType);
             $("#updateSalesOrderModal").modal("show");
         }
         function updatePayment() {
@@ -472,275 +490,330 @@
 </head>
 
 <body>
-    <div class="mt-0">
-        <div class="p-2 input-group" style="border: 1px; background-color: #C4DDFF;">
-            <label class="p-2 pb-0" for="boxNo">From Date</label>
-            <input type="text" style="max-width: 100px;" readonly class="form-control" id="fromDate">
-            <label class="p-2 pb-0" for="boxNo">To Date</label>
-            <input type="text" style="max-width: 100px;" readonly class="form-control" id="toDate">
-            <button type="button" class="btn btn-secondary" id="showOrederDataBtn">Show</button>
-        </div>
-        <div style="margin: 2px;">
-            <table id="dataTable" style="width: 100%;font-size: 11px;" class="display cell-border">
-                <caption>sales order datatable</caption>
-                <thead>
-                    <tr>
-                        <th class="th-sm" style="max-width: 40px;">Challan</th>
-                        <th class="th-sm" style="max-width: 55px;">Order Date</th>
-                        <th class="th-sm">Customer</th>
-                        <th class="th-sm">Location</th>
-                        <th class="th-sm">Model</th>
-                        <th class="th-sm">Part</th>
-                        <th class="th-sm">Config</th>
-                        <th class="th-sm" style="max-width: 35px;">Details</th>
-                        <th class="th-sm" style="max-width: 20px;">Qty</th>
-                        <th class="th-sm">Buy Price</th>
-                        <th class="th-sm">Sell Price</th>
-                        <th class="th-sm" style="max-width: 40px;">Courier Charges</th>
-                        <th class="th-sm" style="max-width: 40px;">Order Amt</th>
-                        <th class="th-sm" style="max-width: 40px;">P.Type</th>
-                        <th class="th-sm">P. Acc Name</th>
-                        <th class="th-sm" style="max-width: 55px;">P. Date</th>
-                        <th class="th-sm">SalesOrderId</th>
-                        <th class="th-sm">StockHeaderId</th>
-                        <th class="th-sm">CustomerId</th>
-                        <th class="th-sm">Part Id</th>
-                        <th class="th-sm">configId</th>
-                        <th class="th-sm">Storage Location</th>
-                    </tr>
-                </thead>
-            </table>
-        </div>
-    </div>
-    <div class="modal fade" id="updatePaymentModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">Payment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Payment
-                            Date</span>
-                        <input type="text" readonly class="form-control" id="paymentDate">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text"
-                            style="width: 140px;text-align: right;display: block;">Customer</span>
-                        <input disabled type="text" class="form-control" id="customer" aria-label="customer"
-                            aria-describedby="customer">
-                    </div>
-                    <div class="input-group mb-0">
-                        <input hidden disabled type="text" id="customerId">
-                    </div>
-                    <div class="input-group mb-0">
-                        <input hidden disabled type="text" class="form-control" id="challanNos" aria-label="challanNos"
-                            aria-describedby="challanNos">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text"
-                            style="width: 140px;text-align: right;display: block;">Challan</span>
-                        <input disabled type="text" class="form-control" id="challanNoslabel"
-                            aria-label="challanNoslabel" aria-describedby="challanNoslabel">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Total
-                            Amount</span>
-                        <input disabled type="text" class="form-control" id="totalAmount" aria-label="totalAmount"
-                            aria-describedby="totalAmount">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Payment
-                            Type</span>
-                        <select class="form-control" id="paymentType" style="max-width: 160px;">
-                            <option value="0">Select Payment Type</option>
-                            <option value="cash">Cash</option>
-                            <option value="vpp">VPP</option>
-                            <option value="paytm">Paytm</option>
-                            <option value="bank">Bank</option>
-                        </select>
-                        <span class="input-group-text" style="width: 130px;text-align: right;display: block;">Account
-                            Name</span>
-                        <select class="form-control" id="orderRemark" disabled>
-                        </select>
-                        <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
-                            data-bs-placement="top" id="showAccountForPaymentModalBtn" title="Add Account">+</button>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-secondary" id="updateOrderBtn" data-bs-dismiss="modal">Update
-                        Order</button>
-                    <button type="button" id="updatePaymentBtn" class="btn btn-primary">Save</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="addAccountNameForPaymentModal" data-bs-backdrop="static" data-bs-keyboard="true"
-        tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">Create Account</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group mb-3">
-                        <span class="input-group-text">Account Name</span>
-                        <input autocomplete="off" type="text" class="form-control" id="accountName"
-                            placeholder="Account Name" aria-label="accountName" aria-describedby="accountName">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="createAccountBtn" class="btn btn-primary">Save</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="salesOrderOptionModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">Select Option</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group mb-0" style="display: none;">
-                        <span class="input-group-text">stockHeaderId</span>
-                        <input type="text" disabled="disabled" class="form-control" id="stockHeaderId">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="updateSalesOrderModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
-        aria-hidden="true">
-        <div class="modal-dialog modal-small">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">Return</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Challan
-                            No</span>
-                        <input type="text" readonly class="form-control" id="updateSalesOrderChallanNo">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Order
-                            Date</span>
-                        <input type="text" readonly class="form-control"
-                            id="selectedSalesOrderOrderDate">
-                        <input type="text" readonly class="form-control" id="updateSalesOrderOrderDate">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text"
-                            style="width: 140px;text-align: right;display: block;">Customer</span>
-                        <input disabled type="text" class="form-control"
-                            id="selectedSalesOrderCustomer" aria-label="customer" aria-describedby="customer">
-                        <input class="form-control" style="max-width: 293px;" list="customerData" id="updateSalesOrderCustomer"
-                            placeholder="Search Customer...">
-                        <datalist id="customerData">
-                        </datalist>
-                        <button type="button" class="btn btn-secondary" tabindex="-1" data-bs-toggle="tooltip"
-                            data-bs-placement="top" id="showCustomerModalBtn" title="Add new Customer">+</button>
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text"
-                            style="width: 140px;text-align: right;display: block;">Model</span>
-                        <input type="text" readonly class="form-control" id="seletecdSalesOrderModel">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text"
-                            style="width: 140px;text-align: right;display: block;">Part</span>
-                        <input type="text" readonly class="form-control" id="selectedSalesOrderPart">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text"
-                            style="width: 140px;text-align: right;display: block;">Config</span>
-                        <input type="text" readonly class="form-control" id="selectedSalesOrderConfig">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text"
-                            style="width: 140px;text-align: right;display: block;">Details</span>
-                        <input type="text" readonly class="form-control" id="selectedSalesOrderDetails">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text"
-                            style="width: 140px;text-align: right;display: block;">Quantity</span>
-                        <input type="text" readonly class="form-control" id="selectedSalesOrderQuantity">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Courier
-                            Charges</span>
-                        <input type="text" readonly class="form-control" id="selectedSalesOrderCourierCharges">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Order
-                            Amount</span>
-                        <input type="text" readonly class="form-control" id="selectedSalesOrderOrderAmount">
-                        <input type="text" class="form-control" id="updateSalesOrderOrderAmount">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Payment
-                            Type</span>
-                        <input type="text" readonly class="form-control" id="selectedSalesOrderPaymentType">
-                    </div>
-                    <div class="input-group mb-0">
-                        <input hidden disabled type="text" id="customerId">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="updateSalesOrderModalBtn" class="btn btn-primary pe-2 me-2">Update
-                        Order</button>
-                    <button type="button" id="returnMaterialBtn" class="btn btn-primary">Return</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="createCustomerModal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">Create Customer</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group mb-0">
-                        <span class="input-group-text" style="width: 140px;text-align: right;display: block;">Customer
-                            Name</span>
-                        <input autocomplete="off" type="text" class="form-control" id="customerName">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text"
-                            style="width: 140px;text-align: right;display: block;">Location</span>
-                        <input autocomplete="off" type="text" class="form-control" id="customerLocation">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text"
-                            style="width: 140px;text-align: right;display: block;">Email</span>
-                        <input autocomplete="off" type="email" class="form-control" id="email">
-                    </div>
-                    <div class="input-group mb-0">
-                        <span class="input-group-text"
-                            style="width: 140px;text-align: right;display: block;">Contact</span>
-                        <input autocomplete="off" type="text" class="form-control" id="contact">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="createCustomerBtn" class="btn btn-primary">Create Customer</button>
-                </div>
-            </div>
-        </div>
-    </div>
+	<div class="mt-0">
+		<div class="p-2 input-group"
+			style="border: 1px; background-color: #C4DDFF;">
+			<label class="p-2 pb-0" for="boxNo">From Date</label> <input
+				type="text" style="max-width: 100px;" readonly class="form-control"
+				id="fromDate"> <label class="p-2 pb-0" for="boxNo">To
+				Date</label> <input type="text" style="max-width: 100px;" readonly
+				class="form-control" id="toDate">
+			<button type="button" class="btn btn-secondary"
+				id="showOrederDataBtn">Show</button>
+		</div>
+		<div style="margin: 2px;">
+			<table id="dataTable" style="width: 100%; font-size: 11px;"
+				class="display cell-border">
+				<caption>sales order datatable</caption>
+				<thead>
+					<tr>
+						<th class="th-sm" style="max-width: 40px;">Challan</th>
+						<th class="th-sm" style="max-width: 55px;">Order Date</th>
+						<th class="th-sm">Customer</th>
+						<th class="th-sm">Location</th>
+						<th class="th-sm">Model</th>
+						<th class="th-sm">Part</th>
+						<th class="th-sm">Config</th>
+						<th class="th-sm" style="max-width: 35px;">Details</th>
+						<th class="th-sm" style="max-width: 20px;">Qty</th>
+						<th class="th-sm">Buy Price</th>
+						<th class="th-sm">Sell Price</th>
+						<th class="th-sm" style="max-width: 40px;">Courier Charges</th>
+						<th class="th-sm" style="max-width: 40px;">Order Amt</th>
+						<th class="th-sm" style="max-width: 40px;">P.Type</th>
+						<th class="th-sm">P. Acc Name</th>
+						<th class="th-sm" style="max-width: 55px;">P. Date</th>
+						<th class="th-sm">SalesOrderId</th>
+						<th class="th-sm">StockHeaderId</th>
+						<th class="th-sm">CustomerId</th>
+						<th class="th-sm">Part Id</th>
+						<th class="th-sm">configId</th>
+						<th class="th-sm">Storage Location</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</div>
+	<div class="modal fade" id="updatePaymentModal"
+		data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+		aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="staticBackdropLabel">Payment</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"
+						aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Payment
+							Date</span> <input type="text" readonly class="form-control"
+							id="paymentDate">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Customer</span>
+						<input disabled type="text" class="form-control" id="customer"
+							aria-label="customer" aria-describedby="customer">
+					</div>
+					<div class="input-group mb-0">
+						<input hidden disabled type="text" id="customerId">
+					</div>
+					<div class="input-group mb-0">
+						<input hidden disabled type="text" class="form-control"
+							id="challanNos" aria-label="challanNos"
+							aria-describedby="challanNos">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Challan</span>
+						<input disabled type="text" class="form-control"
+							id="challanNoslabel" aria-label="challanNoslabel"
+							aria-describedby="challanNoslabel">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Total
+							Amount</span> <input disabled type="text" class="form-control"
+							id="totalAmount" aria-label="totalAmount"
+							aria-describedby="totalAmount">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Payment
+							Type</span> <select class="form-control" id="paymentType"
+							style="max-width: 160px;">
+							<option value="0">Select Payment Type</option>
+							<option value="cash">Cash</option>
+							<option value="vpp">VPP</option>
+							<option value="paytm">Paytm</option>
+							<option value="bank">Bank</option>
+						</select> <span class="input-group-text"
+							style="width: 130px; text-align: right; display: block;">Account
+							Name</span> <select class="form-control" id="orderRemark" disabled>
+						</select>
+						<button type="button" class="btn btn-secondary" tabindex="-1"
+							data-bs-toggle="tooltip" data-bs-placement="top"
+							id="showAccountForPaymentModalBtn" title="Add Account">+</button>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary"
+						data-bs-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-secondary" id="updateOrderBtn"
+						data-bs-dismiss="modal">Update Order</button>
+					<button type="button" id="updatePaymentBtn" class="btn btn-primary">Save</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="addAccountNameForPaymentModal"
+		data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+		aria-labelledby="staticBackdropLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="staticBackdropLabel">Create
+						Account</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"
+						aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="input-group mb-3">
+						<span class="input-group-text">Account Name</span> <input
+							autocomplete="off" type="text" class="form-control"
+							id="accountName" placeholder="Account Name"
+							aria-label="accountName" aria-describedby="accountName">
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary"
+						data-bs-dismiss="modal">Close</button>
+					<button type="button" id="createAccountBtn" class="btn btn-primary">Save</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="salesOrderOptionModal"
+		data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+		aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="staticBackdropLabel">Select Option</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"
+						aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="input-group mb-0" style="display: none;">
+						<span class="input-group-text">stockHeaderId</span> <input
+							type="text" disabled="disabled" class="form-control"
+							id="stockHeaderId">
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="updateSalesOrderModal"
+		data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+		aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="staticBackdropLabel">Return</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"
+						aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Challan
+							No</span> <input type="text" readonly class="form-control"
+							id="updateSalesOrderChallanNo">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Order
+							Date</span> <input type="text" readonly class="form-control"
+							id="selectedSalesOrderOrderDate"> <input type="text"
+							readonly class="form-control" id="updateSalesOrderOrderDate">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Customer</span>
+						<input disabled type="text" class="form-control"
+							id="selectedSalesOrderCustomer" aria-label="customer"
+							aria-describedby="customer"> <input class="form-control"
+							style="max-width: 293px;" list="customerData"
+							id="updateSalesOrderCustomer" placeholder="Search Customer...">
+						<datalist id="customerData">
+						</datalist>
+						<button type="button" class="btn btn-secondary" tabindex="-1"
+							data-bs-toggle="tooltip" data-bs-placement="top"
+							id="showCustomerModalBtn" title="Add new Customer">+</button>
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Model</span>
+						<input type="text" readonly class="form-control"
+							id="seletecdSalesOrderModel">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Part</span>
+						<input type="text" readonly class="form-control"
+							id="selectedSalesOrderPart">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Config</span>
+						<input type="text" readonly class="form-control"
+							id="selectedSalesOrderConfig">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Details</span>
+						<input type="text" readonly class="form-control"
+							id="selectedSalesOrderDetails">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Quantity</span>
+						<input type="text" readonly class="form-control"
+							id="selectedSalesOrderQuantity">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Courier
+							Charges</span> <input type="text" readonly class="form-control"
+							id="selectedSalesOrderCourierCharges">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Order
+							Amount</span> <input type="text" readonly class="form-control"
+							id="selectedSalesOrderOrderAmount"> <input type="text"
+							class="form-control" id="updateSalesOrderOrderAmount">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Payment
+							Type</span> <input type="text" readonly class="form-control"
+							id="selectedSalesOrderPaymentType"> <select
+							class="form-control" id="updatedPaymentType"
+							style="max-width: 160px; width: 100px;">
+							<option value="0">Select Payment Type</option>
+							<option value="cash">Cash</option>
+							<option value="vpp">VPP</option>
+							<option value="paytm">Paytm</option>
+							<option value="bank">Bank</option>
+						</select> <span class="input-group-text"
+							style="width: 130px; text-align: right; display: block;">Account
+							Name</span> <select class="form-control" id="updatedOrderRemark" disabled>
+						</select>
+					</div>
+					<div class="input-group mb-0">
+						<input hidden disabled type="text" id="customerId">
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary"
+						data-bs-dismiss="modal">Close</button>
+					<button type="button" id="updateSalesOrderModalBtn"
+						class="btn btn-primary pe-2 me-2">Update Order</button>
+					<button type="button" id="returnMaterialBtn"
+						class="btn btn-primary">Return</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="createCustomerModal"
+		data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1"
+		aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="staticBackdropLabel">Create
+						Customer</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"
+						aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Customer
+							Name</span> <input autocomplete="off" type="text" class="form-control"
+							id="customerName">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Location</span>
+						<input autocomplete="off" type="text" class="form-control"
+							id="customerLocation">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Email</span>
+						<input autocomplete="off" type="email" class="form-control"
+							id="email">
+					</div>
+					<div class="input-group mb-0">
+						<span class="input-group-text"
+							style="width: 140px; text-align: right; display: block;">Contact</span>
+						<input autocomplete="off" type="text" class="form-control"
+							id="contact">
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary"
+						data-bs-dismiss="modal">Close</button>
+					<button type="button" id="createCustomerBtn"
+						class="btn btn-primary">Create Customer</button>
+				</div>
+			</div>
+		</div>
+	</div>
 </body>
 
 </html>

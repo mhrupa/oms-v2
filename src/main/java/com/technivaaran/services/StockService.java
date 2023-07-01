@@ -128,7 +128,7 @@ public class StockService {
                 double avgPrice = calculateAveragePrice(configEntity.getId(),
                         configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId(),
                         stockRequestDto.getBuyPrice(), stockRequestDto.getQty(), stockRequestDto.getDetails(),
-                        stockRequestDto.getUpdatedRemark());
+                        stockRequestDto.getRemarkText(), false, 0, 0);
                 
                 stockHeader.setBuyPrice((float)avgPrice);                
                 
@@ -144,7 +144,7 @@ public class StockService {
                 
                 updateAverageBuyAndSellPrice((float) avgPrice, stockRequestDto.getSellPrice(), configEntity.getId(),
                         configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId(),
-                        stockRequestDto.getDetails(), stockRequestDto.getUpdatedRemark());
+                        stockRequestDto.getDetails(), stockRequestDto.getRemarkText());
 
                 return response;
             }
@@ -168,7 +168,7 @@ public class StockService {
         double avgPrice = calculateAveragePrice(configEntity.getId(),
                 configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId(),
                 stockRequestDto.getBuyPrice(), stockRequestDto.getQty(), stockRequestDto.getDetails(),
-                stockRequestDto.getUpdatedRemark());
+                stockRequestDto.getRemarkText(), false, 0, 0);
 
         stockHeader.setBuyPrice((float)avgPrice);
         
@@ -182,7 +182,7 @@ public class StockService {
 
         updateAverageBuyAndSellPrice((float) avgPrice, stockRequestDto.getSellPrice(), configEntity.getId(),
                 configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId(),
-                stockRequestDto.getDetails(), stockRequestDto.getUpdatedRemark());
+                stockRequestDto.getDetails(), stockRequestDto.getRemarkText());
         
         return new ResponseEntity<>(OmsResponse.builder().message(STOCK_UPDATE_SUCCESS)
                 .data(stockHeaderResponseMapper.convertToDto(stockHeader, StockTransactionType.NORMAL)).build(),
@@ -200,7 +200,7 @@ public class StockService {
      * @return
      */
     public double calculateAveragePrice(Long configDetailsId, Long itemMasterId, Long partId, float buyPrice,
-            float qty, String details, String remark) {
+            float qty, String details, String remark, boolean useOrg, float orgQty, float orgBuyPrice) {
 
         var sumAndRowCountForBuyPrice = getSumAndRowCountForBuyPrice(configDetailsId, itemMasterId, partId, details,
                 remark);
@@ -210,12 +210,14 @@ public class StockService {
         double itemQty = ObjectUtils.isEmpty(sumAndRowCountForBuyPrice.get("rowCount")) ? 0
                 : (double) sumAndRowCountForBuyPrice.get("rowCount");
 
+        if (useOrg && (itemQty + qty + orgQty) != 0) {
+            return Math.ceil((sumBuyPrice + (buyPrice * qty) + (orgQty * orgBuyPrice)) / (itemQty + qty + orgQty));
+        }
+
         if ((itemQty + qty) != 0) {
             return Math.ceil((sumBuyPrice + (buyPrice * qty)) / (itemQty + qty));
-        } else {
-            return 0;
         }
-        
+        return 0;
     }
     
     public double calculateAveragePriceForDetailsChange(Long configDetailsId, Long itemMasterId, Long partId,
@@ -347,7 +349,7 @@ public class StockService {
                         configEntity.getPartEntity().getItemMaster().getId(),
                         configEntity.getPartEntity().getId(),
                         stockRequestDto.getUpdatedBuyPrice(), stockRequestDto.getQty(),
-                        stockRequestDto.getUpdatedDetails(), stockRequestDto.getUpdatedRemark());
+                        stockRequestDto.getUpdatedDetails(), stockRequestDto.getUpdatedRemark(), false, 0, 0);
 
                 responseEntity = updateStockHeaderAndStockDetais(stockHeader, stockRequestDto.getStockType(),
                         stockRequestDto.getQty(), stockRequestDto.getSellPrice(),
@@ -366,7 +368,8 @@ public class StockService {
                 avgPrice = calculateAveragePrice(configEntity.getId(),
                         configEntity.getPartEntity().getItemMaster().getId(), configEntity.getPartEntity().getId(),
                         stockRequestDto.getUpdatedBuyPrice(), stockRequestDto.getQty(),
-                        stockRequestDto.getUpdatedDetails(), stockRequestDto.getUpdatedRemark());
+                        stockRequestDto.getUpdatedDetails(), stockRequestDto.getUpdatedRemark(), true,
+                        stockHeader.getClosingQty(), stockHeader.getBuyPrice());
 
                 responseEntity = updateStockHeaderAndStockDetais(updateStockHeaderOp.get(),
                         stockRequestDto.getStockType(),
@@ -377,7 +380,7 @@ public class StockService {
                 stockHeader.setOutQty(stockHeader.getClosingQty());
                 stockHeader.setClosingQty(0);
 
-                stockHeader.setBuyPrice((float) avgPrice);
+                stockHeader.setBuyPrice(0);
 
                 StockDetails stockDetails = createStockDetails(0, 0, user, 0, stockHeader.getClosingQty());
                 stockDetails.setType(StockType.CONVERT.type);
@@ -407,10 +410,10 @@ public class StockService {
             ConfigDetailsEntity configEntity, User user) {
         StockHeader stockHeaderNew = StockHeader.builder()
                 .openingQty(0)
-                .inQty(stockHeader.getClosingQty() + stockRequestDto.getQty())
+                .inQty(stockRequestDto.getQty())
                 .openingQty(0)
                 .outQty(0)
-                .remark(stockHeader.getRemark())
+                .remark(stockRequestDto.getUpdatedRemark())
                 .closingQty(stockHeader.getClosingQty() + stockRequestDto.getQty())
                 .storageLocation(storageLocation)
                 .itemMaster(configEntity.getPartEntity().getItemMaster())
