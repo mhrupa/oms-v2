@@ -23,6 +23,7 @@ import com.technivaaran.repositories.PaymentInHeaderRepository;
 import com.technivaaran.repositories.SalesOderDetailRepository;
 import com.technivaaran.repositories.SalesOrderHeaderRepository;
 import com.technivaaran.utils.DateUtils;
+import com.technivaaran.utils.ResponseUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -59,15 +60,14 @@ public class PaymentInService {
         log.info("In Save payment in started.");
         User user = userService.getUserById(paymentInRequestDto.getUserId());
         if (ObjectUtils.isEmpty(user)) {
-            return new ResponseEntity<>(OmsResponse.builder().message("Invalid User found in request.")
-                    .build(), HttpStatus.BAD_REQUEST);
+            return ResponseUtil.createResponseEntity("Invalid User found in request.",
+                    null, HttpStatus.BAD_REQUEST);
         }
         Optional<CustomerEntity> customerOp = customerService
                 .findCustomerById(paymentInRequestDto.getCustomerId());
         if (customerOp.isEmpty()) {
-            return new ResponseEntity<>(
-                    OmsResponse.builder().message("Invalid customer received.").build(),
-                    HttpStatus.BAD_REQUEST);
+            return ResponseUtil.createResponseEntity("Invalid customer received.",
+                    null, HttpStatus.BAD_REQUEST);
         }
         List<Long> challanNoList = Arrays.asList(paymentInRequestDto.getChallanNos().split(","))
                 .stream().map(Long::parseLong).collect(Collectors.toList());
@@ -75,9 +75,8 @@ public class PaymentInService {
 
         List<Long> invalidChallanList = validateChallanNo(challanNoList, salesOrderHeaders);
         if (!invalidChallanList.isEmpty()) {
-            return new ResponseEntity<>(OmsResponse.builder()
-                    .message("Invalid challan no received." + invalidChallanList)
-                    .build(), HttpStatus.BAD_REQUEST);
+            return ResponseUtil.createResponseEntity("Invalid challan no received." + invalidChallanList,
+                    null, HttpStatus.BAD_REQUEST);
         }
 
         PaymentInHeader paymentInHeader = PaymentInHeader.builder()
