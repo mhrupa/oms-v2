@@ -96,36 +96,39 @@ public class PaymentInService {
         paymentInHeader = paymentInHeaderRepository.save(paymentInHeader);
 
         for (SalesOrderHeader salesOrderHeader : salesOrderHeaders) {
-                PaymentInDetails paymentInDetails = PaymentInDetails.builder()
-                                .challanNo(salesOrderHeader.getChallanNo())
-                                .orderAmount(salesOrderHeader.getOrderAmount())
-                                .transactionDate(LocalDate.now())
-                                .paymentInHeader(paymentInHeader)
-                                .build();
-                paymentInDetailsRepository.save(paymentInDetails);
-                if (paymentInRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
-                                || paymentInRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type)) {
-                        salesOrderHeader.setStatus(OrderStatus.PENDING.type);
-                } else {
-                        salesOrderHeader.setStatus(OrderStatus.COMPLETE.type);
-                }
-                salesOrderHeader.setPaymentType(paymentInRequestDto.getPaymentType());
+            PaymentInDetails paymentInDetails = PaymentInDetails.builder()
+                    .challanNo(salesOrderHeader.getChallanNo())
+                    .orderAmount(salesOrderHeader.getOrderAmount())
+                    .transactionDate(LocalDate.now())
+                    .paymentInHeader(paymentInHeader)
+                    .build();
+            paymentInDetailsRepository.save(paymentInDetails);
+            if (paymentInRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
+                    || paymentInRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type)) {
+                salesOrderHeader.setStatus(OrderStatus.PENDING.type);
+            } else {
+                salesOrderHeader.setStatus(OrderStatus.COMPLETE.type);
+            }
+            salesOrderHeader.setPaymentType(paymentInRequestDto.getPaymentType());
 
-                if(paymentInRequestDto.getAmount() != paymentInRequestDto.getUpdatedAmount()) {
-                        salesOrderHeader.setOrderAmount(paymentInRequestDto.getUpdatedAmount());
-                        salesOrderHeader.setSellPrice((float)paymentInRequestDto.getUpdatedAmount()/salesOrderHeader.getQuantity());
+            if (paymentInRequestDto.getAmount() != paymentInRequestDto.getUpdatedAmount()) {
+                salesOrderHeader.setOrderAmount(paymentInRequestDto.getUpdatedAmount());
+                salesOrderHeader
+                        .setSellPrice((float) paymentInRequestDto.getUpdatedAmount() / salesOrderHeader.getQuantity());
 
-                        List<SalesOrderDetails> salesOrderDetailsList = salesOderDetailRepository.findBySalesOrderHeader(salesOrderHeader);
-                        for(SalesOrderDetails salesOrderDetails : salesOrderDetailsList) {
-                                salesOrderDetails.setSellRate((float)paymentInRequestDto.getUpdatedAmount()/salesOrderHeader.getQuantity());
-                                salesOderDetailRepository.save(salesOrderDetails);
-                        }
+                List<SalesOrderDetails> salesOrderDetailsList = salesOderDetailRepository
+                        .findBySalesOrderHeader(salesOrderHeader);
+                for (SalesOrderDetails salesOrderDetails : salesOrderDetailsList) {
+                    salesOrderDetails.setSellRate(
+                            (float) paymentInRequestDto.getUpdatedAmount() / salesOrderHeader.getQuantity());
+                    salesOderDetailRepository.save(salesOrderDetails);
                 }
-                if (paymentInRequestDto.getPaymentType()
-                                .equalsIgnoreCase(PaymentType.BANK.type)) {
-                        salesOrderHeader.setRemark(paymentInRequestDto.getPaymentAccount());
-                }
-                salesOrderHeaderRepository.save(salesOrderHeader);
+            }
+            if (paymentInRequestDto.getPaymentType()
+                    .equalsIgnoreCase(PaymentType.BANK.type)) {
+                salesOrderHeader.setRemark(paymentInRequestDto.getPaymentAccount());
+            }
+            salesOrderHeaderRepository.save(salesOrderHeader);
         }
 
         return new ResponseEntity<>(
@@ -151,6 +154,15 @@ public class PaymentInService {
 
     public Optional<PaymentInDetails> findByChallanNo(Long challanNo) {
          return paymentInDetailsRepository.findByChallanNo(challanNo);
+    }
+    
+    public PaymentInHeader updatePaymentInHeaderPaymentType(PaymentInHeader paymentInHeader, String updatedPaymentType) {
+        paymentInHeader.setPaymentType(updatedPaymentType);
+        return paymentInHeaderRepository.save(paymentInHeader);
+    }
+    
+    public void deletePaymentInDetailsById(PaymentInDetails paymentInDetails) {
+        paymentInDetailsRepository.delete(paymentInDetails);
     }
 
 }

@@ -111,7 +111,8 @@
                         { data: "customerId", visible: false },		// 18
                         { data: "partId", visible: false },			// 19
                         { data: "configId", visible: false }, 		// 20
-                        { data: "locationName", visible: false } 	// 21
+                        { data: "locationName", visible: false }, 	// 21
+                        { data: "paymentAccId", visible: false } 	// 22
                     ]
                 });
                 $('#createCustomerModal').on('shown.bs.modal', function () {
@@ -248,9 +249,12 @@
                 "challanNo": $("#updateSalesOrderChallanNo").val(),
                 "orderAmount": $("#updateSalesOrderOrderAmount").val(),
                 "userId": appUser.userId,
-                "updatedPaymentType": $("#selectedSalesOrderPaymentType").val() !== $("#updatedPaymentType").val()
+                "paymentType": $("#selectedSalesOrderPaymentType").val() !== $("#updatedPaymentType").val()
                 	?$("#updatedPaymentType").val()
-                	:null 
+                	:null,
+                "remark":$("#selectedSalesOrderPaymentType").val() !== $("#updatedPaymentType").val()
+	                ?$("#updatedOrderRemark").val()
+	               	:null
             };
             // console.log(JSON.stringify(requestData));
             $("#updateSalesOrderModal").modal("hide");
@@ -371,6 +375,13 @@
             $("#updateSalesOrderOrderAmount").val(selectedRowData.orderAmount);
             $("#selectedSalesOrderPaymentType").val(selectedRowData.paymentType);
             $("#updatedPaymentType").val(selectedRowData.paymentType);
+            if ($("#updatedPaymentType").val() == "bank" || $("#updatedPaymentType").val() == "paytm") {
+	            $("#updatedOrderRemark").removeAttr("disabled");
+	            $("#updatedOrderRemark").val(selectedRowData.paymentAccId);
+	        } else {
+	            $("#updatedOrderRemark").val("0");
+	            $("#updatedOrderRemark").attr("disabled", "disabled")
+	        }
             $("#updateSalesOrderModal").modal("show");
         }
         function updatePayment() {
@@ -670,22 +681,22 @@
 						<span class="input-group-text"
 							style="width: 140px; text-align: right; display: block;">Challan
 							No</span> <input type="text" readonly class="form-control"
-							id="updateSalesOrderChallanNo">
+							style="width: 600px;" id="updateSalesOrderChallanNo">
 					</div>
 					<div class="input-group mb-0">
 						<span class="input-group-text"
 							style="width: 140px; text-align: right; display: block;">Order
-							Date</span> <input type="text" readonly class="form-control"
-							id="selectedSalesOrderOrderDate"> <input type="text"
+							Date</span> <input type="text" readonly class="form-control" style="width: 205px;"
+							id="selectedSalesOrderOrderDate"> <input type="text" style="width: 350px;"
 							readonly class="form-control" id="updateSalesOrderOrderDate">
 					</div>
 					<div class="input-group mb-0">
 						<span class="input-group-text"
 							style="width: 140px; text-align: right; display: block;">Customer</span>
-						<input disabled type="text" class="form-control"
+						<input disabled type="text" class="form-control" style="width: 240px;"
 							id="selectedSalesOrderCustomer" aria-label="customer"
 							aria-describedby="customer"> <input class="form-control"
-							style="max-width: 293px;" list="customerData"
+							 list="customerData" style="width: 350px;"
 							id="updateSalesOrderCustomer" placeholder="Search Customer...">
 						<datalist id="customerData">
 						</datalist>
@@ -732,25 +743,27 @@
 					<div class="input-group mb-0">
 						<span class="input-group-text"
 							style="width: 140px; text-align: right; display: block;">Order
-							Amount</span> <input type="text" readonly class="form-control"
-							id="selectedSalesOrderOrderAmount"> <input type="text"
+							Amount</span> <input type="text" readonly class="form-control" style="width: 100px;"
+							id="selectedSalesOrderOrderAmount"> <input type="text" style="width: 500px;"
 							class="form-control" id="updateSalesOrderOrderAmount">
 					</div>
 					<div class="input-group mb-0">
 						<span class="input-group-text"
 							style="width: 140px; text-align: right; display: block;">Payment
-							Type</span> <input type="text" readonly class="form-control"
+							Type</span> <input type="text" readonly class="form-control" style="min-width: 114px; max-width: 114px;"
 							id="selectedSalesOrderPaymentType"> <select
 							class="form-control" id="updatedPaymentType"
-							style="max-width: 160px; width: 100px;">
+							style="min-width: 150px;max-width: 150px;">
 							<option value="0">Select Payment Type</option>
 							<option value="cash">Cash</option>
 							<option value="vpp">VPP</option>
 							<option value="paytm">Paytm</option>
 							<option value="bank">Bank</option>
+							<option value="pending">Pending</option>
 						</select> <span class="input-group-text"
 							style="width: 130px; text-align: right; display: block;">Account
-							Name</span> <select class="form-control" id="updatedOrderRemark" disabled>
+							Name</span> 
+							<select class="form-control" id="updatedOrderRemark" disabled>
 						</select>
 					</div>
 					<div class="input-group mb-0">

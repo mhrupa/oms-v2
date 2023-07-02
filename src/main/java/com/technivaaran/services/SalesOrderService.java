@@ -39,6 +39,7 @@ import com.technivaaran.repositories.SalesOderDetailRepository;
 import com.technivaaran.repositories.SalesOrderHeaderRepository;
 import com.technivaaran.utils.CurrencyUtil;
 import com.technivaaran.utils.DateUtils;
+import com.technivaaran.utils.ResponseUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -131,57 +132,92 @@ public class SalesOrderService {
 
         @SuppressWarnings("null")
         public ResponseEntity<OmsResponse> updateSalesOrder(OrderRequestDto orderRequestDto) {
-                log.info("Inside updateSalesOrder sales oreder service");
-                Optional<SalesOrderHeader> salesOrderOp = salesOrderHeaderRepository
-                                .findByChallanNo(orderRequestDto.getChallanNo());
-                if (salesOrderOp.isPresent()) {
-                        String customerName = "";
-                        String customerLocation = "";
-                        try {
-                                customerName = orderRequestDto.getCustomer().split("\\(")[0];
-                                customerLocation = orderRequestDto.getCustomer().split("\\(")[1].split("\\)")[0];
-                        } catch (Exception e) {
-                                log.error("invalid customer entered");
-                                return new ResponseEntity<>(
-                                                OmsResponse.builder().message("invalid customer entered.").build(),
-                                                HttpStatus.BAD_REQUEST);
-                        }
-                        Optional<CustomerEntity> customerOp = customerService.findCustomerByNameAndLocation(
-                                        customerName, customerLocation);
-                        if (customerOp.isPresent()) {
-                                SalesOrderHeader salesOrderHeader = salesOrderOp.get();
-                                salesOrderHeader.setOrderDate(
-                                                 DateUtils.getLocalDateFromDDMMYYYYString(
-                                                                orderRequestDto.getOrderDate()));
-                                salesOrderHeader.setOrderAmount(orderRequestDto.getOrderAmount());
-                                salesOrderHeader.setCustomer(customerOp.get());
-                                salesOrderHeader = salesOrderHeaderRepository.save(salesOrderHeader);
-
-                                List<SalesOrderDetails> salesOrderDetailsList = salesOderDetailRepository
-                                                .findBySalesOrderHeader(salesOrderHeader);
-
-                                for (SalesOrderDetails salesOrderDetails : salesOrderDetailsList) {
-                                        salesOrderDetails.setSellRate((float) salesOrderHeader.getOrderAmount()
-                                                        / salesOrderHeader.getQuantity());
-
-                                        salesOderDetailRepository.save(salesOrderDetails);
-                                }
-
-                                // SalesOrderDetails
-                                // paymentInService.updatePaymentAmountByChallanNoToZero(challanNo);
-
-                                return new ResponseEntity<>(OmsResponse.builder().message("Order updated successfully.")
-                                                .data(salesOrderHeader).build(), HttpStatus.OK);
-                        } else {
-                                return new ResponseEntity<>(
-                                                OmsResponse.builder().message("invalid customer data received.")
-                                                                .data(orderRequestDto).build(),
-                                                HttpStatus.BAD_REQUEST);
-                        }
-                } else {
-                        return new ResponseEntity<>(OmsResponse.builder().message("invalid challan no received.")
-                                        .data(orderRequestDto.getChallanNo()).build(), HttpStatus.BAD_REQUEST);
+            log.info("Inside updateSalesOrder sales oreder service");
+            Optional<SalesOrderHeader> salesOrderOp = salesOrderHeaderRepository
+                    .findByChallanNo(orderRequestDto.getChallanNo());
+            if (salesOrderOp.isPresent()) {
+                String customerName = "";
+                String customerLocation = "";
+                try {
+                    customerName = orderRequestDto.getCustomer().split("\\(")[0];
+                    customerLocation = orderRequestDto.getCustomer().split("\\(")[1].split("\\)")[0];
+                } catch (Exception e) {
+                    log.error("invalid customer entered");
+                    return ResponseUtil.createResponseEntity("invalid customer entered.",
+                            null, HttpStatus.BAD_REQUEST);
                 }
+                Optional<CustomerEntity> customerOp = customerService.findCustomerByNameAndLocation(
+                        customerName, customerLocation);
+                if (customerOp.isPresent()) {
+                    SalesOrderHeader salesOrderHeader = salesOrderOp.get();
+                    salesOrderHeader.setOrderDate(
+                            DateUtils.getLocalDateFromDDMMYYYYString(
+                                    orderRequestDto.getOrderDate()));
+                    salesOrderHeader.setOrderAmount(orderRequestDto.getOrderAmount());
+                    salesOrderHeader.setCustomer(customerOp.get());
+                    salesOrderHeader.setPaymentType(orderRequestDto.getPaymentType());
+                    salesOrderHeader.setRemark(orderRequestDto.getRemark());
+                    salesOrderHeader = salesOrderHeaderRepository.save(salesOrderHeader);
+
+                    if (orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
+                            || orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type)) {
+                        salesOrderHeader.setStatus(OrderStatus.PENDING.type);
+                    } else {
+                        salesOrderHeader.setStatus(OrderStatus.COMPLETE.type);
+                    }
+
+                    List<SalesOrderDetails> salesOrderDetailsList = salesOderDetailRepository
+                            .findBySalesOrderHeader(salesOrderHeader);
+
+                    for (SalesOrderDetails salesOrderDetails : salesOrderDetailsList) {
+                        salesOrderDetails.setSellRate((float) salesOrderHeader.getOrderAmount()
+                                / salesOrderHeader.getQuantity());
+
+                        salesOderDetailRepository.save(salesOrderDetails);
+                    }
+
+                    // added this code for updating payment method
+                    
+                    Optional<PaymentInDetails> paymentInDetailsOp = paymentInService
+                            .findByChallanNo(salesOrderHeader.getChallanNo());
+                    
+                    if (paymentInDetailsOp.isPresent()) {
+                        PaymentInDetails paymentInDetails = paymentInDetailsOp.get();
+
+                        if (orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
+                                || orderRequestDto.getPaymentType()
+                                        .equalsIgnoreCase(PaymentType.VPP.type)) {
+                            paymentInService.deletePaymentInDetailsById(paymentInDetails);
+                        } else {
+                            paymentInService.updatePaymentInHeaderPaymentType(
+                                    paymentInDetails.getPaymentInHeader(),
+                                    orderRequestDto.getPaymentType());
+                        }
+                    } else if (!(orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
+                            || orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type))) {
+                        PaymentInRequestDto paymentInRequestDto = PaymentInRequestDto.builder()
+                                .challanNos(orderRequestDto.getChallanNo() + "")
+                                .customerId(salesOrderHeader.getCustomer().getId())
+                                .paymentType(orderRequestDto.getPaymentType())
+                                .paymentAccount(orderRequestDto.getRemark())
+                                .amount(orderRequestDto.getOrderAmount())
+                                .updatedAmount(orderRequestDto.getOrderAmount())
+                                .userId(salesOrderHeader.getUser().getId())
+                                .paymentDate(DateUtils.getDDMMYYYYStringFromLocalDate(DateUtils.getCurrentDate()))
+                                .build();
+                        paymentInService.savePaymentIn(paymentInRequestDto);
+                    }
+                    return ResponseUtil.createResponseEntity("Order updated successfully.",
+                            salesOrderHeader, HttpStatus.OK);
+
+                } else {
+                    return ResponseUtil.createResponseEntity("invalid customer data received.",
+                            orderRequestDto, HttpStatus.BAD_REQUEST);
+                }
+            } else {
+                return ResponseUtil.createResponseEntity("invalid challan no received.",
+                        orderRequestDto.getChallanNo(), HttpStatus.BAD_REQUEST);
+            }
         }
 
         @SuppressWarnings("null")
@@ -193,17 +229,14 @@ public class SalesOrderService {
                                 .findLatestStockDetailsByStockHeader(orderRequestDto.getStockHeaderId());
                 User user = userService.getUserById(orderRequestDto.getUserId());
                 if (stockDetailsOp.isEmpty()) {
-                        return new ResponseEntity<>(
-                                        OmsResponse.builder().message("Invalid stock detail data received.")
-                                                        .data(orderRequestDto).build(),
-                                        HttpStatus.BAD_REQUEST);
+                    return ResponseUtil.createResponseEntity("Invalid stock detail data received.",
+                            orderRequestDto, HttpStatus.BAD_REQUEST);
                 }
                 if ((stockHeader.getClosingQty()
-                                - orderRequestDto.getQuantity()) < 0) {
-                        return new ResponseEntity<>(
-                                        OmsResponse.builder().message("Available stock is less than order quantity.")
-                                                        .data(orderRequestDto).build(),
-                                        HttpStatus.BAD_REQUEST);
+                        - orderRequestDto.getQuantity()) < 0) {
+                    return ResponseUtil.createResponseEntity("Available stock is less than order quantity.",
+                            orderRequestDto, HttpStatus.BAD_REQUEST);
+
                 }
                 SalesOrderHeader salesOrderHeader = SalesOrderHeader.builder()
                                 .orderDate(DateUtils.getLocalDateFromDDMMYYYYString(
@@ -338,6 +371,7 @@ public class SalesOrderService {
                                 if (paymentAccountEntityOp.isPresent()) {
                                         PaymentAccountsEntity accountsEntity = paymentAccountEntityOp.get();
                                         salesOrderResponseDto.setPaymentAccName(accountsEntity.getAccountName());
+                                        salesOrderResponseDto.setPaymentAccId(accountsEntity.getId());
                                 }
                         }
                         Optional<PaymentInDetails> paymentInDetailsOp = paymentInService
