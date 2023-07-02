@@ -185,8 +185,7 @@ public class SalesOrderService {
                         PaymentInDetails paymentInDetails = paymentInDetailsOp.get();
 
                         if (orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
-                                || orderRequestDto.getPaymentType()
-                                        .equalsIgnoreCase(PaymentType.VPP.type)) {
+                                || orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type)) {
                             paymentInService.deletePaymentInDetailsById(paymentInDetails);
                         } else {
                             paymentInService.updatePaymentInHeaderPaymentType(
