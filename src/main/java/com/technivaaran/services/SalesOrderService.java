@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.dto.request.OrderRequestDto;
@@ -24,6 +25,7 @@ import com.technivaaran.dto.response.reports.AccountPaymentDataDto;
 import com.technivaaran.entities.CustomerEntity;
 import com.technivaaran.entities.PaymentAccountsEntity;
 import com.technivaaran.entities.PaymentInDetails;
+import com.technivaaran.entities.PaymentInHeader;
 import com.technivaaran.entities.SalesOrderDetails;
 import com.technivaaran.entities.SalesOrderHeader;
 import com.technivaaran.entities.StockDetails;
@@ -155,15 +157,19 @@ public class SalesOrderService {
                                     orderRequestDto.getOrderDate()));
                     salesOrderHeader.setOrderAmount(orderRequestDto.getOrderAmount());
                     salesOrderHeader.setCustomer(customerOp.get());
-                    salesOrderHeader.setPaymentType(orderRequestDto.getPaymentType());
-                    salesOrderHeader.setRemark(orderRequestDto.getRemark());
+                    if(null != orderRequestDto.getPaymentType()) {
+                        salesOrderHeader.setPaymentType(orderRequestDto.getPaymentType());
+                        salesOrderHeader.setRemark(orderRequestDto.getRemark());
+                    }
                     salesOrderHeader = salesOrderHeaderRepository.save(salesOrderHeader);
 
-                    if (orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
-                            || orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type)) {
-                        salesOrderHeader.setStatus(OrderStatus.PENDING.type);
-                    } else {
-                        salesOrderHeader.setStatus(OrderStatus.COMPLETE.type);
+                    if(null != orderRequestDto.getPaymentType()) {
+                        if (orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
+                                        || orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type)) {
+                            salesOrderHeader.setStatus(OrderStatus.PENDING.type);
+                        } else {
+                            salesOrderHeader.setStatus(OrderStatus.COMPLETE.type);
+                        }
                     }
 
                     List<SalesOrderDetails> salesOrderDetailsList = salesOderDetailRepository
@@ -184,16 +190,26 @@ public class SalesOrderService {
                     if (paymentInDetailsOp.isPresent()) {
                         PaymentInDetails paymentInDetails = paymentInDetailsOp.get();
 
-                        if (orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
-                                || orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type)) {
-                            paymentInService.deletePaymentInDetailsById(paymentInDetails);
-                        } else {
-                            paymentInService.updatePaymentInHeaderPaymentType(
-                                    paymentInDetails.getPaymentInHeader(),
-                                    orderRequestDto.getPaymentType());
+                        PaymentInHeader paymentInHeader = paymentInService.updatePaymentInHeaderAmount(
+                                paymentInDetails.getPaymentInHeader(), orderRequestDto);
+                        paymentInDetails.setPaymentInHeader(paymentInHeader);
+                        paymentInService.updatePaymentInDetailsOrderAmount(paymentInDetails, orderRequestDto);
+                        
+                        if(null != orderRequestDto.getPaymentType()) {
+                            if (orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
+                                            || orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type)) {
+                                paymentInService.deletePaymentInDetailsById(paymentInDetails);
+                                paymentInService.deletePaymentInHeaderById(paymentInDetails.getPaymentInHeader());
+                            } else {
+                                paymentInService.updatePaymentInHeaderPaymentType(
+                                        paymentInDetails.getPaymentInHeader(), orderRequestDto);
+                            }
                         }
-                    } else if (!(orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
-                            || orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type))) {
+                        
+                        
+                    } else if (null != orderRequestDto.getPaymentType()
+                            && (!(orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
+                                    || orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type)))) {
                         PaymentInRequestDto paymentInRequestDto = PaymentInRequestDto.builder()
                                 .challanNos(orderRequestDto.getChallanNo() + "")
                                 .customerId(salesOrderHeader.getCustomer().getId())
@@ -374,7 +390,7 @@ public class SalesOrderService {
                                 }
                         }
                         Optional<PaymentInDetails> paymentInDetailsOp = paymentInService
-                                        .findByChallanNo(orderHeader.getChallanNo());
+                                        .findFirstByChallanNoOrderByIdDesc(orderHeader.getChallanNo());
                         if (paymentInDetailsOp.isPresent()) {
 
                                 salesOrderResponseDto.setPaymentDate(DateUtils.convertDateToddmmyyyy(

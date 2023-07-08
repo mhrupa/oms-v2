@@ -8,7 +8,14 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+
 import com.technivaaran.dto.OmsResponse;
+import com.technivaaran.dto.request.OrderRequestDto;
 import com.technivaaran.dto.request.PaymentInRequestDto;
 import com.technivaaran.entities.CustomerEntity;
 import com.technivaaran.entities.PaymentInDetails;
@@ -24,12 +31,6 @@ import com.technivaaran.repositories.SalesOderDetailRepository;
 import com.technivaaran.repositories.SalesOrderHeaderRepository;
 import com.technivaaran.utils.DateUtils;
 import com.technivaaran.utils.ResponseUtil;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -155,13 +156,31 @@ public class PaymentInService {
          return paymentInDetailsRepository.findByChallanNo(challanNo);
     }
     
-    public PaymentInHeader updatePaymentInHeaderPaymentType(PaymentInHeader paymentInHeader, String updatedPaymentType) {
-        paymentInHeader.setPaymentType(updatedPaymentType);
+    public Optional<PaymentInDetails> findFirstByChallanNoOrderByIdDesc(Long challanNo) {
+        return paymentInDetailsRepository.findFirstByChallanNoOrderByIdDesc(challanNo);
+   }
+    
+    public PaymentInHeader updatePaymentInHeaderPaymentType(PaymentInHeader paymentInHeader, OrderRequestDto orderRequestDto) {
+        paymentInHeader.setPaymentType(orderRequestDto.getPaymentType());
         return paymentInHeaderRepository.save(paymentInHeader);
+    }
+    
+    public PaymentInHeader updatePaymentInHeaderAmount(PaymentInHeader paymentInHeader, OrderRequestDto orderRequestDto) {
+        paymentInHeader.setAmount(orderRequestDto.getOrderAmount());
+        return paymentInHeaderRepository.save(paymentInHeader);
+    }
+    
+    public PaymentInDetails updatePaymentInDetailsOrderAmount(PaymentInDetails paymentInDetails, OrderRequestDto orderRequestDto) {
+        paymentInDetails.setOrderAmount(orderRequestDto.getOrderAmount());
+        return paymentInDetailsRepository.save(paymentInDetails);
     }
     
     public void deletePaymentInDetailsById(PaymentInDetails paymentInDetails) {
         paymentInDetailsRepository.delete(paymentInDetails);
+    }
+    
+    public void deletePaymentInHeaderById(PaymentInHeader paymentInHeader) {
+        paymentInHeaderRepository.delete(paymentInHeader);
     }
 
 }

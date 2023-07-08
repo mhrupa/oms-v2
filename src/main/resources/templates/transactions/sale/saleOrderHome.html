@@ -242,6 +242,16 @@
         function updateSalesOrder() {
         	
         	// here
+        	if($("#updatedPaymentType").val() == 0) {
+        		$("#updatedPaymentType").focus();
+        		return false;
+        	}
+        	
+        	if (($("#updatedPaymentType").val() == 'bank' || $("#updatedPaymentType").val() == 'paytm') 
+        			&& $("#updatedOrderRemark").val() == 0) {
+                $("#updatedOrderRemark").focus();
+                return false;
+            }
         	
             var requestData = {
                 "orderDate": $("#updateSalesOrderOrderDate").val(),
@@ -495,7 +505,7 @@
             });
 
             initCustomerData();
-            initModelData();
+            //initModelData();
         }
     </script>
 </head>
