@@ -84,10 +84,12 @@
                     { data: "remarkId", visible: false }
                 ]
             });
-            console.log("initialising search string");
+            //console.log("initialising search string");
             table.search(searchString).draw();
             $(":input[type='search']").attr("accesskey", "h");
-
+			if(showBuyPrice) {
+				table.column(7).visible(!table.column(7).visible());
+			}
             $('#stockAddBoxModal').on('shown.bs.modal', function () {
                 $('#boxName').focus();
             });
@@ -182,6 +184,7 @@
                 selectedRowData = table.row(this).data();
                 $("#optionModal").modal("show");
             });
+
             $("#stockPageBody").css("visibility", "visible");
             $("#onloadSpinner").css("visibility", "hidden");
             $("#boxNo").focus();
@@ -255,6 +258,7 @@
         function toggleBuyPrice() {
             var table = $('#dataTable').DataTable();
             if (table.column(7).visible()) {
+				showBuyPrice = false;
                 table.column(7).visible(!table.column(7).visible());
                 return;
             }
@@ -290,6 +294,7 @@
                     isStockRequest = false;
                     savaData();
                 } else {
+					showBuyPrice = true;
                     var table = $('#dataTable').DataTable();
                     table.column(7).visible(!table.column(7).visible());
                 }
@@ -412,14 +417,14 @@
                 $(".toast").addClass("bg-danger").toast("show");
                 return false;
             }
-            if ($("#modelForEditStock").val() == undefined ||
+            if ($("#modelForEditStock").val() === undefined ||
                 $("#modelForEditStock").val() == "" || $("#modelForEditStock").val() == 0) {
                 $("#omsToast").html("Invalid Model");
                 $(".toast").addClass("bg-danger").toast("show");
                 return false;
             }
-            if ($("#partForStockChange").val() == undefined ||
-                $("#partForStockChange").val() == "" || $("#partForStockChange").val() == 0) {
+            if ($("#partForStockChange").val() === undefined ||
+                $("#partForStockChange").val() === "" || $("#partForStockChange").val() === 0) {
                 $("#partForStockChange").focus();
                 $("#omsToast").html("Invalid Part");
                 $(".toast").addClass("bg-danger").toast("show");
