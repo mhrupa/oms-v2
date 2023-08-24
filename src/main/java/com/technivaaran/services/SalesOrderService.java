@@ -265,11 +265,17 @@ public class SalesOrderService {
                                                 * orderRequestDto.getSellPrice()
                                                 + orderRequestDto.getCourierCharges())
                                 .stockDetails(stockDetailsOp.get())
-                                .challanNo(challanNoService.getMaxChallanNo())
                                 .customer(customer)
                                 .stockHeader(stockHeader)
                                 .user(user)
                                 .build();
+                if(!ObjectUtils.isEmpty(orderRequestDto.getChallanNoFromOrder())) {
+                    challanNoService.setMaxChallanNo(orderRequestDto.getChallanNoFromOrder());
+                    salesOrderHeader.setChallanNo(orderRequestDto.getChallanNoFromOrder());
+                } else {
+                    salesOrderHeader.setChallanNo(challanNoService.getMaxChallanNo());
+                }
+                
                 if (orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.PENDING.type)
                                 || orderRequestDto.getPaymentType().equalsIgnoreCase(PaymentType.VPP.type)) {
                         salesOrderHeader.setStatus(OrderStatus.PENDING.type);

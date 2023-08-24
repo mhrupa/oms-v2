@@ -316,19 +316,30 @@
             $("#createOrderModal").modal("hide");
             $("#createCustomerModal").modal("show");
         }
+        
         function showCreateOrderModal() {
-            initCreateOrderFields();
-            $("#stockHeaderId").val(selectedRowData.id);
-            $("#stockDetailsId").val(selectedRowData.stockDetailsId);
-            $("#itemDetailsForOrder").text(selectedRowData.box
-                + " | " + selectedRowData.model + " | " + selectedRowData.part
-                + " | " + selectedRowData.configuration + " | " + selectedRowData.details
-                + " | " + selectedRowData.vendor);
-            $("#itemSellRate").val(selectedRowData.sellPrice);
-            $("#newItemSellRate").val(selectedRowData.sellPrice);
-            $('#datepicker').datepicker('update', formatDateAsDDMMYYYY(new Date()));
-            $("#optionModal").modal("hide");
-            $("#createOrderModal").modal("show");
+        	
+	        jQuery.ajax({
+	            url: '/challan-no',
+            	success: function (challanNo) {
+            		var cn = JSON.stringify(challanNo);
+					initCreateOrderFields();
+					$("#challanNo").text(cn);
+					$("#stockHeaderId").val(selectedRowData.id);
+					$("#stockDetailsId").val(selectedRowData.stockDetailsId);
+					$("#itemDetailsForOrder").text(selectedRowData.box
+					    + " | " + selectedRowData.model + " | " + selectedRowData.part
+					    + " | " + selectedRowData.configuration + " | " + selectedRowData.details
+					    + " | " + selectedRowData.vendor);
+					$("#itemSellRate").val(selectedRowData.sellPrice);
+					$("#newItemSellRate").val(selectedRowData.sellPrice);
+					$('#datepicker').datepicker('update', formatDateAsDDMMYYYY(new Date()));
+					$("#optionModal").modal("hide");
+					$("#createOrderModal").modal("show");
+	            	
+	            },
+	            async: false
+	        });
         }
         function showUpdateStockModal() {
             $("#stockHeaderId").val(selectedRowData.id);
@@ -591,6 +602,11 @@
         }
         function createOrderButtonClick() {
             $("#cashPaid").text("");
+            if($("#challanNo").text() === "") {
+            	$("#omsToast").html("Challan no not generated");
+                $(".toast").addClass("bg-danger").toast("show");
+            	return false;
+            }
             if ($("#customer").val() == "") {
                 $("#customer").focus();
                 return false;
@@ -626,7 +642,8 @@
                 "customer": $("#customer").val(),
                 "stockHeaderId": $("#stockHeaderId").val(),
                 "stockDetailId": $("#stockDetailsId").val(),
-                "userId": appUser.userId
+                "userId": appUser.userId,
+                "challanNoFromOrder": $("#challanNo").text()
             };
             $.post("/salesOrders", JSON.stringify(requestData), function (res) {
                 var rowUpdated = false;
@@ -689,6 +706,7 @@
                 $(".toast").addClass("bg-danger").toast("show");
             });
         }
+        
         function deleteStockRow() {
             if(selectedRowData.qty>0) {
                 $("#optionModal").modal("hide");
@@ -711,6 +729,7 @@
         }
 
         function initCreateOrderFields() {
+        	$("#challanNo").val("");
             $("#customer").val("");
             $("#itemQuantity").val("0");
             $("#courierCharges").val("0");
@@ -1253,14 +1272,15 @@
 
 <body style="overflow: hidden;">
 	<div id="stockPageBody" style="visibility: hidden">
-		<div class="row" style="width: 100%;padding-left: 20px;">
+		<div class="row" style="width: 100%; padding-left: 20px;">
 			<div class="col mt-4">
 				<div class="position-relative">
-                    <div class="ps-2 mt-2">
-                        <button type="button" id="toggleBuyPrice" style="z-index: 5000;"
-                            class="position-absolute top-0 end-0 px-2 btn btn-success">Buy Price</button>
-                    </div>
-                </div>
+					<div class="ps-2 mt-2">
+						<button type="button" id="toggleBuyPrice" style="z-index: 5000;"
+							class="position-absolute top-0 end-0 px-2 btn btn-success">Buy
+							Price</button>
+					</div>
+				</div>
 				<table id="dataTable" style="width: 100%; font-size: 10px;"
 					class="display cell-border">
 					<thead>
@@ -1617,6 +1637,11 @@
 							aria-label="Close"></button>
 					</div>
 					<div class="modal-body">
+						<div class="input-group mb-0">
+							<span class="input-group-text"
+								style="width: 140px; text-align: right; display: block;">Challan
+								No</span> <span class="form-control" id="challanNo"></span>
+						</div>
 						<div class="input-group mb-0">
 							<span class="input-group-text"
 								style="width: 140px; text-align: right; display: block;">Order
