@@ -20,3 +20,12 @@ ALTER TABLE `OMS`.`payment_in_details`
 ADD INDEX `challan_no_inx` (`challan_no` ASC) VISIBLE;
 ;
 
+
+
+24 + 3	= 27
+36 + 3	= 39
+12 + 3	= 15
+8	= 08
+24 + 6 	= 30
+------------
+Total	= 119

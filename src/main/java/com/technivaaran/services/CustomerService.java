@@ -21,58 +21,79 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class CustomerService {
 
-	@Autowired
-	private CustomerRepository customerRepository;
+    @Autowired
+    private CustomerRepository customerRepository;
 
-	@Autowired
-	private CustomerMapper customerMapper;
+    @Autowired
+    private CustomerMapper customerMapper;
 
-	public Optional<CustomerEntity> findCustomerById(long customerId) {
-		return customerRepository.findById(customerId);
-	}
+    public Optional<CustomerEntity> findCustomerById(long customerId) {
+        return customerRepository.findById(customerId);
+    }
 
-	public Optional<CustomerEntity> findCustomerByNameAndLocation(String customerName, String customerLocation) {
-		return customerRepository.findByCustomerNameAndLocation(customerName, customerLocation);
-	}
+    public Optional<CustomerEntity> findCustomerByNameAndLocation(String customerName, String customerLocation) {
+        return customerRepository.findByCustomerNameAndLocation(customerName, customerLocation);
+    }
 
-	public List<CustomerEntity> findAllCustomers() {
-		return customerRepository.findAll();
-	}
+    public List<CustomerEntity> findAllCustomers() {
+        //return customerRepository.findAll();
+        return customerRepository.findAllNonDeletedCustomers();
+    }
 
-	public ResponseEntity<OmsResponse> saveCustomer(CustomerDto customerDto) {
-		CustomerEntity customer = null;
-		Optional<CustomerEntity> customerOp = customerRepository
-				.findByCustomerNameAndLocation(customerDto.getCustomerName(), customerDto.getLocation());
-		if (customerOp.isEmpty()) {
-			customer = customerMapper.convertToEntity(customerDto);
-			customer = customerRepository.save(customer);
-			log.info("Customer Creation completed.");
-			return new ResponseEntity<>(OmsResponse.builder().message("Customer created successfully")
-					.data(customer).build(),
-					HttpStatus.CREATED);
-		} else {
-			return new ResponseEntity<>(OmsResponse.builder().message("Customer already exists.")
-					.build(), HttpStatus.BAD_REQUEST);
-		}
-	}
+    public ResponseEntity<OmsResponse> saveCustomer(CustomerDto customerDto) {
+        CustomerEntity customer = null;
+        Optional<CustomerEntity> customerOp = customerRepository
+                .findByCustomerNameAndLocation(customerDto.getCustomerName(), customerDto.getLocation());
+        if (customerOp.isEmpty()) {
+            customer = customerMapper.convertToEntity(customerDto);
+            customer = customerRepository.save(customer);
+            log.info("Customer Creation completed.");
+            return new ResponseEntity<>(OmsResponse.builder().message("Customer created successfully")
+                    .data(customer).build(),
+                    HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(OmsResponse.builder().message("Customer already exists.")
+                    .build(), HttpStatus.BAD_REQUEST);
+        }
+    }
 
-	public CustomerEntity updateCustomerById(long customerId, CustomerDto customerDto) {
-		Optional<CustomerEntity> customerOp = customerRepository.findById(customerId);
+    public CustomerEntity updateCustomerById(long customerId, CustomerDto customerDto) {
+        Optional<CustomerEntity> customerOp = customerRepository.findById(customerId);
 
-		if (customerOp.isPresent()) {
-			CustomerEntity customer = customerOp.get();
+        if (customerOp.isPresent()) {
+            CustomerEntity customer = customerOp.get();
 
-			CustomerEntity customerFromDto = customerMapper.convertToEntity(customerDto);
+            CustomerEntity customerFromDto = customerMapper.convertToEntity(customerDto);
 
-			customer.setCustomerName(customerDto.getCustomerName());
-			customer.setEmail(customerDto.getEmail());
-			customer.setContact(customerFromDto.getContact());
-			customer.setLocation(customerDto.getLocation());
-			customer.setUser(customerFromDto.getUser());
+            customer.setCustomerName(customerDto.getCustomerName());
+            customer.setEmail(customerDto.getEmail());
+            customer.setContact(customerFromDto.getContact());
+            customer.setLocation(customerDto.getLocation());
+            customer.setUser(customerFromDto.getUser());
 
-			return customerRepository.save(customer);
-		} else {
-			throw new OMSException("Customer not found for id : " + customerId);
-		}
-	}
+            return customerRepository.save(customer);
+        } else {
+            throw new OMSException("Customer not found for id : " + customerId);
+        }
+    }
+
+    public ResponseEntity<OmsResponse> deleteCustomerById(long customerId) {
+        Optional<CustomerEntity> customerOp = customerRepository.findById(customerId);
+
+        if (customerOp.isPresent()) {
+            CustomerEntity customer = customerOp.get();
+
+            customer.setDeleted(true);
+
+            customerRepository.save(customer);
+
+            return new ResponseEntity<>(
+                    OmsResponse.builder().message("Customer " + customer.getCustomerName() + " deleted successfully")
+                            .build(),
+                    HttpStatus.OK);
+
+        } else {
+            throw new OMSException("Customer not found for id : " + customerId);
+        }
+    }
 }

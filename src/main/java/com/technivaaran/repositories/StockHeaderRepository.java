@@ -36,9 +36,9 @@ public interface StockHeaderRepository extends JpaRepository<StockHeader, Long> 
             ConfigDetailsEntity configDetailsEntity, VendorEntity vendor, String details, boolean rowDelStatus,
             String remark);
 
-    @Query(value = "SELECT sh FROM StockHeader sh JOIN FETCH sh.storageLocation sl JOIN FETCH sh.partEntity pe"
-    + " JOIN FETCH sh.configDetailsEntity cd JOIN FETCH sh.vendor sv JOIN FETCH sh.itemMaster WHERE sh.rowDelStatus = 0")        
-    List<StockHeader> findByClosingQtyGreaterThan(float i);
+        @Query(value = "SELECT sh FROM StockHeader sh JOIN FETCH sh.storageLocation sl JOIN FETCH sh.partEntity pe"
+        + " JOIN FETCH sh.configDetailsEntity cd JOIN FETCH sh.vendor sv JOIN FETCH sh.itemMaster WHERE sh.rowDelStatus = false AND sh.closingQty > :closingQty")        
+        List<StockHeader> findByClosingQtyGreaterThan(float closingQty);
     
     
     @Query(value = "SELECT sh.id id, sl.location_name box, sl.id boxId, im.item_name model, im.id modelId,"

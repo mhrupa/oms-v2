@@ -18,7 +18,6 @@ public class CustomerMapper {
     @Autowired
     UserService userService;
 
-    @SuppressWarnings("null")
     public CustomerEntity convertToEntity(CustomerDto customerDto) {
         try {
             User user = userService.getUserById(customerDto.getUserId());

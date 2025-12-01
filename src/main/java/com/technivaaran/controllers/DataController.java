@@ -35,6 +35,6 @@ public class DataController {
   public ResponseEntity<OmsResponse> backUpData() {
     log.info("Data back up started");
     return new ResponseEntity<>(OmsResponse.builder().message("Data backed up successfully").build(),
-        HttpStatus.CREATED);
+            HttpStatus.CREATED);
   }
 }

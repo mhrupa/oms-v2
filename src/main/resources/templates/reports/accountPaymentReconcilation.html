@@ -2,147 +2,161 @@
 <html lang="en">
 
 <head>
-    <title></title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <style>
-        .dataTables_wrapper .dataTables_filter {
-            float: left;
-            margin-top: 5px;
-            /* padding-bottom: 5px; */
-        }
+	<title></title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<style>
+		.dataTables_wrapper .dataTables_filter {
+			float: left;
+			margin-top: 5px;
+			/* padding-bottom: 5px; */
+		}
 
-        .dataTables_length {
-            display: none;
-            cursor: pointer;
-        }
+		.dataTables_length {
+			display: none;
+			cursor: pointer;
+		}
 
-        .dataTables_filter input {
-            min-width: 350px;
-        }
+		.dataTables_filter input {
+			min-width: 350px;
+		}
 
-        .allBtnCss {
-            margin-left: 54px;
-            width: 100px;
-        }
+		.allBtnCss {
+			margin-left: 54px;
+			width: 100px;
+		}
 
-        .noneBtnCss {
-            width: 100px;
-        }
+		.noneBtnCss {
+			width: 100px;
+		}
 
-        .updateBtnCss {
-            width: 100px;
-        }
-    </style>
-    <script type="text/javascript">
-        var accountPaymentTable, accountPaymentData;
-        var selectedRowData, selectedRow;
-        $(document).ready(
-            function () {
-                accountPaymentData = "";
-                $("#month").val(new Date().getMonth());
-                initPaymentAccountData();
-                accountPaymentTable = $("#dataTable").DataTable({
-                compact: true,
-                data: accountPaymentData,
-                "columns": [
-                    { data: "challanNo" },
-                    { data: "orderDate" },
-                    { data: "paymentDate" },
-                    { data: "customerName" },
-                    { data: "itemName" },
-                    { data: "orderAmount" },
-                ]
-            });
-            $("#customer").focus();
-            $("#showOrederDataBtn").click(showOrderData);
-            $("#account").change(showOrderData);
-            $("#month").change(showOrderData);
-            $("#year").change(showOrderData);
-        });
+		.updateBtnCss {
+			width: 100px;
+		}
+	</style>
+	<script type="text/javascript">
+		var accountPaymentTable, accountPaymentData;
+		var selectedRowData, selectedRow;
+		$(document).ready(
+			function () {
+				accountPaymentData = "";
+				$("#month").val(new Date().getMonth());
+				initPaymentAccountData();
+				accountPaymentTable = $("#dataTable").DataTable({
+					compact: true,
+					data: accountPaymentData,
+					"columns": [
+						{data: "challanNo"},
+						{data: "orderDate"},
+						{data: "paymentDate"},
+						{data: "customerName"},
+						{data: "itemName"},
+						{data: "orderAmount"},
+					]
+				});
+				$("#customer").focus();
+				$("#showOrederDataBtn").click(showOrderData);
+				$("#account").change(showOrderData);
+				$("#month").change(showOrderData);
+				$("#year").change(showOrderData);
+			});
 
-        function initPaymentAccountData() {
-            $.get("/paymentAccounts", function (res) {
-                paymentAccounts = res;
-                $("#account").empty();
-                $("#account").append("<option selected='selected' value='0'>Select payment account</option>");
-                res.forEach(paymentAccount => {
-                    $("#account").append("<option value='" + paymentAccount.id + "'>" + paymentAccount.accountName + "</option>");
-                });
-            }).fail(function (res) {
-                $("#omsToast").html(JSON.parse(res.responseText).message);
-                $(".toast").addClass("bg-danger").toast("show");
-            });
-        }
-        function showOrderData() {
-            if($("#account").val()==0) {
-                $("#omsToast").html("Please select Account");
-                $("#account").focus();
-                $(".toast").addClass("bg-danger").toast("show");
-                return false;
-            }
-            $.get("/salesOrders/getAccountPaymentData?account=" + $("#account").val() + "&month=" + $("#month").val()
-            + "&year=" + $("#year").val(), function (res) {
-                accountPaymentData = res.data;
-                accountPaymentTable.clear().rows.add(accountPaymentData).draw();
-                
-            }).fail(function (res) {
-                $("#omsToast").html(JSON.parse(res.responseText).message);
-                $(".toast").addClass("bg-danger").toast("show");
-            });
-        }
+		function initPaymentAccountData() {
+			$.get("/paymentAccounts", function (res) {
+				paymentAccounts = res;
+				$("#account").empty();
+				$("#account").append("<option selected='selected' value='0'>Select payment account</option>");
+				res.forEach(paymentAccount => {
+					$("#account").append("<option value='" + paymentAccount.id + "'>" + paymentAccount.accountName + "</option>");
+				});
+			}).fail(function (res) {
+				$("#omsToast").html(JSON.parse(res.responseText).message);
+				$(".toast").addClass("bg-danger").toast("show");
+			});
+		}
+		function showOrderData() {
+			if ($("#account").val() == 0) {
+				$("#omsToast").html("Please select Account");
+				$("#account").focus();
+				$(".toast").addClass("bg-danger").toast("show");
+				return false;
+			}
+			$.get("/salesOrders/getAccountPaymentData?account=" + $("#account").val() + "&month=" + $("#month").val()
+				+ "&year=" + $("#year").val(), function (res) {
+					accountPaymentData = res.data;
+					accountPaymentTable.clear().rows.add(accountPaymentData).draw();
 
-    </script>
+					var totalAmount = 0.0;
+
+					$.each(accountPaymentData, (key, data) => {
+						totalAmount += parseFloat(data.orderAmount);
+					});
+
+					$("#totalAmount").text(totalAmount);
+					$("#totalAmountDiv").css('visibility', 'visible');
+				}).fail(function (res) {
+					$("#omsToast").html(JSON.parse(res.responseText).message);
+					$(".toast").addClass("bg-danger").toast("show");
+				});
+		}
+
+	</script>
 </head>
 
 <body>
-    <div class="mt-0">
-        <div class="p-2 input-group" style="border: 1px; background-color: #C4DDFF;">
-            <label class="p-2 pb-0" for="boxNo">Year</label>
-            <select style="max-width: 60px;border-radius: 5px;" class="form-control" readonly id="year">
-                <option value="2022">2022</option>
-                <option value="2023">2023</option>
-                <option value="2024">2024</option>
-                <option value="2025">2025</option>
-                <option value="2026">2026</option>
-                <option value="2027">2027</option>
-                <option value="2028">2028</option>
-                <option value="2029">2029</option>
-                <option value="2030">2030</option>
-            </select>
-            <label class="p-2 pb-0" for="boxNo">Month</label>
-            <select style="max-width: 80px;border-radius: 5px;" class="form-control" readonly id="month">
-                <option value="0">January</option>
-                <option value="1">February</option>
-                <option value="2">March</option>
-                <option value="3">April</option>
-                <option value="4">May</option>
-                <option value="5">June</option>
-                <option value="6">July</option>
-                <option value="7">August</option>
-                <option value="8">September</option>
-                <option value="9">October</option>
-                <option value="10">Novenber</option>
-                <option value="11">December</option>
-            </select>
-            <label class="p-2 pb-0" for="boxNo">Account</label>
-            <select style="max-width: 300px;border-radius: 5px;" class="form-control" readonly id="account"></select>
-            <!-- <button type="button" class="btn btn-secondary" id="showOrederDataBtn">Show</button> -->
-        </div>
-        <div>
-            <table id="dataTable" style="width: 100%;font-size: 11px;" class="display cell-border">
-                <thead>
-                    <tr>
-                        <th class="th-sm" style="max-width: 40px;">Challan</th>
-                        <th class="th-sm" style="max-width: 55px;">Order Date</th>
-                        <th class="th-sm" style="max-width: 55px;">Payment Date</th>
-                        <th class="th-sm">Customer Name</th>
-                        <th class="th-sm">Item</th>
-                        <th class="th-sm">Order Amount</th>
-                    </tr>
-                </thead>
-            </table>
-        </div>
-    </div>
+	<div class="mt-0">
+		<div class="p-2 input-group" style="border: 1px; background-color: #C4DDFF;">
+			<label class="p-2 pb-0" for="boxNo">Year</label>
+			<select style="max-width: 60px;border-radius: 5px;" class="form-control" readonly id="year">
+				<option value="2022">2022</option>
+				<option value="2023">2023</option>
+				<option value="2024" selected>2024</option>
+				<option value="2025">2025</option>
+				<option value="2026">2026</option>
+				<option value="2027">2027</option>
+				<option value="2028">2028</option>
+				<option value="2029">2029</option>
+				<option value="2030">2030</option>
+			</select>
+			<label class="p-2 pb-0" for="boxNo">Month</label>
+			<select style="max-width: 80px;border-radius: 5px;" class="form-control" readonly id="month">
+				<option value="0">January</option>
+				<option value="1">February</option>
+				<option value="2">March</option>
+				<option value="3">April</option>
+				<option value="4">May</option>
+				<option value="5">June</option>
+				<option value="6">July</option>
+				<option value="7">August</option>
+				<option value="8">September</option>
+				<option value="9">October</option>
+				<option value="10">Novenber</option>
+				<option value="11">December</option>
+			</select>
+			<label class="p-2 pb-0" for="boxNo">Account</label>
+			<select style="max-width: 300px;border-radius: 5px;" class="form-control" readonly id="account"></select>
+		</div>
+		<div>
+			<div class="position-relative">
+				<div id="totalAmountDiv" class="input-group"
+					style="visibility: hidden; border: 1px; background-color: #C4DDFF;">
+					<label style="z-index: 5000;" class="position-absolute top-0 end-0 p-2 btn-success">Total
+						Amount: <span id="totalAmount"></span></label>
+				</div>
+			</div>
+			<table id="dataTable" style="width: 100%;font-size: 11px;" class="display cell-border">
+				<thead>
+					<tr>
+						<th class="th-sm" style="max-width: 40px;">Challan</th>
+						<th class="th-sm" style="max-width: 55px;">Order Date</th>
+						<th class="th-sm" style="max-width: 55px;">Payment Date</th>
+						<th class="th-sm">Customer Name</th>
+						<th class="th-sm">Item</th>
+						<th class="th-sm">Order Amount</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</div>
 </body>
 
 </html>

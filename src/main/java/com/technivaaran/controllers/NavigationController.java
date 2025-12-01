@@ -100,10 +100,15 @@ public class NavigationController {
 		return "masters/customer/createCustomer";
 	}
 
-	@GetMapping("/updateCustomerPage")
+	@GetMapping("/updateCustomer")
 	public String getUpdateCustomerPage() {
 		return "masters/customer/updateCustomer";
 	}
+	
+	@GetMapping("/deleteCustomer")
+    public String getDeleteCustomerPage() {
+        return "masters/customer/deleteCustomer";
+    }
 
 	// ****************Inward-menu*****************//
     @GetMapping("/inward")

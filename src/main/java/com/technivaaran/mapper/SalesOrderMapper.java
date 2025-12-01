@@ -10,7 +10,7 @@ import com.technivaaran.utils.DateUtils;
 public class SalesOrderMapper {
 
     public SalesOrderResponseDto convertToSalesOrderHeaderToDto(SalesOrderHeader orderHeader) {
-        return SalesOrderResponseDto.builder()
+        SalesOrderResponseDto salesOrderResponseDto = SalesOrderResponseDto.builder()
                 .challanNo(orderHeader.getChallanNo())
                 .orderDate(DateUtils.convertDateToddmmyyyy(orderHeader.getOrderDate()))
                 .customerName(orderHeader.getCustomer().getCustomerName())
@@ -19,7 +19,7 @@ public class SalesOrderMapper {
                 .partId(orderHeader.getStockHeader().getPartEntity().getId())
                 .model(orderHeader.getStockHeader().getItemMaster().getItemName())
                 .config(orderHeader.getStockHeader().getConfigDetailsEntity()
-                                .getConfiguration())
+                        .getConfiguration())
                 .configId(orderHeader.getStockHeader().getConfigDetailsEntity().getId())
                 .details(orderHeader.getStockHeader().getDetails())
                 .qty(orderHeader.getQuantity())
@@ -32,6 +32,16 @@ public class SalesOrderMapper {
                 .paymentType(orderHeader.getPaymentType())
                 .buyPrice(orderHeader.getStockDetails().getBuyPrice())
                 .locationName(orderHeader.getStockHeader().getStorageLocation().getLocationName())
+                // .netProfit()
                 .build();
+
+        double netProfit = orderHeader.getOrderAmount()
+                - (orderHeader.getStockDetails().getBuyPrice() * orderHeader.getQuantity())
+                - orderHeader.getCourierCharges();
+
+        //salesOrderResponseDto.setNetProfit(netProfit > 0 ? netProfit : 0);
+        salesOrderResponseDto.setNetProfit(netProfit);
+
+        return salesOrderResponseDto;
     }
 }

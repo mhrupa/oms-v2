@@ -29,4 +29,5 @@ public class SalesOrderResponseDto {
     private float buyPrice;
     private String locationName;
     private long paymentAccId;
+    private double netProfit;
 }

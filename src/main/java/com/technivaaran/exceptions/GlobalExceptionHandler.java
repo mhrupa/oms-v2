@@ -3,8 +3,8 @@ package com.technivaaran.exceptions;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 
 import com.technivaaran.dto.OmsResponse;
 
