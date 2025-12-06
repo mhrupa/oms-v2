@@ -104,18 +104,18 @@ public class NavigationController {
 	public String getUpdateCustomerPage() {
 		return "masters/customer/updateCustomer";
 	}
-	
+
 	@GetMapping("/deleteCustomer")
-    public String getDeleteCustomerPage() {
-        return "masters/customer/deleteCustomer";
-    }
+	public String getDeleteCustomerPage() {
+		return "masters/customer/deleteCustomer";
+	}
 
 	// ****************Inward-menu*****************//
-    @GetMapping("/inward")
-    public String getInwardPage() {
-        return "transactions/stock/inward";
-    }
-	
+	@GetMapping("/inward")
+	public String getInwardPage() {
+		return "transactions/stock/inward";
+	}
+
 	// ****************Stock-menu*****************//
 	@GetMapping("/stockHome")
 	public String getStockPage() {
@@ -160,5 +160,15 @@ public class NavigationController {
 	@GetMapping("/dataBackUp")
 	public String dataBackUp() {
 		return "data/dataBackup";
+	}
+
+	@GetMapping("/sidebar")
+	public String getSidebarFragment() {
+		return "v2/dashboard/sidebar";
+	}
+
+	@GetMapping("/inventory")
+	public String getInventoryFragment() {
+		return "v2/inventory/inventory";
 	}
 }

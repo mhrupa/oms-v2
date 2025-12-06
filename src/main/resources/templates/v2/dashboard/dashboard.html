@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <title>OMS</title>
+  <style>
+    .bd-placeholder-img {
+      font-size: 1.125rem;
+      text-anchor: middle;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+
+    @media (min-width: 768px) {
+      .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+      }
+    }
+  </style>
+
+  <link href="/css/dashboard.css" rel="stylesheet">
+  <link href="/css/main.css" rel="stylesheet">
+  <script>
+    $(document).ready(function () {
+      // Load sidebar fragment
+      $('#sidebar-container').load('/sidebar');
+      // Load main content fragment, by default, load inventory page
+      $('#dashboard-main-container').load('/inventory');
+    });
+  </script>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <div id="sidebar-container" class="d-md-block bg-light sidebar collapse show" style="width: 14%;">
+      </div>
+      <div id="main-content-container" class="col main-content-area">
+        <div id="dashboardHeader" th:replace="~{v2/dashboard/header :: dashboardHeader}"></div>
+        <div id="dashboard-main-container"></div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<div th:fragment="inventoryContent">
+    <link href="/css/inventory.css" rel="stylesheet">
+    <main class="px-md-4" style="margin-left: 14%;">
+        <!-- Table Controls -->
+        <div class="table-controls"
+            style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <button class="add-user-btn"
+                    style="background:#2563eb;color:#fff;border:none;border-radius:10px;padding:0.45em 1em;font-size:0.98em;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(37,99,235,0.08);cursor:pointer;transition:background 0.2s;">
+                    <span style="font-size:1.1em;">+</span> Add User
+                </button>
+                <div style="position:relative;">
+                    <input type="text" placeholder="Search user"
+                        style="background:#f3f6fa;border:none;border-radius:10px;padding:0.45em 2em 0.45em 1.8em;font-size:0.98em;color:#222;width:150px;outline:none;box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+                    <span
+                        style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:#2563eb;font-size:1.08em;">
+                        &#128269;
+                    </span>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+                <div></div>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="modern-table" id="paginatedTable">
+                <thead>
+                    <tr>
+                        <th>box</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Table rows will be rendered by JS; update JS to match new columns if needed -->
+                </tbody>
+            </table>
+            <div class="pagination-container">
+                <div id="paginationDetails" class="pagination-details"></div>
+                <div id="paginationControls" class="pagination-controls"></div>
+            </div>
+            <script>
+                // Table data
+                const tableRows = [
+                    ["1,001", "random", "data", "placeholder", "text"],
+                    ["1,002", "placeholder", "irrelevant", "visual", "layout"],
+                    ["1,003", "data", "rich", "dashboard", "tabular"],
+                    ["1,003", "information", "placeholder", "illustrative", "data"],
+                    ["1,004", "text", "random", "layout", "dashboard"],
+                    ["1,005", "dashboard", "irrelevant", "text", "placeholder"],
+                    ["1,006", "dashboard", "illustrative", "rich", "data"],
+                    ["1,007", "placeholder", "tabular", "information", "irrelevant"],
+                    ["1,008", "random", "data", "placeholder", "text"],
+                    ["1,009", "placeholder", "irrelevant", "visual", "layout"],
+                    ["1,010", "data", "rich", "dashboard", "tabular"],
+                    ["1,011", "information", "placeholder", "illustrative", "data"],
+                    ["1,012", "text", "placeholder", "layout", "dashboard"],
+                    ["1,013", "dashboard", "irrelevant", "text", "visual"],
+                    ["1,014", "dashboard", "illustrative", "rich", "data"],
+                    ["1,015", "random", "tabular", "information", "text"]
+                ];
+                const rowsPerPage = 10;
+                let currentPage = 1;
+                function renderTable() {
+                    const tbody = document.getElementById('tableBody');
+                    tbody.innerHTML = '';
+                    const start = (currentPage - 1) * rowsPerPage;
+                    const end = Math.min(start + rowsPerPage, tableRows.length);
+                    for (let i = start; i < end; i++) {
+                        const row = document.createElement('tr');
+                        tableRows[i].forEach(cell => {
+                            const td = document.createElement('td');
+                            td.textContent = cell;
+                            row.appendChild(td);
+                        });
+                        row.style.cursor = 'pointer';
+                        row.onclick = function () { showRowPopup(tableRows[i]); };
+                        tbody.appendChild(row);
+                    }
+                    renderPaginationControls();
+                    renderPaginationDetails();
+                }
+
+                // Popup modal for row data
+                function showRowPopup(rowData) {
+                    let modal = document.getElementById('rowDataModal');
+                    if (!modal) {
+                        modal = document.createElement('div');
+                        modal.id = 'rowDataModal';
+                        modal.innerHTML = `
+                <div id="rowDataModalBg" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);z-index:9999;display:flex;align-items:center;justify-content:center;">
+                  <div style="background:#fff;padding:2em 2.2em;border-radius:16px;min-width:320px;max-width:90vw;box-shadow:0 2px 16px rgba(0,0,0,0.13);position:relative;">
+                    <h4 style="margin-top:0;margin-bottom:1em;font-size:1.15em;font-weight:700;color:#2563eb;">Row Data</h4>
+                    <div id="rowDataContent"></div>
+                    <div style="display:flex;gap:12px;margin-top:1.5em;justify-content:flex-end;">
+                      <style>
+                        .modal-btn {
+                          display: inline-flex;
+                          align-items: center;
+                          gap: 0.5em;
+                          font-size: 1.08em;
+                          font-weight: 600;
+                          border: none;
+                          border-radius: 8px;
+                          padding: 0.6em 1.4em;
+                          margin: 0 2px;
+                          cursor: pointer;
+                          transition: background 0.2s, box-shadow 0.2s;
+                        }
+                        .modal-btn.update { background: #2563eb; color: #fff; }
+                        .modal-btn.update:hover { background: #1746a2; }
+                        .modal-btn.add { background: #22c55e; color: #fff; }
+                        .modal-btn.add:hover { background: #16a34a; }
+                        .modal-btn.delete { background: #ef4444; color: #fff; }
+                        .modal-btn.delete:hover { background: #b91c1c; }
+                        .modal-btn.close { background: #e5e7eb; color: #222; }
+                        .modal-btn.close:hover { background: #cbd5e1; }
+                        .modal-btn svg {
+                          width: 1.2em;
+                          height: 1.2em;
+                          vertical-align: middle;
+                          margin-right: 0.4em;
+                        }
+                      </style>
+                      <div style="display:flex;gap:12px;margin-top:1.5em;justify-content:flex-end;flex-wrap:wrap;">
+                        <button id="rowUpdateBtn" class="modal-btn update">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                          Update
+                        </button>
+                        <button id="rowAddBtn" class="modal-btn add">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg>
+                          Add
+                        </button>
+                        <button id="rowDeleteBtn" class="modal-btn delete">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m5 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>
+                          Delete
+                        </button>
+                        <button id="rowCloseBtn" class="modal-btn close">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                          Close
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `;
+                        document.body.appendChild(modal);
+                    }
+                    // Fill row data
+                    const content = modal.querySelector('#rowDataContent');
+                    content.innerHTML = '<ul style="list-style:none;padding:0;margin:0 0 1em 0;">' + rowData.map((v, i) => `<li style='margin-bottom:0.5em;'><strong>Col ${i + 1}:</strong> ${v}</li>`).join('') + '</ul>';
+                    // Show modal
+                    modal.style.display = 'block';
+                    // Button events
+                    modal.querySelector('#rowCloseBtn').onclick = function () { modal.style.display = 'none'; };
+                    modal.querySelector('#rowUpdateBtn').onclick = function () { alert('Update action for: ' + JSON.stringify(rowData)); };
+                    modal.querySelector('#rowAddBtn').onclick = function () { alert('Add action for: ' + JSON.stringify(rowData)); };
+                    modal.querySelector('#rowDeleteBtn').onclick = function () { alert('Delete action for: ' + JSON.stringify(rowData)); };
+                    // ESC key closes modal
+                    document.onkeydown = function (e) {
+                        if (modal.style.display === 'block' && (e.key === 'Escape' || e.key === 'Esc')) {
+                            modal.style.display = 'none';
+                        }
+                    };
+                }
+                function renderPaginationControls() {
+                    const controls = document.getElementById('paginationControls');
+                    controls.innerHTML = '';
+                    const totalPages = Math.ceil(tableRows.length / rowsPerPage);
+                    // First page button
+                    const firstBtn = document.createElement('button');
+                    firstBtn.textContent = '«';
+                    firstBtn.className = 'pagination-btn';
+                    firstBtn.disabled = currentPage === 1;
+                    firstBtn.title = 'First page';
+                    firstBtn.onclick = () => { currentPage = 1; renderTable(); };
+                    controls.appendChild(firstBtn);
+                    // Previous page button
+                    const prevBtn = document.createElement('button');
+                    prevBtn.textContent = '‹';
+                    prevBtn.className = 'pagination-btn';
+                    prevBtn.disabled = currentPage === 1;
+                    prevBtn.title = 'Previous page';
+                    prevBtn.onclick = () => { currentPage--; renderTable(); };
+                    controls.appendChild(prevBtn);
+                    // Page numbers
+                    for (let i = 1; i <= totalPages; i++) {
+                        const pageBtn = document.createElement('button');
+                        pageBtn.textContent = i;
+                        pageBtn.className = 'pagination-btn' + (i === currentPage ? ' active' : '');
+                        pageBtn.disabled = i === currentPage;
+                        pageBtn.onclick = () => { currentPage = i; renderTable(); };
+                        controls.appendChild(pageBtn);
+                    }
+                    // Next page button
+                    const nextBtn = document.createElement('button');
+                    nextBtn.textContent = '›';
+                    nextBtn.className = 'pagination-btn';
+                    nextBtn.disabled = currentPage === totalPages;
+                    nextBtn.title = 'Next page';
+                    nextBtn.onclick = () => { currentPage++; renderTable(); };
+                    controls.appendChild(nextBtn);
+                    // Last page button
+                    const lastBtn = document.createElement('button');
+                    lastBtn.textContent = '»';
+                    lastBtn.className = 'pagination-btn';
+                    lastBtn.disabled = currentPage === totalPages;
+                    lastBtn.title = 'Last page';
+                    lastBtn.onclick = () => { currentPage = totalPages; renderTable(); };
+                    controls.appendChild(lastBtn);
+                }
+                function renderPaginationDetails() {
+                    const details = document.getElementById('paginationDetails');
+                    const start = (currentPage - 1) * rowsPerPage + 1;
+                    const end = Math.min(currentPage * rowsPerPage, tableRows.length);
+                    details.innerHTML = `Showing <strong>${start}–${end}</strong> out of <strong>${tableRows.length}</strong> items`;
+                }
+                function showAllRows(e) {
+                    e.preventDefault();
+                    currentPage = 1;
+                    window.rowsPerPageBackup = rowsPerPage;
+                    window.rowsPerPage = tableRows.length;
+                    renderTable();
+                    // Hide show all link after click
+                    document.querySelector('.pagination-showall').style.display = 'none';
+                }
+                renderTable();
+            </script>
+            </tbody>
+            </table>
+        </div>
+    </main>
+</div>

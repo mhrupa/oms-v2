@@ -8,4 +8,5 @@
 *.log
 .idea/
 /.metadata
+/backups/*
 .factorypath

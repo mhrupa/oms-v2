@@ -21,7 +21,7 @@ public class OmsApplication {
 	}
 
 	// write a runner to take db backup when server starts
-	@Bean
+	//@Bean
 	public CommandLineRunner backupDatabase() {
 		return args -> {
 			// run the Java backup implementation asynchronously to avoid blocking startup
