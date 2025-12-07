@@ -4,11 +4,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import com.technivaaran.dto.projections.InventoryRow;
 import com.technivaaran.entities.ConfigDetailsEntity;
 import com.technivaaran.entities.ItemMaster;
 import com.technivaaran.entities.PartEntity;
@@ -48,8 +51,77 @@ public interface StockHeaderRepository extends JpaRepository<StockHeader, Long> 
             + " sh.remark remarkText, sh.remark_id remarkId, 'Normal' stockTransactionType"
             + " FROM stock_header sh, storage_location sl, item_master im, part_details pd, config_details cd, vendors v"
             + " WHERE sh.location_id = sl.id AND sh.item_master_id = im.id AND sh.part_id = pd.id"
-            + " AND sh.config_detail_id = cd.id AND sh.vendor_id = v.id AND sh.row_del_status = 0", nativeQuery = true)  
+            + " AND sh.config_detail_id = cd.id AND sh.vendor_id = v.id AND sh.row_del_status = 0", nativeQuery = true)
     List<String[]> getInventoryData();
+
+     @Query("""
+                        SELECT new com.technivaaran.dto.projections.InventoryRow(
+                            sh.id,
+                            sl.locationName,
+                            sl.id,
+                            im.itemName,
+                            im.id modelId,
+                        pd.partNo, pd.id,
+                        cd.configuration,
+                        cd.id,
+                        sh.details,
+                        sh.id,
+                        sh.closingQty,
+                        v.vendorName,
+                        v.id,
+                        sh.buyPrice,
+                        sh.sellPrice,
+                        sh.stockDetailId,
+                        sh.remark,
+                        sh.remarkId,
+                        'Normal'
+                        )
+                        FROM StockHeader sh
+                            JOIN sh.storageLocation sl
+                            JOIN sh.itemMaster im
+                            JOIN sh.partEntity pd
+                            JOIN sh.configDetailsEntity cd
+                            JOIN sh.vendor v
+                        WHERE sh.rowDelStatus = false
+                    """)
+    Page<InventoryRow> getInventoryData(Pageable pageable);
+
+        @Query("""
+                SELECT new com.technivaaran.dto.projections.InventoryRow(
+                        sh.id,
+                        sl.locationName,
+                        sl.id,
+                        im.itemName,
+                        im.id modelId,
+                        pd.partNo,
+                        pd.id,
+                        cd.configuration,
+                        cd.id,
+                        sh.details,
+                        sh.id,
+                        sh.closingQty,
+                        v.vendorName,
+                        v.id,
+                        sh.buyPrice,
+                        sh.sellPrice,
+                        sh.stockDetailId,
+                        sh.remark,
+                        sh.remarkId,
+                        'Normal'
+                )
+                FROM StockHeader sh
+                        JOIN sh.storageLocation sl
+                        JOIN sh.itemMaster im
+                        JOIN sh.partEntity pd
+                        JOIN sh.configDetailsEntity cd
+                        JOIN sh.vendor v
+                WHERE sh.rowDelStatus = false AND (
+                        im.itemName LIKE %:query% OR
+                        pd.partNo LIKE %:query% OR
+                        cd.configuration LIKE %:query%
+                )
+                """)
+        Page<InventoryRow> searchInventoryData(String query, Pageable pageable);
 
     @Query(value = "SELECT SUM(buy_price * closing_qty) priceSum, SUM(closing_qty) rowCount FROM stock_header"
             + " WHERE closing_qty > 0 AND config_detail_id = :configDetailsId AND item_master_id = :itemMasterId"

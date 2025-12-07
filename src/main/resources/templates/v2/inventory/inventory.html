@@ -1,5 +1,17 @@
 <!DOCTYPE html>
-<div th:fragment="inventoryContent">
+<div>
+    <script>
+        $(document).ready(function () {
+            // Load inventory data
+            renderTable();
+            // Search functionality
+            $('#searchInput').on('input', function () {
+                searchString = $(this).val().trim();
+                currentPage = 1; // Reset to first page on new search
+                renderTable();
+            });
+        });
+    </script>
     <link href="/css/inventory.css" rel="stylesheet">
     <main class="px-md-4" style="margin-left: 14%;">
         <!-- Table Controls -->
@@ -11,8 +23,8 @@
                     <span style="font-size:1.1em;">+</span> Add User
                 </button>
                 <div style="position:relative;">
-                    <input type="text" placeholder="Search user"
-                        style="background:#f3f6fa;border:none;border-radius:10px;padding:0.45em 2em 0.45em 1.8em;font-size:0.98em;color:#222;width:150px;outline:none;box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+                    <input type="text" id="searchInput" placeholder="Search Item"
+                        style="background:#f3f6fa;border:none;border-radius:10px;padding:0.45em 2em 0.45em 1.8em;padding-left: 30px;font-size:0.98em;color:#222;width:350px;outline:none;box-shadow:0 2px 8px rgba(0,0,0,0.03);">
                     <span
                         style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:#2563eb;font-size:1.08em;">
                         &#128269;
@@ -30,14 +42,19 @@
             </div>
         </div>
         <div class="table-responsive">
-            <table class="modern-table" id="paginatedTable">
+            <table class="modern-table" id="paginatedTable" style="font-size:1em;">
                 <thead>
                     <tr>
-                        <th>box</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Status</th>
-                        <th>Role</th>
+                        <th style="display: none;">id</th>
+                        <th>Box</th>
+                        <th>Model</th>
+                        <th>Remark</th>
+                        <th>Part</th>
+                        <th>Config</th>
+                        <th>Det.</th>
+                        <th>Qty</th>
+                        <th>Sell P.</th>
+                        <th>Vendor</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -49,47 +66,6 @@
                 <div id="paginationControls" class="pagination-controls"></div>
             </div>
             <script>
-                // Table data
-                const tableRows = [
-                    ["1,001", "random", "data", "placeholder", "text"],
-                    ["1,002", "placeholder", "irrelevant", "visual", "layout"],
-                    ["1,003", "data", "rich", "dashboard", "tabular"],
-                    ["1,003", "information", "placeholder", "illustrative", "data"],
-                    ["1,004", "text", "random", "layout", "dashboard"],
-                    ["1,005", "dashboard", "irrelevant", "text", "placeholder"],
-                    ["1,006", "dashboard", "illustrative", "rich", "data"],
-                    ["1,007", "placeholder", "tabular", "information", "irrelevant"],
-                    ["1,008", "random", "data", "placeholder", "text"],
-                    ["1,009", "placeholder", "irrelevant", "visual", "layout"],
-                    ["1,010", "data", "rich", "dashboard", "tabular"],
-                    ["1,011", "information", "placeholder", "illustrative", "data"],
-                    ["1,012", "text", "placeholder", "layout", "dashboard"],
-                    ["1,013", "dashboard", "irrelevant", "text", "visual"],
-                    ["1,014", "dashboard", "illustrative", "rich", "data"],
-                    ["1,015", "random", "tabular", "information", "text"]
-                ];
-                const rowsPerPage = 10;
-                let currentPage = 1;
-                function renderTable() {
-                    const tbody = document.getElementById('tableBody');
-                    tbody.innerHTML = '';
-                    const start = (currentPage - 1) * rowsPerPage;
-                    const end = Math.min(start + rowsPerPage, tableRows.length);
-                    for (let i = start; i < end; i++) {
-                        const row = document.createElement('tr');
-                        tableRows[i].forEach(cell => {
-                            const td = document.createElement('td');
-                            td.textContent = cell;
-                            row.appendChild(td);
-                        });
-                        row.style.cursor = 'pointer';
-                        row.onclick = function () { showRowPopup(tableRows[i]); };
-                        tbody.appendChild(row);
-                    }
-                    renderPaginationControls();
-                    renderPaginationDetails();
-                }
-
                 // Popup modal for row data
                 function showRowPopup(rowData) {
                     let modal = document.getElementById('rowDataModal');
@@ -100,7 +76,6 @@
                 <div id="rowDataModalBg" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);z-index:9999;display:flex;align-items:center;justify-content:center;">
                   <div style="background:#fff;padding:2em 2.2em;border-radius:16px;min-width:320px;max-width:90vw;box-shadow:0 2px 16px rgba(0,0,0,0.13);position:relative;">
                     <h4 style="margin-top:0;margin-bottom:1em;font-size:1.15em;font-weight:700;color:#2563eb;">Row Data</h4>
-                    <div id="rowDataContent"></div>
                     <div style="display:flex;gap:12px;margin-top:1.5em;justify-content:flex-end;">
                       <style>
                         .modal-btn {
@@ -155,9 +130,6 @@
               `;
                         document.body.appendChild(modal);
                     }
-                    // Fill row data
-                    const content = modal.querySelector('#rowDataContent');
-                    content.innerHTML = '<ul style="list-style:none;padding:0;margin:0 0 1em 0;">' + rowData.map((v, i) => `<li style='margin-bottom:0.5em;'><strong>Col ${i + 1}:</strong> ${v}</li>`).join('') + '</ul>';
                     // Show modal
                     modal.style.display = 'block';
                     // Button events
@@ -172,68 +144,6 @@
                         }
                     };
                 }
-                function renderPaginationControls() {
-                    const controls = document.getElementById('paginationControls');
-                    controls.innerHTML = '';
-                    const totalPages = Math.ceil(tableRows.length / rowsPerPage);
-                    // First page button
-                    const firstBtn = document.createElement('button');
-                    firstBtn.textContent = '«';
-                    firstBtn.className = 'pagination-btn';
-                    firstBtn.disabled = currentPage === 1;
-                    firstBtn.title = 'First page';
-                    firstBtn.onclick = () => { currentPage = 1; renderTable(); };
-                    controls.appendChild(firstBtn);
-                    // Previous page button
-                    const prevBtn = document.createElement('button');
-                    prevBtn.textContent = '‹';
-                    prevBtn.className = 'pagination-btn';
-                    prevBtn.disabled = currentPage === 1;
-                    prevBtn.title = 'Previous page';
-                    prevBtn.onclick = () => { currentPage--; renderTable(); };
-                    controls.appendChild(prevBtn);
-                    // Page numbers
-                    for (let i = 1; i <= totalPages; i++) {
-                        const pageBtn = document.createElement('button');
-                        pageBtn.textContent = i;
-                        pageBtn.className = 'pagination-btn' + (i === currentPage ? ' active' : '');
-                        pageBtn.disabled = i === currentPage;
-                        pageBtn.onclick = () => { currentPage = i; renderTable(); };
-                        controls.appendChild(pageBtn);
-                    }
-                    // Next page button
-                    const nextBtn = document.createElement('button');
-                    nextBtn.textContent = '›';
-                    nextBtn.className = 'pagination-btn';
-                    nextBtn.disabled = currentPage === totalPages;
-                    nextBtn.title = 'Next page';
-                    nextBtn.onclick = () => { currentPage++; renderTable(); };
-                    controls.appendChild(nextBtn);
-                    // Last page button
-                    const lastBtn = document.createElement('button');
-                    lastBtn.textContent = '»';
-                    lastBtn.className = 'pagination-btn';
-                    lastBtn.disabled = currentPage === totalPages;
-                    lastBtn.title = 'Last page';
-                    lastBtn.onclick = () => { currentPage = totalPages; renderTable(); };
-                    controls.appendChild(lastBtn);
-                }
-                function renderPaginationDetails() {
-                    const details = document.getElementById('paginationDetails');
-                    const start = (currentPage - 1) * rowsPerPage + 1;
-                    const end = Math.min(currentPage * rowsPerPage, tableRows.length);
-                    details.innerHTML = `Showing <strong>${start}–${end}</strong> out of <strong>${tableRows.length}</strong> items`;
-                }
-                function showAllRows(e) {
-                    e.preventDefault();
-                    currentPage = 1;
-                    window.rowsPerPageBackup = rowsPerPage;
-                    window.rowsPerPage = tableRows.length;
-                    renderTable();
-                    // Hide show all link after click
-                    document.querySelector('.pagination-showall').style.display = 'none';
-                }
-                renderTable();
             </script>
             </tbody>
             </table>

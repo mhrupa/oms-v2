@@ -1,4 +1,11 @@
 <!DOCTYPE html>
+<script type="text/javascript">
+  function menunav(menupath) {
+    searchString = "";
+    $('#dashboard-main-container').load(menupath);
+  }
+  
+</script>
 <nav id="sidebarMenu" class="d-md-block bg-light sidebar collapse show" style="width: 14%;" th:fragment="sidebar">
   <div class="position-sticky pt-3">
     <div class="d-flex justify-content-end px-3 mb-2 d-md-none">
@@ -8,13 +15,13 @@
     </div>
     <ul class="nav flex-column">
       <li class="nav-item">
-        <a class="nav-link active" aria-current="page" href="#">
+        <a class="nav-link active" aria-current="page" onclick='menunav("/inventory")' href="#">
           <span data-feather="home"></span>
           Inventory
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">
+        <a class="nav-link" onclick='menunav("/orders")' href="#">
           <span data-feather="file"></span>
           Orders
         </a>

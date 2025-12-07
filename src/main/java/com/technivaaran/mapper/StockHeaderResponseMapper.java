@@ -1,12 +1,11 @@
 package com.technivaaran.mapper;
 
+import org.springframework.stereotype.Component;
+
+import com.technivaaran.dto.projections.InventoryRow;
 import com.technivaaran.dto.response.StockResponseDto;
 import com.technivaaran.entities.StockHeader;
 import com.technivaaran.enums.StockTransactionType;
-
-import java.math.BigInteger;
-
-import org.springframework.stereotype.Component;
 
 /**
  *
@@ -14,6 +13,37 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class StockHeaderResponseMapper {
+
+    /**
+     * Convert an InventoryRow into a StockResponseDto. This overload allows
+     * callers who use a projection instead of a raw Object[] or entity to reuse
+     * the same mapping logic.
+     */
+    public StockResponseDto convertToDto(InventoryRow row,
+            StockTransactionType stockTransactionType) {
+        return StockResponseDto.builder()
+                .id(row.id())
+                .box(row.locationName())
+                .boxId(row.locationId())
+                .model(row.modelName())
+                .modelId(row.modelId())
+                .part(row.partNo())
+                .partId(row.partId())
+                .configuration(row.configuration())
+                .configurationId(row.configurationId())
+                .details(row.details())
+                .detailsId(row.id())
+                .qty(row.qty())
+                .vendor(row.vendorName())
+                .vendorId(row.vendorId())
+                .buyPrice(row.buyPrice().floatValue())
+                .sellPrice(row.sellPrice().floatValue())
+                .stockDetailsId(row.stockDetailId())
+                .remarkText(row.remark())
+                .remarkId(row.remarkId())
+                .stockTransactionType(stockTransactionType.type)
+                .build();
+    }
 
     public StockResponseDto convertToDto(StockHeader stockHeaderEntity, StockTransactionType stockTransactionType) {
         return StockResponseDto.builder()
@@ -39,7 +69,7 @@ public class StockHeaderResponseMapper {
                 .stockTransactionType(stockTransactionType.type)
                 .build();
     }
-    
+
     public StockResponseDto convertToDto(String[] data, StockTransactionType stockTransactionType) {
         return StockResponseDto.builder().id(Long.parseLong(data[0]))
                 .box(data[1]).boxId(Long.parseLong(data[2]))

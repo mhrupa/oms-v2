@@ -16,13 +16,33 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-	@ExceptionHandler(value = { IllegalArgumentException.class, IllegalStateException.class, Exception.class })
-	protected ResponseEntity<OmsResponse> handleConflict(RuntimeException ex, WebRequest request) {
-	    ex.printStackTrace();
+	@ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<OmsResponse> handleNoResourceFound(NoResourceFoundException ex, WebRequest request) {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        return new ResponseEntity<>(OmsResponse.builder().message(ex.getMessage()).build(), headers,
+				HttpStatus.NOT_FOUND);
+
+    }
+
+	@ExceptionHandler(value = { IllegalArgumentException.class})
+	protected ResponseEntity<OmsResponse> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+		ex.printStackTrace();
+		HttpHeaders headers = new HttpHeaders();
+		headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+		return new ResponseEntity<>(OmsResponse.builder().message(ex.getMessage()).build(), headers,
+				HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(value = { IllegalStateException.class })
+	protected ResponseEntity<OmsResponse> handleIllegalStateException(IllegalStateException ex, WebRequest request) {
+		ex.printStackTrace();
 		HttpHeaders headers = new HttpHeaders();
 		headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 		return new ResponseEntity<>(OmsResponse.builder().message(ex.getMessage()).build(), headers,
@@ -49,6 +69,15 @@ public class GlobalExceptionHandler {
 		headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 		return new ResponseEntity<>(OmsResponse.builder().message(ex.getCause().getCause().getMessage()).build(),
 				headers, HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(value = { Exception.class })
+	protected ResponseEntity<OmsResponse> handleConflict(Exception ex, WebRequest request) {
+		ex.printStackTrace();
+		HttpHeaders headers = new HttpHeaders();
+		headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+		return new ResponseEntity<>(OmsResponse.builder().message(ex.getMessage()).build(), headers,
+				HttpStatus.BAD_REQUEST);
 	}
 
 }
