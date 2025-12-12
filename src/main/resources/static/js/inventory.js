@@ -2,8 +2,9 @@ var tableRows = "";
 var totalPages = 0;
 var totalElements = 0;
 const rowsPerPage = 10;
-let currentPage = 1;
+var currentPage = 1;
 var searchString = "";
+let currentStock = null;
 
 // Function to render inventory table
 function renderTable() {
@@ -45,11 +46,14 @@ function addInventoryTableRow(item, tableBody) {
 
     // model name
     const td2 = document.createElement('td');
+    td2.classList.add('ellipsis');
+    td2.title = item.modelName;
     td2.textContent = `${item.modelName}`;
     row.appendChild(td2);
 
     // remark
     const td3 = document.createElement('td');
+    td3.classList.add('ellipsis');
     td3.textContent = `${item.remark}`;
     row.appendChild(td3);
 
@@ -70,11 +74,13 @@ function addInventoryTableRow(item, tableBody) {
 
     // quantity
     const td7 = document.createElement('td');
+    td7.classList.add('text-right');
     td7.textContent = `${item.qty}`;
     row.appendChild(td7);
 
     // sell price
     const td8 = document.createElement('td');
+    td8.classList.add('text-right');
     td8.textContent = `${item.sellPrice}`;
     row.appendChild(td8);
 
@@ -84,8 +90,87 @@ function addInventoryTableRow(item, tableBody) {
     row.appendChild(td9);
 
     row.style.cursor = 'pointer';
-    row.onclick = function () { showRowPopup(item); };
+    // row.onclick = function () { showRowPopup(item); };
+    // row.onclick = function () {
+    //     //currentStock = item;
+    //     //renderOverview(item);
+    //     //showDrawerState('overview');
+    //     //stockDrawer.show();
+    // };
+    row.oncontextmenu = function (e) {
+        showContextMenu(e, item);
+    }
     tableBody.append(row);
+}
+
+function showStockDrawer() {
+    $('#stockContextMenu').hide();
+    showDrawerState('overview');
+    stockDrawer.show();
+}
+
+function hideStockDrawer() {
+    stockDrawer.hide();
+}
+
+function centerOffcanvas(widthPx) {
+    const half = widthPx / 2;
+    $('#stockDrawer').css({
+        width: widthPx + 'px',
+        left: '50%',
+        right: 'auto',
+        marginLeft: '-' + half + 'px'
+    });
+}
+
+function resetOffcanvasFullWidth() {
+    $('#stockDrawer').css({
+        width: '100%',
+        left: 0,
+        right: 0,
+        marginLeft: 0
+    });
+}
+
+
+function showDrawerState(state) {
+    // hide all
+    $('#drawerStateOverview, #drawerStateUpdateStock, #drawerStateCreateOrder').addClass('d-none');
+    const $drawer = $('#stockDrawer');
+    $drawer.css('height', '');
+    resetOffcanvasFullWidth();
+    if (state === 'overview') {
+        $('#drawerStateOverview').removeClass('d-none');
+        $('#stockDrawerLabel').text('Stock');
+    } else if (state === 'updateStock') {
+        $('#drawerStateUpdateStock').removeClass('d-none');
+        $('#stockDrawerLabel').text('Update Stock');
+    } else if (state === 'createOrder') {
+        $('#drawerStateCreateOrder').removeClass('d-none');
+        $('#stockDrawerLabel').text('Create Order');
+        $drawer.css('height', '65vh');
+        centerOffcanvas(1150);
+    }
+}
+
+// Hide menu when clicking elsewhere
+function hideContextMenu() {
+    const $menu = $('#stockContextMenu');
+    $menu.removeClass('show');
+    setTimeout(() => $menu.hide(), 120);
+}
+
+function showContextMenu(e, item) {
+    e.preventDefault();
+    currentStock = item;
+    const $menu = $('#stockContextMenu');
+    //$menu.addClass('show');
+    $menu.css({
+        display: 'block',
+        left: e.pageX + 'px',
+        top: e.pageY + 'px'
+    });
+    setTimeout(() => $menu.addClass('show'), 10);
 }
 
 // Function to setup pagination controls
@@ -173,4 +258,65 @@ function showAllRows(e) {
     renderTable();
     // Hide show all link after click
     document.querySelector('.pagination-showall').style.display = 'none';
+}
+
+function createOrder() {
+    if (!currentStock) return;
+
+    const payload = {
+        stockHeaderId: currentStock.id,
+        customerName: $('#ordCustomer').val(),
+        qty: $('#ordQty').val(),
+        sellPrice: $('#ordSellPrice').val(),
+        notes: $('#ordNotes').val()
+        // add other fields needed by your order DTO
+    };
+
+    $.ajax({
+        url: '/api/v2/orders',  // adjust to your actual create-order URL
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        success: function (res) {
+            // TODO: show toast, maybe navigate to order page
+            stockDrawer.hide();
+        }
+    });
+}
+
+function updateStock() {
+    if (!currentStock) return;
+
+    const payload = {
+        id: currentStock.id,
+        qty: $('#updQty').val(),
+        sellPrice: $('#updSellPrice').val(),
+        buyPrice: $('#updBuyPrice').val(),
+        remarkText: $('#updRemark').val()
+        // add other fields you expect in StockRequestDto
+    };
+
+    $.ajax({
+        url: '/api/v2/stock/' + currentStock.id,
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        success: function (res) {
+            // TODO: show success toast, update row in table without full reload
+            location.reload();
+        }
+    });
+}
+
+function deleteStock() {
+    if (!confirm('Delete this stock row?')) return;
+
+    $.ajax({
+        url: '/api/v2/stock/delRow/' + currentStock.id,
+        method: 'POST',
+        success: function (res) {
+            // TODO: show toast from your existing OmsResponse
+            location.reload(); // simplest; or remove row from table
+        }
+    });
 }

@@ -158,3 +158,182 @@
     font-weight: 600;
     box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
 }
+
+#stockContextMenu {
+    border-radius: 12px !important;
+    padding: 6px 0 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+#stockContextMenu .dropdown-item {
+    padding: 10px 16px !important;
+    font-size: 0.95em;
+}
+
+#stockContextMenu .dropdown-item:hover {
+    background-color: #f0f4ff !important;
+    color: #2563eb !important;
+    border-radius: 6px;
+}
+
+#stockContextMenu .dropdown-item.text-danger:hover {
+    background-color: #ffecec !important;
+    color: #d40000 !important;
+}
+
+#stockContextMenu {
+    transform: scale(0.95);
+    opacity: 0;
+    transition: all 120ms ease-out;
+}
+
+#stockContextMenu.show {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Inventory Table css */
+.inventory-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 6px;
+    font-size: 14px;
+}
+
+.inventory-table thead th {
+    background: #f7f8fa;
+    font-weight: 600;
+    padding: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    border-bottom: 2px solid #e2e6ea;
+}
+
+.inventory-table tbody tr {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.inventory-table tbody tr td {
+    padding: 12px 14px;
+    vertical-align: middle;
+}
+
+.inventory-table tbody tr:hover {
+    background: #f2f7ff;
+    cursor: pointer;
+}
+
+/* Right-align numeric columns */
+.text-right {
+    text-align: right;
+}
+
+/* Ellipsis for long text */
+.ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+/* offcanvas styles */
+/* Limit and center the entire offcanvas width */
+#stockDrawer.offcanvas-top {
+    width: 100%;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    top: 0;
+    left: 50%;
+    font-weight: 400;
+    font-size: 1em;
+}
+
+/* Center container inside */
+#stockDrawer .drawer-container {
+    width: 100%;
+    max-width: 1200px;
+    /* adjust as you like */
+    margin: 0 auto;
+}
+
+/* Optional: give the offcanvas itself a subtle shadow and rounded effect, like a floating sheet */
+#stockDrawer.offcanvas-top {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    font-size: 1em;
+}
+
+/* So the header also matches the centered content */
+#stockDrawer .offcanvas-header,
+#stockDrawer .offcanvas-body {
+    max-width: 1150px !important;
+    margin: 0 auto;
+    width: 100%;
+}
+
+#stockDrawer .offcanvas-body {
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+/* Order offcanvas css */
+/* Card look for create-order inside the offcanvas */
+#drawerStateCreateOrder .order-card {
+    max-width: 1080px;
+    /* keeps it from feeling "edge to edge" */
+    margin: 0 auto;
+    /* center the card */
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    padding: 14px 18px;
+    border: 1px solid #e5e7eb;
+}
+
+/* Make each row slimmer and cleanly separated */
+#drawerStateCreateOrder .order-card .input-group {
+    border-bottom: 1px solid #eef1f5;
+    padding: 4px 0;
+}
+
+#drawerStateCreateOrder .order-card .input-group:last-child {
+    border-bottom: none;
+}
+
+/* Label column styling */
+#drawerStateCreateOrder .order-card .input-group-text {
+    width: 160px;
+    background: hsl(220, 14%, 96%);
+    /* font-weight: 500; */
+    font-size: 1.1em;
+    color: #111827;
+    border: none;
+    border-right: 1px solid #e5e7eb;
+}
+
+/* Inputs: remove “hard” borders, more app-like */
+#drawerStateCreateOrder .order-card .form-control,
+#drawerStateCreateOrder .order-card select {
+    border: none;
+    box-shadow: none;
+}
+
+/* Small plus buttons (customer/account) */
+#drawerStateCreateOrder #showCustomerModalBtn,
+#drawerStateCreateOrder #showAccountForPaymentModalBtn {
+    border-radius: 0;
+    border: none;
+    padding-inline: 0.75rem;
+}
+
+/* Bottom action buttons area */
+#drawerStateCreateOrder+.d-flex {
+    margin-top: 8px;
+}
+
+#stockDrawer .offcanvas-body {
+    padding-inline: 24px;
+}

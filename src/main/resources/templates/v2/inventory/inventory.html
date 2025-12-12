@@ -2,6 +2,7 @@
 <div>
     <script>
         $(document).ready(function () {
+            stockDrawer = new bootstrap.Offcanvas('#stockDrawer');
             // Load inventory data
             renderTable();
             // Search functionality
@@ -10,10 +11,44 @@
                 currentPage = 1; // Reset to first page on new search
                 renderTable();
             });
+
+            // Context menu -> Update stock
+            $('#ctxUpdateStock').on('click', function (e) {
+                e.preventDefault();
+                showStockDrawer();
+            });
+
+            // Context menu -> Create order
+            $('#ctxCreateOrder').on('click', function (e) {
+                e.preventDefault();
+                hideContextMenu();
+                if (!currentStock) return;
+                renderCreateOrder(currentStock);
+                showDrawerState('createOrder');
+                stockDrawer.show();
+            });
+
+            // Context menu -> Delete row
+            $('#ctxDeleteRow').on('click', function (e) {
+                e.preventDefault();
+                deleteStock();
+            });
+
+            document.onkeydown = function (e) {
+                if (e.key === 'Escape' || e.key === 'Esc') {
+                    hideContextMenu();
+                }
+            };
+
+            $(document).on("click", function (e) {
+                if (!$(e.target).closest('#stockContextMenu').length) {
+                    hideContextMenu();
+                }
+            });
         });
     </script>
     <link href="/css/inventory.css" rel="stylesheet">
-    <main class="px-md-4" style="margin-left: 14%;">
+    <main class="px-md-4" style="margin-left: 13%;">
         <!-- Table Controls -->
         <div class="table-controls"
             style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
@@ -42,7 +77,8 @@
             </div>
         </div>
         <div class="table-responsive">
-            <table class="modern-table" id="paginatedTable" style="font-size:1em;">
+            <!-- <table class="modern-table" id="paginatedTable" style="font-size:1em;"> -->
+            <table class="inventory-table" style="font-size:1em;">
                 <thead>
                     <tr>
                         <th style="display: none;">id</th>
@@ -52,8 +88,8 @@
                         <th>Part</th>
                         <th>Config</th>
                         <th>Det.</th>
-                        <th>Qty</th>
-                        <th>Sell P.</th>
+                        <th class="text-right">Qty</th>
+                        <th class="text-right">Sell P.</th>
                         <th>Vendor</th>
                     </tr>
                 </thead>
@@ -65,88 +101,224 @@
                 <div id="paginationDetails" class="pagination-details"></div>
                 <div id="paginationControls" class="pagination-controls"></div>
             </div>
-            <script>
-                // Popup modal for row data
-                function showRowPopup(rowData) {
-                    let modal = document.getElementById('rowDataModal');
-                    if (!modal) {
-                        modal = document.createElement('div');
-                        modal.id = 'rowDataModal';
-                        modal.innerHTML = `
-                <div id="rowDataModalBg" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);z-index:9999;display:flex;align-items:center;justify-content:center;">
-                  <div style="background:#fff;padding:2em 2.2em;border-radius:16px;min-width:320px;max-width:90vw;box-shadow:0 2px 16px rgba(0,0,0,0.13);position:relative;">
-                    <h4 style="margin-top:0;margin-bottom:1em;font-size:1.15em;font-weight:700;color:#2563eb;">Row Data</h4>
-                    <div style="display:flex;gap:12px;margin-top:1.5em;justify-content:flex-end;">
-                      <style>
-                        .modal-btn {
-                          display: inline-flex;
-                          align-items: center;
-                          gap: 0.5em;
-                          font-size: 1.08em;
-                          font-weight: 600;
-                          border: none;
-                          border-radius: 8px;
-                          padding: 0.6em 1.4em;
-                          margin: 0 2px;
-                          cursor: pointer;
-                          transition: background 0.2s, box-shadow 0.2s;
-                        }
-                        .modal-btn.update { background: #2563eb; color: #fff; }
-                        .modal-btn.update:hover { background: #1746a2; }
-                        .modal-btn.add { background: #22c55e; color: #fff; }
-                        .modal-btn.add:hover { background: #16a34a; }
-                        .modal-btn.delete { background: #ef4444; color: #fff; }
-                        .modal-btn.delete:hover { background: #b91c1c; }
-                        .modal-btn.close { background: #e5e7eb; color: #222; }
-                        .modal-btn.close:hover { background: #cbd5e1; }
-                        .modal-btn svg {
-                          width: 1.2em;
-                          height: 1.2em;
-                          vertical-align: middle;
-                          margin-right: 0.4em;
-                        }
-                      </style>
-                      <div style="display:flex;gap:12px;margin-top:1.5em;justify-content:flex-end;flex-wrap:wrap;">
-                        <button id="rowUpdateBtn" class="modal-btn update">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
-                          Update
-                        </button>
-                        <button id="rowAddBtn" class="modal-btn add">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg>
-                          Add
-                        </button>
-                        <button id="rowDeleteBtn" class="modal-btn delete">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m5 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>
-                          Delete
-                        </button>
-                        <button id="rowCloseBtn" class="modal-btn close">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                          Close
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              `;
-                        document.body.appendChild(modal);
-                    }
-                    // Show modal
-                    modal.style.display = 'block';
-                    // Button events
-                    modal.querySelector('#rowCloseBtn').onclick = function () { modal.style.display = 'none'; };
-                    modal.querySelector('#rowUpdateBtn').onclick = function () { alert('Update action for: ' + JSON.stringify(rowData)); };
-                    modal.querySelector('#rowAddBtn').onclick = function () { alert('Add action for: ' + JSON.stringify(rowData)); };
-                    modal.querySelector('#rowDeleteBtn').onclick = function () { alert('Delete action for: ' + JSON.stringify(rowData)); };
-                    // ESC key closes modal
-                    document.onkeydown = function (e) {
-                        if (modal.style.display === 'block' && (e.key === 'Escape' || e.key === 'Esc')) {
-                            modal.style.display = 'none';
-                        }
-                    };
-                }
-            </script>
-            </tbody>
-            </table>
         </div>
     </main>
+</div>
+<!-- Right Drawer -->
+<div class="offcanvas offcanvas-top" tabindex="-1" id="stockDrawer" style="text-align: center;"
+    aria-labelledby="stockDrawerLabel">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title" id="stockDrawerLabel" style="font-size: 1.1rem;"></h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+
+    <div class="offcanvas-body d-flex justify-content-center">
+        <div class="drawer-container">
+            <!-- STATE: UPDATE STOCK -->
+            <div id="drawerStateUpdateStock" class="d-none">
+                <form id="formUpdateStock">
+                    <div id="updateStockStaticInfo" class="mb-3">
+                        <!-- read-only info filled by JS -->
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Quantity</label>
+                            <input type="number" class="form-control" name="qty" id="updQty">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Sell Price</label>
+                            <input type="number" class="form-control" name="sellPrice" id="updSellPrice">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Buy Price</label>
+                            <input type="number" class="form-control" name="buyPrice" id="updBuyPrice">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Remark</label>
+                            <input type="text" class="form-control" name="remarkText" id="updRemark">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary" id="btnCancelUpdateStock">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Update
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- STATE: CREATE ORDER -->
+            <div id="drawerStateCreateOrder" class="d-none">
+                <form id="formCreateOrder">
+                    <div class="row g-2 mb-3">
+                        <div class="col-12 d-flex justify-content-center">
+                            <div class="order-card w-100">
+                                <div class="input-group mb-0">
+                                    <span class="input-group-text"
+                                        style="width: 140px; text-align: right; display: block;">Challan
+                                        No</span> <span class="form-control" id="challanNo"></span>
+                                </div>
+                                <div class="input-group mb-0">
+                                    <span class="input-group-text"
+                                        style="width: 140px; text-align: right; display: block;">Order
+                                        Date</span> <input type="text" readonly class="form-control" id="datepicker">
+                                </div>
+                                <div class="input-group mb-0" style="display: none;">
+                                    <span class="input-group-text">stockHeaderId</span> <input type="text"
+                                        disabled="disabled" class="form-control" id="stockHeaderId">
+                                </div>
+                                <div class="input-group mb-0" style="display: none;">
+                                    <span class="input-group-text">stockDetailId</span> <input type="text"
+                                        disabled="disabled" class="form-control" id="stockDetailsId">
+                                </div>
+                                <div class="input-group mb-0">
+                                    <span class="input-group-text"
+                                        style="width: 140px; text-align: right; display: block;">Particulars</span>
+                                    <span type="text" disabled="disabled" class="form-control text-break"
+                                        id="itemDetailsForOrder"></span>
+                                </div>
+                                <div class="input-group mb-0">
+                                    <span class="input-group-text"
+                                        style="width: 140px; text-align: right; display: block;">Customer</span>
+                                    <input class="form-control" autocomplete="off" list="customerData" accesskey="b"
+                                        id="customer" placeholder="Search Customer...">
+                                    <datalist id="customerData">
+                                    </datalist>
+                                    <button type="button" class="btn btn-secondary" tabindex="-1"
+                                        data-bs-toggle="tooltip" data-bs-placement="top" id="showCustomerModalBtn"
+                                        title="Add new Customer">+</button>
+                                </div>
+
+                                <div class="input-group mb-0">
+                                    <span class="input-group-text"
+                                        style="width: 140px; text-align: right; display: block;">Sell
+                                        Price</span> <input type="text" style="max-width: 160px;" disabled="disabled"
+                                        class="form-control" id="itemSellRate">
+                                    <input type="number" style="max-width: 130px; display: block;" min="0" step=".01"
+                                        class="form-control" id="newItemSellRate">
+                                    <input type="text" value="" disabled="disabled" class="form-control">
+                                </div>
+                                <div class="input-group mb-0">
+                                    <span class="input-group-text"
+                                        style="width: 140px; text-align: right; display: block;">Quantity</span>
+                                    <input type="number" style="max-width: 160px;" class="form-control" value="0"
+                                        id="itemQuantity"> <span class="input-group-text"
+                                        style="width: 130px; text-align: right; display: block;">Amount</span>
+                                    <input type="number" min="0" step=".01" disabled="disabled" class="form-control"
+                                        id="itemAmount">
+                                </div>
+                                <div class="input-group mb-0">
+                                    <span class="input-group-text"
+                                        style="width: 140px; text-align: right; display: block;">Courier
+                                        Charges</span> <input type="number" value="0" min="0" class="form-control"
+                                        style="max-width: 160px;" id="courierCharges"> <span class="input-group-text"
+                                        style="width: 130px; text-align: right; display: block;">Order
+                                        Amount</span> <input type="number" min="0" disabled="disabled"
+                                        class="form-control" id="orderAmount">
+                                </div>
+                                <div class="input-group mb-0"></div>
+                                <div class="input-group mb-0">
+                                    <span class="input-group-text"
+                                        style="width: 140px; text-align: right; display: block;">Payment
+                                        Type</span> <select class="form-control" id="paymentType"
+                                        style="max-width: 160px;">
+                                        <option value="0">Select Payment Type</option>
+                                        <option value="cash">Cash</option>
+                                        <option value="vpp">VPP</option>
+                                        <option value="paytm">Paytm</option>
+                                        <option value="bank">Bank</option>
+                                        <option value="pending">Pending</option>
+                                    </select> <span class="input-group-text"
+                                        style="width: 130px; text-align: right; display: block;">Account
+                                        Name</span> <select class="form-control" id="orderRemark" disabled>
+                                    </select>
+                                    <button type="button" class="btn btn-secondary" tabindex="-1"
+                                        data-bs-toggle="tooltip" data-bs-placement="top"
+                                        id="showAccountForPaymentModalBtn" title="Add Account">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary" id="btnCancelCreateOrder">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Create Order
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    function renderUpdateStock(stock) {
+        $('#updateStockStaticInfo').html(`
+      <div class="mb-2 fw-semibold">${stock.box} – ${stock.model}</div>
+      <div class="small text-muted mb-2">
+        ${stock.part} · ${stock.configuration} · Vendor: ${stock.vendor}
+      </div>
+    `);
+        $('#updQty').val(stock.qty);
+        $('#updSellPrice').val(stock.sellPrice);
+        $('#updBuyPrice').val(stock.buyPrice);
+        $('#updRemark').val(stock.remarkText || '');
+    }
+
+    function renderCreateOrder(stock) {
+
+        // $('#ordQty').val(1);
+        // $('#ordSellPrice').val(stock.sellPrice);
+        // $('#ordCustomer').val('');
+        // $('#ordNotes').val('');
+    }
+
+    // Overview buttons
+    $('#btnDrawerUpdateStock').on('click', function () {
+        if (!currentStock) return;
+        renderUpdateStock(currentStock);
+        showDrawerState('updateStock');
+    });
+
+    $('#btnDrawerCreateOrder').on('click', function () {
+        if (!currentStock) return;
+        renderCreateOrder(currentStock);
+        showDrawerState('createOrder');
+    });
+
+    // Cancel buttons – back to overview
+    $('#btnCancelUpdateStock').on('click', function () {
+        showDrawerState('overview');
+    });
+    $('#btnCancelCreateOrder').on('click', function () {
+        showDrawerState('overview');
+    });
+
+</script>
+<div>
+    <!-- Custom context menu for inventory row -->
+    <ul id="stockContextMenu" class="dropdown-menu" style="position:absolute; display:none;font-size: 1em;">
+        <li><a class="dropdown-item" href="#" id="ctxCreateOrder"><i class="bi bi-cart-plus me-2"></i>Create Order</a>
+        </li>
+        <li>
+            <hr class="dropdown-divider">
+        </li>
+        <li><a class="dropdown-item" href="#" id="ctxUpdateStock"><i class="bi bi-pencil-square me-2"></i>Update
+                Stock</a></li>
+        <li><a class="dropdown-item" href="#" id="ctxAddStock"><i class="bi bi-bag-plus me-2"></i>Add Stock</a>
+        </li>
+        <li>
+            <hr class="dropdown-divider">
+        </li>
+        <li><a class="dropdown-item text-danger" href="#" id="ctxDeleteRow"><i class="bi bi-trash me-2"></i>Delete
+                Row</a></li>
+    </ul>
+
 </div>
