@@ -337,3 +337,13 @@
 #stockDrawer .offcanvas-body {
     padding-inline: 24px;
 }
+
+.order-form .form-label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.order-form input[readonly],
+.order-form select[disabled] {
+    background: #f3f4f6;
+}

@@ -154,106 +154,103 @@
             <!-- STATE: CREATE ORDER -->
             <div id="drawerStateCreateOrder" class="d-none">
                 <form id="formCreateOrder">
-                    <div class="row g-2 mb-3">
-                        <div class="col-12 d-flex justify-content-center">
-                            <div class="order-card w-100">
-                                <div class="input-group mb-0">
-                                    <span class="input-group-text"
-                                        style="width: 140px; text-align: right; display: block;">Challan
-                                        No</span> <span class="form-control" id="challanNo"></span>
-                                </div>
-                                <div class="input-group mb-0">
-                                    <span class="input-group-text"
-                                        style="width: 140px; text-align: right; display: block;">Order
-                                        Date</span> <input type="text" readonly class="form-control" id="datepicker">
-                                </div>
-                                <div class="input-group mb-0" style="display: none;">
-                                    <span class="input-group-text">stockHeaderId</span> <input type="text"
-                                        disabled="disabled" class="form-control" id="stockHeaderId">
-                                </div>
-                                <div class="input-group mb-0" style="display: none;">
-                                    <span class="input-group-text">stockDetailId</span> <input type="text"
-                                        disabled="disabled" class="form-control" id="stockDetailsId">
-                                </div>
-                                <div class="input-group mb-0">
-                                    <span class="input-group-text"
-                                        style="width: 140px; text-align: right; display: block;">Particulars</span>
-                                    <span type="text" disabled="disabled" class="form-control text-break"
-                                        id="itemDetailsForOrder"></span>
-                                </div>
-                                <div class="input-group mb-0">
-                                    <span class="input-group-text"
-                                        style="width: 140px; text-align: right; display: block;">Customer</span>
-                                    <input class="form-control" autocomplete="off" list="customerData" accesskey="b"
-                                        id="customer" placeholder="Search Customer...">
-                                    <datalist id="customerData">
-                                    </datalist>
-                                    <button type="button" class="btn btn-secondary" tabindex="-1"
-                                        data-bs-toggle="tooltip" data-bs-placement="top" id="showCustomerModalBtn"
-                                        title="Add new Customer">+</button>
-                                </div>
 
-                                <div class="input-group mb-0">
-                                    <span class="input-group-text"
-                                        style="width: 140px; text-align: right; display: block;">Sell
-                                        Price</span> <input type="text" style="max-width: 160px;" disabled="disabled"
-                                        class="form-control" id="itemSellRate">
-                                    <input type="number" style="max-width: 130px; display: block;" min="0" step=".01"
-                                        class="form-control" id="newItemSellRate">
-                                    <input type="text" value="" disabled="disabled" class="form-control">
-                                </div>
-                                <div class="input-group mb-0">
-                                    <span class="input-group-text"
-                                        style="width: 140px; text-align: right; display: block;">Quantity</span>
-                                    <input type="number" style="max-width: 160px;" class="form-control" value="0"
-                                        id="itemQuantity"> <span class="input-group-text"
-                                        style="width: 130px; text-align: right; display: block;">Amount</span>
-                                    <input type="number" min="0" step=".01" disabled="disabled" class="form-control"
-                                        id="itemAmount">
-                                </div>
-                                <div class="input-group mb-0">
-                                    <span class="input-group-text"
-                                        style="width: 140px; text-align: right; display: block;">Courier
-                                        Charges</span> <input type="number" value="0" min="0" class="form-control"
-                                        style="max-width: 160px;" id="courierCharges"> <span class="input-group-text"
-                                        style="width: 130px; text-align: right; display: block;">Order
-                                        Amount</span> <input type="number" min="0" disabled="disabled"
-                                        class="form-control" id="orderAmount">
-                                </div>
-                                <div class="input-group mb-0"></div>
-                                <div class="input-group mb-0">
-                                    <span class="input-group-text"
-                                        style="width: 140px; text-align: right; display: block;">Payment
-                                        Type</span> <select class="form-control" id="paymentType"
-                                        style="max-width: 160px;">
-                                        <option value="0">Select Payment Type</option>
-                                        <option value="cash">Cash</option>
-                                        <option value="vpp">VPP</option>
-                                        <option value="paytm">Paytm</option>
-                                        <option value="bank">Bank</option>
-                                        <option value="pending">Pending</option>
-                                    </select> <span class="input-group-text"
-                                        style="width: 130px; text-align: right; display: block;">Account
-                                        Name</span> <select class="form-control" id="orderRemark" disabled>
-                                    </select>
-                                    <button type="button" class="btn btn-secondary" tabindex="-1"
-                                        data-bs-toggle="tooltip" data-bs-placement="top"
-                                        id="showAccountForPaymentModalBtn" title="Add Account">+</button>
-                                </div>
+                    <div class="order-form">
+
+                        <!-- Challan No -->
+                        <div class="mb-3">
+                            <label class="form-label">Challan No</label>
+                            <input type="text" class="form-control" id="challanNo" readonly>
+                        </div>
+
+                        <!-- Order Date -->
+                        <div class="mb-3">
+                            <label class="form-label">Order Date</label>
+                            <input type="text" class="form-control" id="datepicker" readonly>
+                        </div>
+
+                        <!-- Particulars -->
+                        <div class="mb-3">
+                            <label class="form-label">Particulars</label>
+                            <input type="text" class="form-control" id="itemDetailsForOrder" readonly>
+                        </div>
+
+                        <!-- Customer + Add button -->
+                        <div class="mb-3">
+                            <label class="form-label">Customer</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="customer" placeholder="Search Customer..."
+                                    list="customerData">
+                                <button class="btn btn-outline-secondary" id="showCustomerModalBtn"
+                                    type="button">+</button>
+                            </div>
+                            <datalist id="customerData"></datalist>
+                        </div>
+
+                        <!-- Sell Price -->
+                        <div class="mb-3">
+                            <label class="form-label">Sell Price</label>
+                            <input type="number" class="form-control" id="itemSellRate" readonly>
+                        </div>
+
+                        <!-- Quantity + Amount -->
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="itemQuantity" value="0">
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Amount</label>
+                                <input type="number" class="form-control" id="itemAmount" readonly>
                             </div>
                         </div>
+
+                        <!-- Courier Charges + Order Amount -->
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Courier Charges</label>
+                                <input type="number" class="form-control" id="courierCharges" value="0">
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Order Amount</label>
+                                <input type="number" class="form-control" id="orderAmount" readonly>
+                            </div>
+                        </div>
+
+                        <!-- Payment Type -->
+                        <div class="mb-3">
+                            <label class="form-label">Payment Type</label>
+                            <select class="form-control" id="paymentType">
+                                <option value="0">Select Payment Type</option>
+                                <option value="cash">Cash</option>
+                                <option value="vpp">VPP</option>
+                                <option value="paytm">Paytm</option>
+                                <option value="bank">Bank</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
+
+                        <!-- Account Name + Add button -->
+                        <div class="mb-3">
+                            <label class="form-label">Account Name</label>
+                            <div class="input-group">
+                                <select class="form-select" id="orderRemark"></select>
+                                <button class="btn btn-outline-secondary" id="showAccountForPaymentModalBtn"
+                                    type="button">+</button>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-outline-secondary" id="btnCancelCreateOrder">
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn btn-primary">
-                            Create Order
-                        </button>
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button type="button" class="btn btn-secondary" id="btnCancelCreateOrder">Close</button>
+                        <button type="submit" class="btn btn-primary">Create Order</button>
                     </div>
+
                 </form>
             </div>
+
         </div>
     </div>
 </div>
