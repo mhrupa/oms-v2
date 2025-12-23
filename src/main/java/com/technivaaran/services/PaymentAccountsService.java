@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.technivaaran.dto.OmsResponse;
 import com.technivaaran.entities.PaymentAccountsEntity;
 import com.technivaaran.repositories.PaymentAccountsRepository;
+import com.technivaaran.ws.WsEventPublisher;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,9 @@ public class PaymentAccountsService {
     @Autowired
     private PaymentAccountsRepository paymentAccountsRepository;
 
+    @Autowired
+    private WsEventPublisher wsEventPublisher;
+
     public ResponseEntity<OmsResponse> createPaymentAccount(String paymentAccountName) {
         Optional<PaymentAccountsEntity> paymentAccountOp = paymentAccountsRepository
                 .findByAccountName(paymentAccountName);
@@ -26,6 +30,8 @@ public class PaymentAccountsService {
                     .accountName(paymentAccountName)
                     .build();
             paymentAccountsRepository.save(accountsEntity);
+            wsEventPublisher.paymentAccountChanged();
+
             return new ResponseEntity<>(OmsResponse.builder().message("Payment Account created successfully.")
                     .data(accountsEntity).build(), HttpStatus.CREATED);
         } else {

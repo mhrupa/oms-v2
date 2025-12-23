@@ -8,20 +8,33 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
-    <script src="/js/bootstrap.bundle.min.js"> </script>
-    <script src="/js/dashboard.js"></script>
-    <script src="/js/feather.min.js"></script>
-    <script src="/js/jquery-3.7.1.min.js"></script>
-    <script src="/js/inventory.js"></script>
-
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/bootstrap-datepicker.min.css">
+    <link rel="stylesheet" href="/css/datepicker-modern.css">
     <link rel="stylesheet" href="/css/sidebar.css">
 
-    
+    <script src="/js/jquery-3.7.1.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/feather.min.js"></script>
+    <script src="/js/bootstrap-datepicker.min.js"></script>
+
+    <script src="/js/components/search-dropdown.js"></script>
+    <script src="/js/store/customer-store.js"></script>
+    <script src="/js/store/payment-account-store.js"></script>
+
+    <script src="/js/ws/sockjs.min.js"></script>
+    <script src="/js/ws/stomp.umd.min.js"></script>
+    <script src="/js/ws/ws-client.js"></script>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/dashboard.js"></script>
+    <script src="/js/inventory.js"></script>
+    <script src="/js/create-order.js"></script>
+
+
     <script type="text/javascript">
         $.ajaxSetup({
-            async: false,
             contentType: "application/json; charset=utf-8",
             beforeSend: function (xhr, settings) {
                 settings.url = "/api" + settings.url;
@@ -32,6 +45,13 @@
                 if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) { return false; }
             });
             $("#desktop").load("/login");
+            if (window.OmsWs) OmsWs.connect();
+            if (window.CustomerStore) {
+                CustomerStore.load(false);
+            }
+            if (window.CustomerAccountStore) {
+                CustomerAccountStore.load(false);
+            }
         });
     </script>
 </head>
@@ -45,6 +65,11 @@
             <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
+    <div th:replace="modals/create-customer-modal :: createCustomerModal"></div>
+    <div th:replace="modals/create-payment-account-modal :: createPaymentAccountModal"></div>
+    <!-- scripts -->
+    <script src="/js/modals/create-customer-modal.js"></script>
+    <script src="/js/modals/create-payment-account-modal.js"></script>
 </body>
 
 </html>

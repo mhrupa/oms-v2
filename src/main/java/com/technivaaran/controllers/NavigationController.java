@@ -171,4 +171,9 @@ public class NavigationController {
 	public String getInventoryFragment() {
 		return "v2/inventory/inventory";
 	}
+
+	@GetMapping("/inventory/create-order")
+	public String getInventoryCreateOrderFragment() {
+		return "v2/inventory/create-order";
+	}
 }

@@ -1,0 +1,69 @@
+<div th:fragment="createCustomerModal">
+
+    <!-- Create Customer Modal -->
+    <div class="modal fade" id="createCustomerModal" tabindex="-1" aria-labelledby="createCustomerModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createCustomerModalLabel">Create Customer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <form id="createCustomerForm" novalidate>
+                    <div class="modal-body">
+
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label for="ccCustomerName" class="form-label">Customer Name <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="ccCustomerName" name="customerName" required
+                                    maxlength="120" />
+                                <div class="invalid-feedback">Customer Name is required.</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="ccLocation" class="form-label">Location</label><span
+                                        class="text-danger">*</span>
+                                <input type="text" class="form-control" id="ccLocation" name="location" required
+                                    maxlength="80" />
+                                <div class="invalid-feedback">Customer Location is required.</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="ccEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="ccEmail" name="email" maxlength="120" />
+                                <div class="invalid-feedback">Please enter a valid email.</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="ccContact" class="form-label">Contact</label>
+                                <input type="text" class="form-control" id="ccContact" name="contact"
+                                    maxlength="20" />
+                                <!-- <div class="invalid-feedback">Contact is required.</div> -->
+                                <div class="form-text">Digits only (you can format later if needed).</div>
+                            </div>
+                        </div>
+
+                        <div id="ccErrorBox" class="alert alert-danger mt-3 d-none" role="alert"></div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                            id="ccBtnClose">Close</button>
+                        <button type="submit" class="btn btn-primary" id="ccBtnCreate">
+                            <span class="spinner-border spinner-border-sm me-2 d-none" id="ccSpinner"
+                                aria-hidden="true"></span>
+                            Create Customer
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+
+</div>

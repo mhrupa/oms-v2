@@ -1,6 +1,7 @@
 var appUser = new Object();
 var company = new Object();
 var customerUpdateData = new Object();
+var selectedRowData = new Object();
 var searchString = "";
 var showBuyPrice = false;
 var items = new Array();

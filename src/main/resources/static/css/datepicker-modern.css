@@ -1,0 +1,124 @@
+/* ===== Modern theme for bootstrap-datepicker ===== */
+
+/* Main popup */
+.datepicker {
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+    font-family: inherit;
+}
+
+/* Header row: month/year + arrows */
+.datepicker .datepicker-days .table-condensed thead tr:first-child th {
+    border-radius: 12px;
+    height: 44px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111;
+}
+
+/* Center month text */
+.datepicker .datepicker-switch {
+    font-weight: 700 !important;
+    letter-spacing: 0.2px;
+}
+
+/* Prev/Next buttons */
+.datepicker .prev,
+.datepicker .next {
+    width: 42px;
+    border-radius: 12px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #111;
+}
+
+.datepicker .prev:hover,
+.datepicker .next:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+/* Weekday "pill" bar (Su Mo Tu...) */
+.datepicker .datepicker-days thead tr:nth-child(2) th {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(17, 17, 17, 0.45);
+    padding: 10px 0;
+    border: 0;
+}
+
+/* Create a rounded light background behind weekday row */
+.datepicker .datepicker-days thead tr:nth-child(2) {
+    background: #eef3f8;
+    border-radius: 12px;
+}
+
+.datepicker .datepicker-days thead tr:nth-child(2) th:first-child {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.datepicker .datepicker-days thead tr:nth-child(2) th:last-child {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+/* Calendar cells */
+.datepicker table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 10px 10px;
+    /* airy spacing */
+}
+
+.datepicker table tr td,
+.datepicker table tr th {
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    border-radius: 12px;
+}
+
+/* Normal day */
+.datepicker table tr td.day {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111;
+}
+
+/* Hover */
+.datepicker table tr td.day:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+/* Disabled days (previous/next month, blocked dates) */
+.datepicker table tr td.disabled,
+.datepicker table tr td.old,
+.datepicker table tr td.new {
+    color: rgba(17, 17, 17, 0.28) !important;
+}
+
+/* Selected day */
+.datepicker table tr td.active,
+.datepicker table tr td.active:hover,
+.datepicker table tr td.active:focus {
+    background: #2f63d4 !important;
+    /* similar to your 2nd image blue */
+    color: #fff !important;
+    text-shadow: none;
+}
+
+/* Today highlight (optional) */
+.datepicker table tr td.today,
+.datepicker table tr td.today:hover {
+    background: rgba(47, 99, 212, 0.12) !important;
+    color: #2f63d4 !important;
+    border-radius: 12px;
+}
+
+/* Remove default borders */
+.datepicker table tr td,
+.datepicker table tr th {
+    border: 0 !important;
+}

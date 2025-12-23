@@ -2,6 +2,8 @@
 <div>
     <script>
         $(document).ready(function () {
+            // example if you use jQuery UI or bootstrap-datepicker
+
             stockDrawer = new bootstrap.Offcanvas('#stockDrawer');
             // Load inventory data
             renderTable();
@@ -26,6 +28,7 @@
                 renderCreateOrder(currentStock);
                 showDrawerState('createOrder');
                 stockDrawer.show();
+                openCreateOrder(selectedRowData);
             });
 
             // Context menu -> Delete row
@@ -105,8 +108,7 @@
     </main>
 </div>
 <!-- Right Drawer -->
-<div class="offcanvas offcanvas-top" tabindex="-1" id="stockDrawer" style="text-align: center;"
-    aria-labelledby="stockDrawerLabel">
+<div class="offcanvas offcanvas-top" tabindex="-1" id="stockDrawer" aria-labelledby="stockDrawerLabel">
     <div class="offcanvas-header border-bottom">
         <h5 class="offcanvas-title" id="stockDrawerLabel" style="font-size: 1.1rem;"></h5>
         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -152,110 +154,11 @@
             </div>
 
             <!-- STATE: CREATE ORDER -->
-            <div id="drawerStateCreateOrder" class="d-none">
-                <form id="formCreateOrder">
-
-                    <div class="order-form">
-
-                        <!-- Challan No -->
-                        <div class="mb-3">
-                            <label class="form-label">Challan No</label>
-                            <input type="text" class="form-control" id="challanNo" readonly>
-                        </div>
-
-                        <!-- Order Date -->
-                        <div class="mb-3">
-                            <label class="form-label">Order Date</label>
-                            <input type="text" class="form-control" id="datepicker" readonly>
-                        </div>
-
-                        <!-- Particulars -->
-                        <div class="mb-3">
-                            <label class="form-label">Particulars</label>
-                            <input type="text" class="form-control" id="itemDetailsForOrder" readonly>
-                        </div>
-
-                        <!-- Customer + Add button -->
-                        <div class="mb-3">
-                            <label class="form-label">Customer</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="customer" placeholder="Search Customer..."
-                                    list="customerData">
-                                <button class="btn btn-outline-secondary" id="showCustomerModalBtn"
-                                    type="button">+</button>
-                            </div>
-                            <datalist id="customerData"></datalist>
-                        </div>
-
-                        <!-- Sell Price -->
-                        <div class="mb-3">
-                            <label class="form-label">Sell Price</label>
-                            <input type="number" class="form-control" id="itemSellRate" readonly>
-                        </div>
-
-                        <!-- Quantity + Amount -->
-                        <div class="row">
-                            <div class="col-6 mb-3">
-                                <label class="form-label">Quantity</label>
-                                <input type="number" class="form-control" id="itemQuantity" value="0">
-                            </div>
-                            <div class="col-6 mb-3">
-                                <label class="form-label">Amount</label>
-                                <input type="number" class="form-control" id="itemAmount" readonly>
-                            </div>
-                        </div>
-
-                        <!-- Courier Charges + Order Amount -->
-                        <div class="row">
-                            <div class="col-6 mb-3">
-                                <label class="form-label">Courier Charges</label>
-                                <input type="number" class="form-control" id="courierCharges" value="0">
-                            </div>
-                            <div class="col-6 mb-3">
-                                <label class="form-label">Order Amount</label>
-                                <input type="number" class="form-control" id="orderAmount" readonly>
-                            </div>
-                        </div>
-
-                        <!-- Payment Type -->
-                        <div class="mb-3">
-                            <label class="form-label">Payment Type</label>
-                            <select class="form-control" id="paymentType">
-                                <option value="0">Select Payment Type</option>
-                                <option value="cash">Cash</option>
-                                <option value="vpp">VPP</option>
-                                <option value="paytm">Paytm</option>
-                                <option value="bank">Bank</option>
-                                <option value="pending">Pending</option>
-                            </select>
-                        </div>
-
-                        <!-- Account Name + Add button -->
-                        <div class="mb-3">
-                            <label class="form-label">Account Name</label>
-                            <div class="input-group">
-                                <select class="form-select" id="orderRemark"></select>
-                                <button class="btn btn-outline-secondary" id="showAccountForPaymentModalBtn"
-                                    type="button">+</button>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="d-flex justify-content-end gap-2 mt-3">
-                        <button type="button" class="btn btn-secondary" id="btnCancelCreateOrder">Close</button>
-                        <button type="submit" class="btn btn-primary">Create Order</button>
-                    </div>
-
-                </form>
-            </div>
-
+            <div id="createOrderDrawerContent"></div>
         </div>
     </div>
 </div>
 <script>
-
     function renderUpdateStock(stock) {
         $('#updateStockStaticInfo').html(`
       <div class="mb-2 fw-semibold">${stock.box} – ${stock.model}</div>
@@ -270,7 +173,13 @@
     }
 
     function renderCreateOrder(stock) {
-
+        selectedRowData = stock;
+        if (!createOrderLoaded) {
+            $('#createOrderDrawerContent').load('/inventory/create-order', function () {
+                //loadCreateOrderView(stock);
+                createOrderLoaded = true;
+            });
+        }
         // $('#ordQty').val(1);
         // $('#ordSellPrice').val(stock.sellPrice);
         // $('#ordCustomer').val('');
@@ -282,12 +191,6 @@
         if (!currentStock) return;
         renderUpdateStock(currentStock);
         showDrawerState('updateStock');
-    });
-
-    $('#btnDrawerCreateOrder').on('click', function () {
-        if (!currentStock) return;
-        renderCreateOrder(currentStock);
-        showDrawerState('createOrder');
     });
 
     // Cancel buttons – back to overview

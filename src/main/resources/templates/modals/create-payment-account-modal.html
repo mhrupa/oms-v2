@@ -1,0 +1,43 @@
+<div th:fragment="createPaymentAccountModal">
+
+    <!-- Create Customer Modal -->
+    <div class="modal fade" id="createPaymentAccountModal" tabindex="-1"
+        aria-labelledby="createPaymentAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createPaymentAccountModalLabel">Create Payment Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <form id="createPaymentAccountForm" novalidate>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="form-floating flex-grow-1 position-relative customer-select">
+                                <input maxlength="120" class="form-control" id="ccAccountName" autocomplete="off"
+                                    placeholder="Account Name" required>
+                                <label for="ccAccountName">Account Name </label>
+                                <input type="hidden" id="paymentAccountId" />
+                                <div class="invalid-feedback">Account Name is required.</div>
+                            </div>
+                            <div id="ccErrorBox" class="alert alert-danger mt-3 d-none" role="alert"></div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                                id="ccBtnClose">Close</button>
+                            <button type="submit" class="btn btn-primary" id="ccBtnCreate">
+                                <span class="spinner-border spinner-border-sm me-2 d-none" id="ccSpinner"
+                                    aria-hidden="true"></span>
+                                Create Account
+                            </button>
+                        </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+
+</div>

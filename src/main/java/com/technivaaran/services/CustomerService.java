@@ -1,7 +1,14 @@
 package com.technivaaran.services;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
 
 import com.technivaaran.dto.CustomerDto;
 import com.technivaaran.dto.OmsResponse;
@@ -9,11 +16,8 @@ import com.technivaaran.entities.CustomerEntity;
 import com.technivaaran.exceptions.OMSException;
 import com.technivaaran.mapper.CustomerMapper;
 import com.technivaaran.repositories.CustomerRepository;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import com.technivaaran.utils.JsonUtils;
+import com.technivaaran.ws.WsEventPublisher;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,6 +31,9 @@ public class CustomerService {
     @Autowired
     private CustomerMapper customerMapper;
 
+    @Autowired
+    private WsEventPublisher wsEventPublisher;
+
     public Optional<CustomerEntity> findCustomerById(long customerId) {
         return customerRepository.findById(customerId);
     }
@@ -36,7 +43,7 @@ public class CustomerService {
     }
 
     public List<CustomerEntity> findAllCustomers() {
-        //return customerRepository.findAll();
+        // return customerRepository.findAll();
         return customerRepository.findAllNonDeletedCustomers();
     }
 
@@ -47,10 +54,12 @@ public class CustomerService {
         if (customerOp.isEmpty()) {
             customer = customerMapper.convertToEntity(customerDto);
             customer = customerRepository.save(customer);
-            log.info("Customer Creation completed.");
+            log.debug("Customer Creation completed.");
+
+            wsEventPublisher.customerChanged();
+
             return new ResponseEntity<>(OmsResponse.builder().message("Customer created successfully")
-                    .data(customer).build(),
-                    HttpStatus.CREATED);
+                    .data(customer).build(), HttpStatus.CREATED);
         } else {
             return new ResponseEntity<>(OmsResponse.builder().message("Customer already exists.")
                     .build(), HttpStatus.BAD_REQUEST);

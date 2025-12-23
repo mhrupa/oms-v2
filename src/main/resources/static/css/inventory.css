@@ -1,349 +1,470 @@
+/* =========================================================
+   inventory.css  (CLEANED)
+   ========================================================= */
+
+/* =========================
+   Inventory / Table Styles
+   ========================= */
+
 .modern-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    font-size: 1rem;
-    background: #fff;
-    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 1rem;
+  background: #fff;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
 }
 
 .modern-table th {
-    padding: 0.92em 0.7em;
-    border-bottom: 1px solid #e5e7eb;
-    text-align: left;
-    font-size: 0.90em;
+  padding: 0.92em 0.7em;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  font-size: 0.9em;
 }
 
 .modern-table td {
-    padding: 0.62em 0.7em;
-    border-bottom: 1px solid #e5e7eb;
-    text-align: left;
-    font-size: 0.90em;
+  padding: 0.62em 0.7em;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  font-size: 0.9em;
 }
 
 .modern-table th {
-    background: #f8fafc;
-    font-weight: 700;
-    color: #222;
-    border-bottom: none;
+  background: #f8fafc;
+  font-weight: 700;
+  color: #222;
+  border-bottom: none;
 }
 
 .modern-table thead tr {
-    border-radius: 18px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .modern-table thead th:first-child {
-    border-top-left-radius: 14px;
+  border-top-left-radius: 14px;
 }
 
 .modern-table thead th:last-child {
-    border-top-right-radius: 14px;
+  border-top-right-radius: 14px;
 }
 
 .modern-table tr:nth-child(even) td {
-    background: #f6f7f8;
+  background: #f6f7f8;
 }
 
 .modern-table tbody tr:hover td {
-    background: #e0e7ef;
-    transition: background 0.2s;
+  background: #e0e7ef;
+  transition: background 0.2s;
 }
 
 .modern-table .table-checkbox {
-    accent-color: #2563eb;
-    width: 1.2em;
-    height: 1.2em;
+  accent-color: #2563eb;
+  width: 1.2em;
+  height: 1.2em;
 }
 
+/* =========================
+   Sidebar / Layout
+   ========================= */
 
 .sidebar-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 240px;
-    height: 100vh;
-    z-index: 1050;
-    background: #f8fafc;
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.07);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100vh;
+  z-index: 1050;
+  background: #f8fafc;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.07);
 }
 
 .main-content-area {
-    /* margin-left: 240px; */
-    margin-left: 0%;
-    transition: margin-left 0.3s;
-    margin-right: 0px;
+  margin-left: 0%;
+  transition: margin-left 0.3s;
+  margin-right: 0px;
 }
 
 .dashboard-header {
-    width: 100%;
-    background: #f8fafc;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-    z-index: 1;
-    position: relative;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 24px;
+  width: 100%;
+  background: #f8fafc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  z-index: 1;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
 }
 
-/* pagination css */
+/* =========================
+   Pagination
+   ========================= */
+
 .pagination-container {
-    margin-top: 18px;
-    background: #f8fafc;
-    border-radius: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 32px 18px 32px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-    font-size: 1.05em;
+  margin-top: 18px;
+  background: #f8fafc;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  font-size: 1.05em;
 }
 
 .pagination-details {
-    color: #222;
-    font-weight: 500;
-    letter-spacing: 0.01em;
+  color: #222;
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 .pagination-details strong {
-    font-weight: 700;
+  font-weight: 700;
 }
 
 .pagination-showall {
-    color: #2563eb;
-    text-decoration: none;
-    font-weight: 600;
-    margin-left: 10px;
-    cursor: pointer;
-    transition: color 0.2s;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 10px;
+  cursor: pointer;
+  transition: color 0.2s;
 }
 
 .pagination-showall:hover {
-    color: #1746a2;
-    text-decoration: underline;
+  color: #1746a2;
+  text-decoration: underline;
 }
 
 .pagination-controls {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .pagination-btn {
-    background: #fff;
-    border: none;
-    color: #222;
-    border-radius: 8px;
-    padding: 0.35em 0.95em;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
+  background: #fff;
+  border: none;
+  color: #222;
+  border-radius: 8px;
+  padding: 0.35em 0.95em;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
 }
 
 .pagination-btn:hover:not(:disabled) {
-    background: #e0e7ef;
-    color: #1746a2;
+  background: #e0e7ef;
+  color: #1746a2;
 }
 
 .pagination-btn:disabled {
-    background: #f3f4f6;
-    color: #aaa;
-    cursor: not-allowed;
+  background: #f3f4f6;
+  color: #aaa;
+  cursor: not-allowed;
 }
 
 .pagination-btn.active {
-    background: #2563eb;
-    color: #fff;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
 }
+
+/* =========================
+   Custom Context Menu
+   ========================= */
 
 #stockContextMenu {
-    border-radius: 12px !important;
-    padding: 6px 0 !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
-    border: 1px solid rgba(0, 0, 0, 0.08) !important;
-}
-
-#stockContextMenu .dropdown-item {
-    padding: 10px 16px !important;
-    font-size: 0.95em;
-}
-
-#stockContextMenu .dropdown-item:hover {
-    background-color: #f0f4ff !important;
-    color: #2563eb !important;
-    border-radius: 6px;
-}
-
-#stockContextMenu .dropdown-item.text-danger:hover {
-    background-color: #ffecec !important;
-    color: #d40000 !important;
-}
-
-#stockContextMenu {
-    transform: scale(0.95);
-    opacity: 0;
-    transition: all 120ms ease-out;
+  border-radius: 12px !important;
+  padding: 6px 0 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  transform: scale(0.95);
+  opacity: 0;
+  transition: all 120ms ease-out;
 }
 
 #stockContextMenu.show {
-    transform: scale(1);
-    opacity: 1;
+  transform: scale(1);
+  opacity: 1;
 }
 
-/* Inventory Table css */
+#stockContextMenu .dropdown-item {
+  padding: 10px 16px !important;
+  font-size: 0.95em;
+}
+
+#stockContextMenu .dropdown-item:hover {
+  background-color: #f0f4ff !important;
+  color: #2563eb !important;
+  border-radius: 6px;
+}
+
+#stockContextMenu .dropdown-item.text-danger:hover {
+  background-color: #ffecec !important;
+  color: #d40000 !important;
+}
+
+/* =========================
+   Inventory Table
+   ========================= */
+
 .inventory-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 6px;
-    font-size: 14px;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  font-size: 14px;
 }
 
 .inventory-table thead th {
-    background: #f7f8fa;
-    font-weight: 600;
-    padding: 14px;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    border-bottom: 2px solid #e2e6ea;
+  background: #f7f8fa;
+  font-weight: 600;
+  padding: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 2px solid #e2e6ea;
 }
 
 .inventory-table tbody tr {
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .inventory-table tbody tr td {
-    padding: 12px 14px;
-    vertical-align: middle;
+  padding: 12px 14px;
+  vertical-align: middle;
 }
 
 .inventory-table tbody tr:hover {
-    background: #f2f7ff;
-    cursor: pointer;
+  background: #f2f7ff;
+  cursor: pointer;
 }
 
-/* Right-align numeric columns */
 .text-right {
-    text-align: right;
+  text-align: right;
 }
 
-/* Ellipsis for long text */
 .ellipsis {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
 }
 
-/* offcanvas styles */
-/* Limit and center the entire offcanvas width */
+/* =========================
+   Offcanvas (Stock Drawer)
+   ========================= */
+
 #stockDrawer.offcanvas-top {
-    width: 100%;
-    border-bottom-left-radius: 16px;
-    border-bottom-right-radius: 16px;
-    top: 0;
-    left: 50%;
-    font-weight: 400;
-    font-size: 1em;
+  width: 100%;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  top: 0;
+  left: 50%;
+  /* keep because you said JS is handling centering */
+  font-weight: 400;
+  font-size: 1em;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
 }
 
-/* Center container inside */
 #stockDrawer .drawer-container {
-    width: 100%;
-    max-width: 1200px;
-    /* adjust as you like */
-    margin: 0 auto;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-/* Optional: give the offcanvas itself a subtle shadow and rounded effect, like a floating sheet */
-#stockDrawer.offcanvas-top {
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-    font-size: 1em;
-}
-
-/* So the header also matches the centered content */
 #stockDrawer .offcanvas-header,
 #stockDrawer .offcanvas-body {
-    max-width: 1150px !important;
-    margin: 0 auto;
-    width: 100%;
+  max-width: 1150px !important;
+  margin: 0 auto;
+  width: 100%;
 }
 
 #stockDrawer .offcanvas-body {
-    padding-left: 24px;
-    padding-right: 24px;
+  padding-left: 24px;
+  padding-right: 24px;
+  overflow: visible !important;
 }
 
-/* Order offcanvas css */
-/* Card look for create-order inside the offcanvas */
-#drawerStateCreateOrder .order-card {
-    max-width: 1080px;
-    /* keeps it from feeling "edge to edge" */
-    margin: 0 auto;
-    /* center the card */
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-    padding: 14px 18px;
-    border: 1px solid #e5e7eb;
+/* =========================
+   Create Order – Compact Floating Labels
+   ========================= */
+
+#drawerStateCreateOrder .pill-form {
+  max-width: 900px;
+  margin: 8px auto 0;
+  font-size: 0.9rem;
 }
 
-/* Make each row slimmer and cleanly separated */
-#drawerStateCreateOrder .order-card .input-group {
-    border-bottom: 1px solid #eef1f5;
-    padding: 4px 0;
+/* Make layout compact (less vertical stacking feel) */
+#drawerStateCreateOrder .pill-form .mb-3 {
+  margin-bottom: 0.55rem !important;
 }
 
-#drawerStateCreateOrder .order-card .input-group:last-child {
-    border-bottom: none;
+#drawerStateCreateOrder .pill-form .row.g-3 {
+  --bs-gutter-y: 0.55rem;
+  margin-bottom: 0.55rem !important;
 }
 
-/* Label column styling */
-#drawerStateCreateOrder .order-card .input-group-text {
-    width: 160px;
-    background: hsl(220, 14%, 96%);
-    /* font-weight: 500; */
-    font-size: 1.1em;
-    color: #111827;
-    border: none;
-    border-right: 1px solid #e5e7eb;
+/* Compact but still readable */
+#drawerStateCreateOrder .form-floating>.form-control,
+#drawerStateCreateOrder .form-floating>.form-select {
+  height: 48px;
+  min-height: 48px;
+  padding: 1.15rem 0.9rem 0.35rem;
+  /* top right bottom */
+  font-size: 0.92rem;
+  border-radius: 12px;
 }
 
-/* Inputs: remove “hard” borders, more app-like */
-#drawerStateCreateOrder .order-card .form-control,
-#drawerStateCreateOrder .order-card select {
-    border: none;
-    box-shadow: none;
+/* Label size + positioning */
+#drawerStateCreateOrder .form-floating>label {
+  padding: 0.7rem 0.9rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+  transition: color 0.2s ease;
 }
 
-/* Small plus buttons (customer/account) */
-#drawerStateCreateOrder #showCustomerModalBtn,
-#drawerStateCreateOrder #showAccountForPaymentModalBtn {
-    border-radius: 0;
-    border: none;
-    padding-inline: 0.75rem;
+/* Focus ring (subtle, modern) */
+#drawerStateCreateOrder .form-control:focus,
+#drawerStateCreateOrder .form-select:focus {
+  border-color: #3385f0;
+  box-shadow: 0 0 0 3px rgba(51, 133, 240, 0.18);
 }
 
-/* Bottom action buttons area */
-#drawerStateCreateOrder+.d-flex {
-    margin-top: 8px;
+/* Label color on focus */
+#drawerStateCreateOrder .form-floating>.form-control:focus~label,
+#drawerStateCreateOrder .form-floating>.form-select:focus~label {
+  color: #3385f0;
 }
 
-#stockDrawer .offcanvas-body {
-    padding-inline: 24px;
+/* Readonly background */
+#drawerStateCreateOrder .form-control[readonly] {
+  background: #f3f4f6;
 }
 
-.order-form .form-label {
-    font-weight: 600;
-    color: #374151;
+/* =========================
+   Customer / Account + button
+   ========================= */
+
+/* Keep input + button same height and aligned */
+#drawerStateCreateOrder .amazon-field.d-flex {
+  align-items: stretch;
 }
 
-.order-form input[readonly],
-.order-form select[disabled] {
-    background: #f3f4f6;
+/* icon button style */
+#drawerStateCreateOrder .amazon-icon-btn {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #2563eb;
+  padding: 0;
+}
+
+#drawerStateCreateOrder .amazon-icon-btn i {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+#drawerStateCreateOrder .amazon-icon-btn:hover {
+  background: #eef4ff;
+  border-color: #9bbcf6;
+  color: #1746a2;
+}
+
+/* If you keep btn-primary on it, force it to still look consistent */
+#drawerStateCreateOrder .amazon-icon-btn.btn-primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+#drawerStateCreateOrder .amazon-icon-btn.btn-primary:hover {
+  background: #1746a2;
+  border-color: #1746a2;
+}
+
+/* =========================
+   Minor improvements
+   ========================= */
+
+/* Make selects align visually with inputs */
+#drawerStateCreateOrder .form-select {
+  padding-right: 2.25rem;
+}
+
+/* Prevent datalist input from looking weird in some browsers */
+#drawerStateCreateOrder input[list]::-webkit-calendar-picker-indicator {
+  display: none !important;
+}
+
+/* customer list css */
+/* Customer dropdown like pic-2 */
+.customer-select .form-control {
+  padding-right: 42px;
+  /* space for icon */
+}
+
+.customer-search-icon {
+  position: absolute;
+  right: 14px;
+  top: 18px;
+  /* works nicely with form-floating */
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.customer-dropdown {
+  /* position: fixed;          IMPORTANT */
+  /* top: 0; left: 0;          will be set by JS */
+  width: 300px;
+  /* will be set by JS */
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
+  z-index: 20000;
+  overflow: hidden;
+}
+
+
+.customer-list {
+  max-height: 320px;
+  overflow: auto;
+}
+
+.customer-list .list-group-item {
+  border: 0;
+  padding: 14px 16px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.customer-list .list-group-item:hover {
+  background: #f4f7ff;
+}
+
+.customer-list .list-group-item.active {
+  background: #e9f0ff;
+  color: inherit;
+}
+
+#paymentAcount {
+  cursor: text;
+}
+
+#paymentAcount:disabled {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
 }

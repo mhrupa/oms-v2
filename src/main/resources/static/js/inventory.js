@@ -5,6 +5,7 @@ const rowsPerPage = 10;
 var currentPage = 1;
 var searchString = "";
 let currentStock = null;
+let createOrderLoaded = false;
 
 // Function to render inventory table
 function renderTable() {
@@ -148,8 +149,8 @@ function showDrawerState(state) {
     } else if (state === 'createOrder') {
         $('#drawerStateCreateOrder').removeClass('d-none');
         $('#stockDrawerLabel').text('Create Order');
-        $drawer.css('height', '65vh');
-        centerOffcanvas(1150);
+        $drawer.css('height', '85vh');
+        centerOffcanvas(980);
     }
 }
 
@@ -177,7 +178,6 @@ function showContextMenu(e, item) {
 function setupPagination(totalPages, currentPage, size) {
     const paginationControls = $('#pagination-controls');
     paginationControls.empty(); // Clear existing controls
-    console.log('Setting up pagination: totalPages, currentPage, size', totalPages, currentPage, size);
     for (let i = 0; i < totalPages; i++) {
         const pageButton = `<button class="page-btn" data-page="${i}">${i + 1}</button>`;
         paginationControls.append(pageButton);
