@@ -25,6 +25,7 @@ const SearchDropdown = (function () {
         } = cfg;
 
         let activeIndex = -1;
+        const inputEl = document.getElementById(inputId);
 
         function getViewportHeight() {
             return window.visualViewport ? window.visualViewport.height : window.innerHeight;
@@ -32,6 +33,11 @@ const SearchDropdown = (function () {
 
         function clamp(n, min, max) {
             return Math.max(min, Math.min(max, n));
+        }
+
+        function isDisabled() {
+            const el = document.getElementById(inputId);
+            return !el || el.disabled || el.readOnly;
         }
 
         function open() {
@@ -127,11 +133,32 @@ const SearchDropdown = (function () {
         /* ===== Delegated bindings (safe with dynamic DOM) ===== */
 
         // Open (use off/on to avoid duplicate bindings if create() is called again)
-        $(document)
+        /* $(document)
             .off(`pointerdown.${inputId}`)
             .on(`pointerdown.${inputId}`, `#${inputId}`, function () {
                 render(this.value);
                 open();
+            }); */
+
+        $(document)
+            .off(`pointerdown.${inputId}`)
+            .on(`pointerdown.${inputId}`, `#${inputId}`, function (e) {
+                if (isDisabled()) {
+                    close();          // ensure hidden
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+
+                render(this.value);
+                open();
+            });
+
+        // Focus
+        $(document)
+            .off(`focus.${inputId}`)
+            .on(`focus.${inputId}`, `#${inputId}`, function (e) {
+                if (isDisabled()) return close();
             });
 
         // Typing

@@ -1,156 +1,153 @@
-<div id="drawerStateCreateOrder" class="d-none">
-    <form id="formCreateOrder" class="pill-form">
+<form id="formCreateOrder" class="pill-form">
 
-        <!-- Challan No -->
-        <div class="mb-3">
-            <div class="form-floating amazon-field">
-                <input type="text" class="form-control" id="challanNo" placeholder="Challan No" readonly tabindex="-1">
-                <label for="challanNo">Challan No</label>
-            </div>
+    <!-- Challan No -->
+    <div class="mb-3">
+        <div class="form-floating amazon-field">
+            <input type="text" class="form-control" id="challanNo" placeholder="Challan No" readonly tabindex="-1">
+            <label for="challanNo">Challan No</label>
         </div>
+    </div>
 
-        <!-- Order Date -->
-        <div class="mb-3">
-            <div class="form-floating amazon-field">
-                <input type="text" class="form-control" id="orderDate" placeholder="Order Date" autocomplete="off"
-                    readonly>
-                <label for="orderDate">Order Date</label>
-            </div>
+    <!-- Order Date -->
+    <div class="mb-3">
+        <div class="form-floating amazon-field">
+            <input type="text" class="form-control" id="orderDate" placeholder="Order Date" autocomplete="off" readonly>
+            <label for="orderDate">Order Date</label>
         </div>
+    </div>
 
-        <!-- Particulars -->
-        <div class="mb-3">
-            <div class="form-floating amazon-field">
-                <input type="text" class="form-control" id="itemDetailsForOrder" placeholder="Particulars" readonly>
-                <label for="itemDetailsForOrder">Particulars</label>
-            </div>
+    <!-- Particulars -->
+    <div class="mb-3">
+        <div class="form-floating amazon-field">
+            <input type="text" class="form-control" id="itemDetailsForOrder" placeholder="Particulars" readonly>
+            <label for="itemDetailsForOrder">Particulars</label>
         </div>
+    </div>
 
-        <!-- Customer + Add -->
-        <div class="mb-3">
-            <div class="amazon-field d-flex gap-2">
-                <div class="form-floating flex-grow-1 position-relative customer-select">
-                    <input class="form-control" id="customer" required autocomplete="off" placeholder="Customer">
-                    <label for="customer">Customer</label>
-                    <!-- Search icon inside input -->
-                    <span class="customer-search-icon">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <!-- Custom dropdown -->
-                    <div id="customerDropdown" class="customer-dropdown d-none">
-                        <div id="customerList" class="list-group customer-list"></div>
-                    </div>
-                    <!-- store selected customerId -->
-                    <input type="hidden" id="customerId" />
-                    <div class="invalid-feedback">Customer is required.</div>
+    <!-- Customer + Add -->
+    <div class="mb-3">
+        <div class="amazon-field d-flex gap-2">
+            <div class="form-floating flex-grow-1 position-relative customer-select">
+                <input class="form-control" id="customer" required autocomplete="off" placeholder="Customer">
+                <label for="customer">Customer</label>
+                <!-- Search icon inside input -->
+                <span class="customer-search-icon">
+                    <i class="bi bi-search"></i>
+                </span>
+                <!-- Custom dropdown -->
+                <div id="customerDropdown" class="customer-dropdown d-none">
+                    <div id="customerList" class="list-group customer-list"></div>
                 </div>
-                <button type="button" class="btn amazon-icon-btn btn-primary amazon-icon-btn" id="btnAddCustomer"
-                    title="Add new customer">
-                    <i class="bi bi-plus-lg"></i>
-                </button>
+                <!-- store selected customerId -->
+                <input type="hidden" id="customerId" />
+                <div class="invalid-feedback">Customer is required.</div>
             </div>
-        </div>
-
-        <!-- Sell Price -->
-        <div class="row g-3 mb-3">
-            <div class="col-6">
-                <div class="form-floating amazon-field">
-                    <input type="number" class="form-control" id="itemSellRate" placeholder="Sell Price" readonly>
-                    <label for="itemSellRate">Sell Price</label>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="form-floating amazon-field">
-                    <input type="number" class="form-control" id="newItemSellRate" min="1" placeholder="Sell Price" required>
-                    <label for="newItemSellRate">New Sell Price</label>
-                    <div class="invalid-feedback">New Sell Price is required.</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quantity / Amount -->
-        <div class="row g-3 mb-3">
-            <div class="col-6">
-                <div class="form-floating amazon-field">
-                    <input type="number" class="form-control" id="itemQuantity" placeholder="Quantity" value="0">
-                    <label for="itemQuantity">Quantity</label>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="form-floating amazon-field">
-                    <input type="number" class="form-control" id="itemAmount" placeholder="Amount" readonly>
-                    <label for="itemAmount">Amount</label>
-                </div>
-            </div>
-        </div>
-
-        <!-- Courier / Order Amount -->
-        <div class="row g-3 mb-3">
-            <div class="col-6">
-                <div class="form-floating amazon-field">
-                    <input type="number" class="form-control" id="courierCharges" placeholder="Courier Charges"
-                        value="0">
-                    <label for="courierCharges">Courier Charges</label>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="form-floating amazon-field">
-                    <input type="number" class="form-control" id="orderAmount" placeholder="Order Amount" readonly>
-                    <label for="orderAmount">Order Amount</label>
-                </div>
-            </div>
-        </div>
-
-        <!-- Payment Type -->
-        <div class="mb-3">
-            <div class="form-floating amazon-field">
-                <select class="form-select" id="paymentType" aria-label="Payment Type">
-                    <option value="0" selected>Select Payment Type</option>
-                    <option value="cash">Cash</option>
-                    <option value="vpp">VPP</option>
-                    <option value="paytm">Paytm</option>
-                    <option value="bank">Bank</option>
-                    <option value="pending">Pending</option>
-                </select>
-                <label for="paymentType">Payment Type</label>
-            </div>
-        </div>
-
-        <!-- Account Name + Add -->
-
-        <div class="mb-3">
-            <div class="amazon-field d-flex gap-2">
-                <div class="form-floating flex-grow-1 position-relative customer-select">
-                    <input class="form-control" id="paymentAcount" autocomplete="off" placeholder="Account Name">
-                    <label for="paymentAcount">Account Name</label>
-                    <!-- Search icon inside input -->
-                    <span class="customer-search-icon">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <!-- Customer Account dropdown -->
-                    <div id="paymentAccountDropdown" class="customer-dropdown d-none">
-                        <div id="paymentAccountList" class="list-group customer-list"></div>
-                    </div>
-                    <!-- store selected customer account Id -->
-                    <input type="hidden" id="paymentAccountId">
-                </div>
-                <button type="button" class="btn amazon-icon-btn btn-primary amazon-icon-btn" id="btnAddPaymentAccount"
-                    title="Add Payment Account">
-                    <i class="bi bi-plus-lg"></i>
-                </button>
-            </div>
-        </div>
-
-
-        <!-- Actions -->
-        <div class="d-flex justify-content-end gap-2 mt-3">
-            <button type="button" class="btn btn-secondary" id="btnCancelCreateOrder">
-                Close
-            </button>
-            <button type="submit" id="btnCreateOrder" class="btn btn-primary">
-                Create Order
+            <button type="button" class="btn amazon-icon-btn btn-primary amazon-icon-btn" id="btnAddCustomer" tabindex="-1"
+                title="Add new customer">
+                <i class="bi bi-plus-lg"></i>
             </button>
         </div>
-        <div id="ccErrorBox" class="alert alert-danger mt-3 d-none" role="alert"></div>
-    </form>
-</div>
+    </div>
+
+    <!-- Sell Price -->
+    <div class="row g-3 mb-3">
+        <div class="col-6">
+            <div class="form-floating amazon-field">
+                <input type="number" class="form-control" id="itemSellRate" tabindex="-1" placeholder="Sell Price" readonly>
+                <label for="itemSellRate">Sell Price</label>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="form-floating amazon-field">
+                <input type="number" class="form-control" id="newItemSellRate" min="1" placeholder="Sell Price"
+                    required>
+                <label for="newItemSellRate">New Sell Price</label>
+                <div class="invalid-feedback">New Sell Price is required.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quantity / Amount -->
+    <div class="row g-3 mb-3">
+        <div class="col-6">
+            <div class="form-floating amazon-field">
+                <input type="number" class="form-control" id="itemQuantity" placeholder="Quantity" value="0">
+                <label for="itemQuantity">Quantity</label>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="form-floating amazon-field">
+                <input type="number" class="form-control" tabindex="-1" id="itemAmount" placeholder="Amount" readonly>
+                <label for="itemAmount">Amount</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Courier / Order Amount -->
+    <div class="row g-3 mb-3">
+        <div class="col-6">
+            <div class="form-floating amazon-field">
+                <input type="number" class="form-control" id="courierCharges" placeholder="Courier Charges" value="0">
+                <label for="courierCharges">Courier Charges</label>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="form-floating amazon-field">
+                <input type="number" class="form-control" tabindex="-1" id="orderAmount" placeholder="Order Amount" readonly>
+                <label for="orderAmount">Order Amount</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Type -->
+    <div class="mb-3">
+        <div class="form-floating amazon-field">
+            <select class="form-select" id="paymentType" aria-label="Payment Type">
+                <option value="0">Select Payment Type</option>
+                <option value="cash" selected>Cash</option>
+                <option value="vpp">VPP</option>
+                <option value="paytm">Paytm</option>
+                <option value="bank">Bank</option>
+                <option value="pending">Pending</option>
+            </select>
+            <label for="paymentType">Payment Type</label>
+        </div>
+    </div>
+
+    <!-- Account Name + Add -->
+
+    <div class="mb-3">
+        <div class="amazon-field d-flex gap-2">
+            <div class="form-floating flex-grow-1 position-relative customer-select">
+                <input class="form-control" id="paymentAcount" autocomplete="off" disabled placeholder="Account Name">
+                <label for="paymentAcount">Account Name</label>
+                <!-- Search icon inside input -->
+                <span class="customer-search-icon">
+                    <i class="bi bi-search"></i>
+                </span>
+                <!-- Customer Account dropdown -->
+                <div id="paymentAccountDropdown" class="customer-dropdown d-none">
+                    <div id="paymentAccountList" class="list-group customer-list"></div>
+                </div>
+                <!-- store selected customer account Id -->
+                <input type="hidden" id="paymentAccountId">
+            </div>
+            <button type="button" class="btn amazon-icon-btn btn-primary amazon-icon-btn" id="btnAddPaymentAccount"
+                title="Add Payment Account">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- Actions -->
+    <div class="d-flex justify-content-end gap-2 mt-3">
+        <button type="button" class="btn btn-secondary" id="btnCancelCreateOrder">
+            Close
+        </button>
+        <button type="submit" id="btnCreateOrder" class="btn btn-primary">
+            Create Order
+        </button>
+    </div>
+    <div id="ccErrorBox" class="alert alert-danger mt-3 d-none" role="alert"></div>
+</form>

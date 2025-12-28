@@ -89,15 +89,7 @@ function addInventoryTableRow(item, tableBody) {
     const td9 = document.createElement('td');
     td9.textContent = `${item.vendorName}`;
     row.appendChild(td9);
-
     row.style.cursor = 'pointer';
-    // row.onclick = function () { showRowPopup(item); };
-    // row.onclick = function () {
-    //     //currentStock = item;
-    //     //renderOverview(item);
-    //     //showDrawerState('overview');
-    //     //stockDrawer.show();
-    // };
     row.oncontextmenu = function (e) {
         showContextMenu(e, item);
     }
@@ -138,7 +130,8 @@ function showDrawerState(state) {
     // hide all
     $('#drawerStateOverview, #drawerStateUpdateStock, #drawerStateCreateOrder').addClass('d-none');
     const $drawer = $('#stockDrawer');
-    $drawer.css('height', '');
+    // reset styles that can break measurement
+    $drawer.css({ height: '', overflow: '', display: '' });
     resetOffcanvasFullWidth();
     if (state === 'overview') {
         $('#drawerStateOverview').removeClass('d-none');
@@ -147,10 +140,40 @@ function showDrawerState(state) {
         $('#drawerStateUpdateStock').removeClass('d-none');
         $('#stockDrawerLabel').text('Update Stock');
     } else if (state === 'createOrder') {
+        console.log("state: createOrder");
         $('#drawerStateCreateOrder').removeClass('d-none');
         $('#stockDrawerLabel').text('Create Order');
+
         $drawer.css('height', '85vh');
+
+        // keep your current call
         centerOffcanvas(980);
+
+        // ✅ HARD RESET: ensure the createOrder container can layout
+        const $body = $drawer.find('.offcanvas-body');
+
+        // Offcanvas body must be able to size children
+        $body.css({
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            minHeight: '0'          // important for flex + overflow containers
+        });
+
+        // Create order wrapper must take space
+        $('#drawerStateCreateOrder').css({
+            display: 'block',
+            width: '100%',
+            flex: '1 1 auto',
+            minHeight: '1px'
+        });
+
+        // Form must participate in layout
+        $('#formCreateOrder').css({
+            display: 'block',
+            width: '100%',
+            minHeight: '1px'
+        });
     }
 }
 
